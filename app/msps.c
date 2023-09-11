@@ -44,29 +44,31 @@ void HAL_MspInit( void )
 /* cppcheck-suppress misra-c2012-8.4 ; its external linkage is declared at HAL library */
 void HAL_RTC_MspInit( RTC_HandleTypeDef *hrtc )
 {
-    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-    RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+    (void)hrtc;
 
-    __HAL_RCC_SYSCFG_CLK_ENABLE();
-    __HAL_RCC_PWR_CLK_ENABLE();
+    RCC_OscInitTypeDef RCC_OscInitStruct         = { 0 };
+    RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = { 0 };
+
+    __HAL_RCC_SYSCFG_CLK_ENABLE( );
+    __HAL_RCC_PWR_CLK_ENABLE( );
 
     HAL_PWREx_ControlVoltageScaling( PWR_REGULATOR_VOLTAGE_SCALE1 );
-    HAL_PWR_EnableBkUpAccess();
+    HAL_PWR_EnableBkUpAccess( );
     __HAL_RCC_LSEDRIVE_CONFIG( RCC_LSEDRIVE_LOW );
 
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
-    PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_NONE;
-    HAL_RCCEx_PeriphCLKConfig ( &PeriphClkInitStruct );
+    PeriphClkInitStruct.RTCClockSelection    = RCC_RTCCLKSOURCE_NONE;
+    HAL_RCCEx_PeriphCLKConfig( &PeriphClkInitStruct );
 
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI | RCC_OSCILLATORTYPE_LSE;
-    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-    RCC_OscInitStruct.LSEState = RCC_LSE_ON;
-    RCC_OscInitStruct.LSIState = RCC_LSI_OFF;
+    RCC_OscInitStruct.PLL.PLLState   = RCC_PLL_NONE;
+    RCC_OscInitStruct.LSEState       = RCC_LSE_ON;
+    RCC_OscInitStruct.LSIState       = RCC_LSI_OFF;
     HAL_RCC_OscConfig( &RCC_OscInitStruct );
 
     PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
     HAL_RCCEx_PeriphCLKConfig( &PeriphClkInitStruct );
 
-    __HAL_RCC_RTC_ENABLE();
-    __HAL_RCC_RTCAPB_CLK_ENABLE();
+    __HAL_RCC_RTC_ENABLE( );
+    __HAL_RCC_RTCAPB_CLK_ENABLE( );
 }
