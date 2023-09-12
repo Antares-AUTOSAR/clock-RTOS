@@ -72,3 +72,54 @@ void HAL_RTC_MspInit( RTC_HandleTypeDef *hrtc )
     __HAL_RCC_RTC_ENABLE( );
     __HAL_RCC_RTCAPB_CLK_ENABLE( );
 }
+
+/* cppcheck-suppress misra-c2012-8.4 ; its external linkage is declared at HAL library */
+void HAL_FDCAN_MspInit( FDCAN_HandleTypeDef *hfdcan )
+{
+    (void)hfdcan;
+
+    GPIO_InitTypeDef GpioCanStruct;
+
+    /* Enable the clocks of the peripherals GPIO and CAN */
+    __HAL_RCC_FDCAN_CLK_ENABLE( );
+    __HAL_RCC_GPIOD_CLK_ENABLE( );
+
+    /* Set pin 0(rx) and pin 1(x) to alternate mode for FDCAN1 */
+    GpioCanStruct.Mode      = GPIO_MODE_AF_PP;
+    GpioCanStruct.Alternate = GPIO_AF3_FDCAN1;
+    GpioCanStruct.Pin       = GPIO_PIN_0 | GPIO_PIN_1;
+    GpioCanStruct.Pull      = GPIO_NOPULL;
+    GpioCanStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init( GPIOD, &GpioCanStruct );
+}
+
+/* cppcheck-suppress misra-c2012-8.4 ; its external linkage is declared at HAL library */
+void HAL_SPI_MspInit( SPI_HandleTypeDef *hspi )
+{
+    (void)hspi;
+
+    GPIO_InitTypeDef GPIO_InitStruct;
+    __GPIOD_CLK_ENABLE();
+    __SPI1_CLK_ENABLE();
+
+    GPIO_InitStruct.Pin = GPIO_PIN_5| GPIO_PIN_6|GPIO_PIN_8;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF1_SPI1;
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+}
+
+/* cppcheck-suppress misra-c2012-8.4 ; its external linkage is declared at HAL library */
+void HAL_ADC_MspInit( ADC_HandleTypeDef* hadc ) 
+{
+    GPIO_InitTypeDef GPIO_InitStruct;
+
+    __ADC_CLK_ENABLE(); /*enable adc clock*/
+    __GPIOA_CLK_ENABLE(); /*enable clock port where the adc 0 is connected*/
+    GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_5|GPIO_PIN_6;
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG; /*pin in analog mode*/
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+}
+
