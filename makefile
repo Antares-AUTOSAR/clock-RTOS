@@ -26,6 +26,8 @@ SRCS += stm32g0xx_hal_rcc_ex.c
 SRCS += stm32g0xx_hal_pwr.c
 SRCS += stm32g0xx_hal_adc.c
 SRCS += stm32g0xx_hal_adc_ex.c
+SRCS += stm32g0xx_hal_tim.c
+SRCS += stm32g0xx_hal_tim_ex.c
 # linker file
 LINKER = linker.ld
 # Global symbols (#defines)
