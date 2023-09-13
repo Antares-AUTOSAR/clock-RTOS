@@ -17,6 +17,7 @@ SRCS += list.c heap_1.c port.c queue.c tasks.c timers.c
 SRCS += SEGGER_SYSVIEW.c SEGGER_RTT.c SEGGER_SYSVIEW_Conf.c SEGGER_SYSVIEW_FreeRTOS.c SEGGER_RTT_printf.c
 SRCS += stm32g0xx_hal.c stm32g0xx_hal_cortex.c stm32g0xx_hal_rcc.c stm32g0xx_hal_flash.c
 SRCS += stm32g0xx_hal_gpio.c stm32g0xx_hal_pwr_ex.c
+SRCS += stm32g0xx_hal_spi.c stm32g0xx_hal_spi_ex.c lcd.c
 # linker file
 LINKER = linker.ld
 # Global symbols (#defines)
