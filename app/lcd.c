@@ -170,7 +170,7 @@ __weak void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )
  * @brief   Function to send a command to the LCD using the SPI
  *
  * The function must wait as long as necessary for the command to be accepted
- * by the LCD .
+ * by the LCD.
  *
  * @param[out] hlcd
  * @param[in] cmd
