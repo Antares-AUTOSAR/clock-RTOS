@@ -37,10 +37,15 @@ int main( void )
     static StackType_t xTaskStack_50ms[ TASK_STACK_SIZE ];
     static StackType_t xTaskStack_100ms[ TASK_STACK_SIZE ];
 
+    /*Periodicity of each task*/
+    uint8_t serialPeriod  = 10;
+    uint8_t clockPeriod   = 50;
+    uint8_t displayPeriod = 100;
+
     /*Creation of tasks with different periodicities using static memory*/
-    xTaskCreateStatic( Task_10ms, "Task10ms", TASK_STACK_SIZE, NULL, 3u, xTaskStack_10ms, &xTaskBuffer_10ms );
-    xTaskCreateStatic( Task_50ms, "Task50ms", TASK_STACK_SIZE, NULL, 2u, xTaskStack_50ms, &xTaskBuffer_50ms );
-    xTaskCreateStatic( Task_100ms, "Task100ms", TASK_STACK_SIZE, NULL, 1u, xTaskStack_100ms, &xTaskBuffer_100ms );
+    xTaskCreateStatic( Task_10ms, "Task10ms", TASK_STACK_SIZE, &serialPeriod, 3u, xTaskStack_10ms, &xTaskBuffer_10ms );
+    xTaskCreateStatic( Task_50ms, "Task50ms", TASK_STACK_SIZE, &clockPeriod, 2u, xTaskStack_50ms, &xTaskBuffer_50ms );
+    xTaskCreateStatic( Task_100ms, "Task100ms", TASK_STACK_SIZE, &displayPeriod, 1u, xTaskStack_100ms, &xTaskBuffer_100ms );
 
     vTaskStartScheduler( );
     return 0;
@@ -48,40 +53,37 @@ int main( void )
 
 static void Task_10ms( void *parameters )
 {
-    UNUSED( parameters );
-    TickType_t xLastWakeTime = xTaskGetTickCount( );
+    TickType_t xLastWakeTime  = xTaskGetTickCount( );
+    uint8_t serialPeriodicity = *( (uint8_t *)parameters ); /*cppcheck-suppress misra-c2012-11.5 ; Take the value of function parameter*/
 
     for( ;; )
     {
-        // Tarea 10 ms
         SEGGER_RTT_printf( 0, "Tarea 10 ms\n" );
-        vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( 10 ) );
+        vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( serialPeriodicity ) );
     }
 }
 
 static void Task_50ms( void *parameters )
 {
-    UNUSED( parameters );
     TickType_t xLastWakeTime = xTaskGetTickCount( );
+    uint8_t clockPeriodicity = *( (uint8_t *)parameters ); /*cppcheck-suppress misra-c2012-11.5 ; Take the value of function parameter*/
 
     for( ;; )
     {
-        // Tarea 50 ms
         SEGGER_RTT_printf( 0, "Tarea 50 ms\n" );
-        vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( 50 ) );
+        vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( clockPeriodicity ) );
     }
 }
 
 static void Task_100ms( void *parameters )
 {
-    UNUSED( parameters );
-    TickType_t xLastWakeTime = xTaskGetTickCount( );
+    TickType_t xLastWakeTime   = xTaskGetTickCount( );
+    uint8_t displayPeriodicity = *( (uint8_t *)parameters ); /*cppcheck-suppress misra-c2012-11.5 ; Take the value of function parameter*/
 
     for( ;; )
     {
-        // Tarea 100 ms
         SEGGER_RTT_printf( 0, "Tarea 100 ms\n" );
-        vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( 100 ) );
+        vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( displayPeriodicity ) );
     }
 }
 
