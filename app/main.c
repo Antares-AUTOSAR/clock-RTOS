@@ -1,65 +1,140 @@
 /**
  * @file    main.c
- * @brief   **Template Application entry point**
  *
- * The main file is the entry point of the application or any user code, please provide the proper
- * description of this file according to your own implementation This Demo app only blinks an LED
- * connected to PortA Pin 5
- *
- * @note    Only the files inside folder app will be take them into account when the doxygen runs
- *          by typing "make docs", index page is generated in
- *          Build/doxigen/html/index.html
  */
 #include "bsp.h"
 
-static void vTask( void *parameters );
+/*Prototype of static memory*/
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
+                                    StackType_t **ppxIdleTaskStackBuffer,
+                                    uint32_t *pulIdleTaskStackSize );
+/*Prototype of timer in static memory*/
+void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer,
+                                     StackType_t **ppxTimerTaskStackBuffer,
+                                     uint32_t *pulTimerTaskStackSize );
 
-/**
- * @brief   **Application entry point**
- *
- * Provide the proper description for function main according to your own implementation
- *
- * @retval  None
- */
+/*Save the buffer dimentions*/
+#define TASK_STACK_SIZE 128u
+
+/*Task to developed*/
+static void Task_10ms( void *parameters );
+static void Task_50ms( void *parameters );
+static void Task_100ms( void *parameters );
+
 int main( void )
 {
+    /*Enable RTT and system view*/
     HAL_Init( );
-    /*enable RTT and system view*/
     SEGGER_SYSVIEW_Conf( );
     SEGGER_SYSVIEW_Start( );
 
-    xTaskCreate( vTask, "Task", 128u, NULL, 1u, NULL );
+    /*Declaration of task control structures for the static memory*/
+    static StaticTask_t xTaskBuffer_10ms;
+    static StaticTask_t xTaskBuffer_50ms;
+    static StaticTask_t xTaskBuffer_100ms;
+
+    static StackType_t xTaskStack_10ms[ TASK_STACK_SIZE ];
+    static StackType_t xTaskStack_50ms[ TASK_STACK_SIZE ];
+    static StackType_t xTaskStack_100ms[ TASK_STACK_SIZE ];
+
+    /*Creation of tasks with different periodicities using static memory*/
+    xTaskCreateStatic( Task_10ms, "Task10ms", TASK_STACK_SIZE, NULL, 3u, xTaskStack_10ms, &xTaskBuffer_10ms );
+    xTaskCreateStatic( Task_50ms, "Task50ms", TASK_STACK_SIZE, NULL, 2u, xTaskStack_50ms, &xTaskBuffer_50ms );
+    xTaskCreateStatic( Task_100ms, "Task100ms", TASK_STACK_SIZE, NULL, 1u, xTaskStack_100ms, &xTaskBuffer_100ms );
 
     vTaskStartScheduler( );
-
-    return 0u;
+    return 0;
 }
 
-/**
- * @brief   **Sample task**
- *
- * This is only a demo task that blinks a led and displaya message in the segger terminal
- *
- * @param[in]   parameters any data pass by reference to task function
- */
-static void vTask( void *parameters )
+static void Task_10ms( void *parameters )
 {
     UNUSED( parameters );
-    GPIO_InitTypeDef GPIO_InitStruct;
-
-    __HAL_RCC_GPIOC_CLK_ENABLE( );
-
-    GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull  = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    GPIO_InitStruct.Pin   = GPIO_PIN_0;
-    HAL_GPIO_Init( GPIOC, &GPIO_InitStruct );
+    TickType_t xLastWakeTime = xTaskGetTickCount( );
 
     for( ;; )
     {
-        HAL_GPIO_TogglePin( GPIOC, GPIO_PIN_0 );
-        /*this is just like semihosting but only takes microseconds*/
-        SEGGER_RTT_printf( 0, "Hola mundo de SEGGER\r\n" );
-        HAL_Delay( 2000u );
+        // Tarea 10 ms
+        SEGGER_RTT_printf( 0, "Tarea 10 ms\n" );
+        vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( 10 ) );
     }
+}
+
+static void Task_50ms( void *parameters )
+{
+    UNUSED( parameters );
+    TickType_t xLastWakeTime = xTaskGetTickCount( );
+
+    for( ;; )
+    {
+        // Tarea 50 ms
+        SEGGER_RTT_printf( 0, "Tarea 50 ms\n" );
+        vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( 50 ) );
+    }
+}
+
+static void Task_100ms( void *parameters )
+{
+    UNUSED( parameters );
+    TickType_t xLastWakeTime = xTaskGetTickCount( );
+
+    for( ;; )
+    {
+        // Tarea 100 ms
+        SEGGER_RTT_printf( 0, "Tarea 100 ms\n" );
+        vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( 100 ) );
+    }
+}
+
+/* configSUPPORT_STATIC_ALLOCATION is set to 1, so the application must provide an
+implementation of vApplicationGetIdleTaskMemory() to provide the memory that is
+used by the Idle task. */
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
+                                    StackType_t **ppxIdleTaskStackBuffer,
+                                    uint32_t *pulIdleTaskStackSize )
+{
+    /* If the buffers to be provided to the Idle task are declared inside this
+    function then they must be declared static - otherwise they will be allocated on
+    the stack and so not exist after this function exits. */
+    static StaticTask_t xIdleTaskTCB;
+    static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ]; /*cppcheck-suppress misra-c2012-18.8 ; Its necesarry to have the static memory*/
+
+
+    /* Pass out a pointer to the StaticTask_t structure in which the Idle task's
+    state will be stored. */
+    *ppxIdleTaskTCBBuffer = &xIdleTaskTCB;
+
+    /* Pass out the array that will be used as the Idle task's stack. */
+    *ppxIdleTaskStackBuffer = uxIdleTaskStack;
+
+    /* Pass out the size of the array pointed to by *ppxIdleTaskStackBuffer.
+    Note that, as the array is necessarily of type StackType_t,
+    configMINIMAL_STACK_SIZE is specified in words, not bytes. */
+    *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
+}
+
+
+/* configSUPPORT_STATIC_ALLOCATION and configUSE_TIMERS are both set to 1, so the
+application must provide an implementation of vApplicationGetTimerTaskMemory()
+to provide the memory that is used by the Timer service task. */
+void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer,
+                                     StackType_t **ppxTimerTaskStackBuffer,
+                                     uint32_t *pulTimerTaskStackSize )
+{
+    /* If the buffers to be provided to the Timer task are declared inside this
+    function then they must be declared static - otherwise they will be allocated on
+    the stack and so not exists after this function exits. */
+    static StaticTask_t xTimerTaskTCB;
+    static StackType_t uxTimerTaskStack[ configTIMER_TASK_STACK_DEPTH ]; /*cppcheck-suppress misra-c2012-18.8 ; Its necesarry to have the static memory*/
+
+    /* Pass out a pointer to the StaticTask_t structure in which the Timer
+    task's state will be stored. */
+    *ppxTimerTaskTCBBuffer = &xTimerTaskTCB;
+
+    /* Pass out the array that will be used as the Timer task's stack. */
+    *ppxTimerTaskStackBuffer = uxTimerTaskStack;
+
+    /* Pass out the size of the array pointed to by *ppxTimerTaskStackBuffer.
+    Note that, as the array is necessarily of type StackType_t,
+    configTIMER_TASK_STACK_DEPTH is specified in words, not bytes. */
+    *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
 }
