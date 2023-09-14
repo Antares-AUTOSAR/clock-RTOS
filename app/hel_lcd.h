@@ -1,12 +1,12 @@
 /**
- * @file    lcd.h
+ * @file    hel_lcd.h
  * @brief   Board Support LCD for microcontroller STM32
  *
  * File provides the neccesary drivers, libraries, and configurations for the LCD.
  *
  */
-#ifndef LCD_H_
-#define LCD_H_
+#ifndef HEL_LCD_H_
+#define HEL_LCD_H_
 
 #include "bsp.h"
 #include <stdint.h>

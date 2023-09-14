@@ -1,17 +1,17 @@
 /**
- * @file    lcd.c
+ * @file    hel_lcd.c
  * @brief   Board Support LCD for microcontroller STM32
  *
  * File provides the neccesary drivers, libraries, and configurations for the LCD.
  *
  */
 #include "bsp.h"
-#include "lcd.h"
+#include "hel_lcd.h"
 #include <stdint.h>
 
-#define OFF    0u /*!< Brief description */
-#define ON     1u /*!< Brief description */
-#define TOGGLE 2u /*!< Brief description */
+#define LCD_OFF    0u /*!< Brief description */
+#define LCD_ON     1u /*!< Brief description */
+#define LCD_TOGGLE 2u /*!< Brief description */
 
 static void delay_ms( uint32_t miliseconds );
 
@@ -170,7 +170,7 @@ __weak void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )
  * @brief   Function to send a command to the LCD using the SPI
  *
  * The function must wait as long as necessary for the command to be accepted
- * by the LCD.
+ * by the LCD .
  *
  * @param[out] hlcd
  * @param[in] cmd
@@ -247,21 +247,26 @@ uint8_t HEL_LCD_String( LCD_HandleTypeDef *hlcd, char *str )
 uint8_t HEL_LCD_SetCursor( LCD_HandleTypeDef *hlcd, uint8_t row, uint8_t col )
 {
 
-    uint8_t value   = HAL_OK;
-    uint8_t address = 0;
+    uint8_t value = HAL_ERROR;
 
-    if( row == 0u )
+    if( ( row < 2u ) && ( col < 16u ) )
     {
 
-        address = col;
-    }
-    else
-    {
+        uint8_t address_offset = 0;
 
-        address = (uint8_t)0x40 + col;
-    }
+        if( row == 0u )
+        {
 
-    value = HEL_LCD_Command( hlcd, (uint8_t)0x80 | address );
+            address_offset = col;
+        }
+        else
+        {
+
+            address_offset = (uint8_t)0x40 + col;
+        }
+
+        value = HEL_LCD_Command( hlcd, (uint8_t)0x80 | address_offset );
+    }
 
     return value;
 }
@@ -274,19 +279,19 @@ uint8_t HEL_LCD_SetCursor( LCD_HandleTypeDef *hlcd, uint8_t row, uint8_t col )
 void HEL_LCD_Backlight( LCD_HandleTypeDef *hlcd, uint8_t state )
 {
 
-    if( state == OFF )
+    if( state == LCD_OFF )
     {
 
         HAL_GPIO_WritePin( hlcd->BklPort, hlcd->BklPin, RESET );
     }
 
-    if( state == ON )
+    if( state == LCD_ON )
     {
 
         HAL_GPIO_WritePin( hlcd->BklPort, hlcd->BklPin, SET );
     }
 
-    if( state == TOGGLE )
+    if( state == LCD_TOGGLE )
     {
 
         HAL_GPIO_TogglePin( hlcd->BklPort, hlcd->BklPin );
@@ -303,9 +308,13 @@ void HEL_LCD_Backlight( LCD_HandleTypeDef *hlcd, uint8_t state )
 uint8_t HEL_LCD_Contrast( LCD_HandleTypeDef *hlcd, uint8_t contrast )
 {
 
-    uint8_t value = HAL_OK;
+    uint8_t value = HAL_ERROR;
 
-    value = HEL_LCD_Command( hlcd, (uint8_t)0x70 | contrast );
+    if( contrast < 65u )
+    {
+
+        value = HEL_LCD_Command( hlcd, (uint8_t)0x70 | contrast );
+    }
 
     return value;
 }
