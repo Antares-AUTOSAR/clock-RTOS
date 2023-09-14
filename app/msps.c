@@ -91,6 +91,9 @@ void HAL_FDCAN_MspInit( FDCAN_HandleTypeDef *hfdcan )
     GpioCanStruct.Pull      = GPIO_NOPULL;
     GpioCanStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init( GPIOD, &GpioCanStruct );
+
+    HAL_NVIC_SetPriority(TIM16_FDCAN_IT0_IRQn, 2, 0);
+    HAL_NVIC_EnableIRQ(TIM16_FDCAN_IT0_IRQn);
 }
 
 /* cppcheck-suppress misra-c2012-8.4 ; its external linkage is declared at HAL library */
@@ -100,43 +103,14 @@ void HAL_SPI_MspInit( SPI_HandleTypeDef *hspi )
 
     GPIO_InitTypeDef GPIO_InitStruct;
     __GPIOD_CLK_ENABLE( );
+    __GPIOB_CLK_ENABLE( );
+    __GPIOC_CLK_ENABLE( );
     __SPI1_CLK_ENABLE( );
 
-    GPIO_InitStruct.Pin       = GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_8;
+    GPIO_InitStruct.Pin       = GPIO_PIN_6 | GPIO_PIN_8;
     GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull      = GPIO_PULLUP;
     GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF1_SPI1;
     HAL_GPIO_Init( GPIOD, &GPIO_InitStruct );
-}
-
-/* cppcheck-suppress misra-c2012-8.4 ; its external linkage is declared at HAL library */
-void HAL_ADC_MspInit( ADC_HandleTypeDef *hadc )
-{
-    (void)hadc;
-    GPIO_InitTypeDef GPIO_InitStruct;
-
-    __ADC_CLK_ENABLE( );   /*enable adc clock*/
-    __GPIOA_CLK_ENABLE( ); /*enable clock port where the adc 0 is connected*/
-    GPIO_InitStruct.Pin  = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_5 | GPIO_PIN_6;
-    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG; /*pin in analog mode*/
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init( GPIOA, &GPIO_InitStruct );
-}
-
-/* cppcheck-suppress misra-c2012-8.4 ; its external linkage is declared at HAL library */
-void HAL_TIM_PWM_MspInit( TIM_HandleTypeDef *htim )
-{
-    (void)htim;
-    GPIO_InitTypeDef GPIO_InitStruct;
-
-    __TIM14_CLK_ENABLE( ); /*activamos reloj en TIM1*/
-    __GPIOC_CLK_ENABLE( ); /*activamos reloj del puerto A*/
-
-    GPIO_InitStruct.Pin       = GPIO_PIN_12; /*pin C8 como TIM1_CH1*/
-    GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull      = GPIO_PULLUP;
-    GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF2_TIM14;
-    HAL_GPIO_Init( GPIOC, &GPIO_InitStruct );
 }
