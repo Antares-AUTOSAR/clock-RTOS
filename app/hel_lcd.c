@@ -47,94 +47,94 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
 
         value = HEL_LCD_Command( hlcd, (uint8_t)0x30 );
 
-        if( value == HAL_OK )
+        if( value == HAL_ERROR )
         {
 
-            flag_error = 1;
+            flag_error = HAL_ERROR;
         }
 
         delay_ms( 2 );
 
         value = HEL_LCD_Command( hlcd, (uint8_t)0x30 );
 
-        if( value == HAL_OK )
+        if( value == HAL_ERROR )
         {
 
-            flag_error = 1;
+            flag_error = HAL_ERROR;
         }
 
         value = HEL_LCD_Command( hlcd, (uint8_t)0x30 );
 
-        if( value == HAL_OK )
+        if( value == HAL_ERROR )
         {
 
-            flag_error = 1;
+            flag_error = HAL_ERROR;
         }
 
         value = HEL_LCD_Command( hlcd, (uint8_t)0x39 );
 
-        if( value == HAL_OK )
+        if( value == HAL_ERROR )
         {
 
-            flag_error = 1;
+            flag_error = HAL_ERROR;
         }
 
         value = HEL_LCD_Command( hlcd, (uint8_t)0x14 );
 
-        if( value == HAL_OK )
+        if( value == HAL_ERROR )
         {
 
-            flag_error = 1;
+            flag_error = HAL_ERROR;
         }
 
         value = HEL_LCD_Command( hlcd, (uint8_t)0x56 );
 
-        if( value == HAL_OK )
+        if( value == HAL_ERROR )
         {
 
-            flag_error = 1;
+            flag_error = HAL_ERROR;
         }
 
         value = HEL_LCD_Command( hlcd, (uint8_t)0x6D );
 
-        if( value == HAL_OK )
+        if( value == HAL_ERROR )
         {
 
-            flag_error = 1;
+            flag_error = HAL_ERROR;
         }
 
         delay_ms( 200 );
 
         value = HEL_LCD_Command( hlcd, (uint8_t)0x70 );
 
-        if( value == HAL_OK )
+        if( value == HAL_ERROR )
         {
 
-            flag_error = 1;
+            flag_error = HAL_ERROR;
         }
 
         value = HEL_LCD_Command( hlcd, (uint8_t)0x0D );
 
-        if( value == HAL_OK )
+        if( value == HAL_ERROR )
         {
 
-            flag_error = 1;
+            flag_error = HAL_ERROR;
         }
 
         value = HEL_LCD_Command( hlcd, (uint8_t)0x06 );
 
-        if( value == HAL_OK )
+        if( value == HAL_ERROR )
         {
 
-            flag_error = 1;
+            flag_error = HAL_ERROR;
         }
 
         value = HEL_LCD_Command( hlcd, (uint8_t)0x01 );
 
-        if( value == HAL_OK )
+        if( value == HAL_ERROR )
         {
 
-            flag_error = 1;
+            flag_error = HAL_ERROR;
         }
 
         delay_ms( 10 );
@@ -142,10 +142,10 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
         i = 1;
     }
 
-    if( flag_error == HAL_OK )
+    if( flag_error == HAL_ERROR )
     {
 
-        value = 1;
+        value = HAL_ERROR;
     }
 
     return value;
