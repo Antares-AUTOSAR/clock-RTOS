@@ -16,6 +16,11 @@ void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer,
 /*Save the buffer dimentions*/
 #define TASK_STACK_SIZE 128u
 
+/*Queue identifier to use*/
+QueueHandle_t serialQueue; 
+QueueHandle_t clockQueue; 
+QueueHandle_t displayQueue;  
+
 /*Task to developed*/
 static void Task_10ms( void *parameters );
 static void Task_50ms( void *parameters );
@@ -41,6 +46,12 @@ int main( void )
     uint8_t serialPeriod  = 10;
     uint8_t clockPeriod   = 50;
     uint8_t displayPeriod = 100;
+
+    /*Queue create*/
+    /*serialQueue = xQueueCreateStatic( 9, sizeof( NEW_MsgTypeDef ) );
+    clockQueue = xQueueCreate( 45, sizeof( APP_MsgTypeDef ) );
+    displayQueue = xQueueCreate( 90, sizeof( APP_MsgTypeDef ) );*/
+
 
     /*Creation of tasks with different periodicities using static memory*/
     xTaskCreateStatic( Task_10ms, "Task10ms", TASK_STACK_SIZE, &serialPeriod, 3u, xTaskStack_10ms, &xTaskBuffer_10ms );
