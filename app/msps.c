@@ -92,8 +92,8 @@ void HAL_FDCAN_MspInit( FDCAN_HandleTypeDef *hfdcan )
     GpioCanStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init( GPIOD, &GpioCanStruct );
 
-    HAL_NVIC_SetPriority(TIM16_FDCAN_IT0_IRQn, 2, 0);
-    HAL_NVIC_EnableIRQ(TIM16_FDCAN_IT0_IRQn);
+    HAL_NVIC_SetPriority( TIM16_FDCAN_IT0_IRQn, 2, 0 );
+    HAL_NVIC_EnableIRQ( TIM16_FDCAN_IT0_IRQn );
 }
 
 /* cppcheck-suppress misra-c2012-8.4 ; its external linkage is declared at HAL library */
