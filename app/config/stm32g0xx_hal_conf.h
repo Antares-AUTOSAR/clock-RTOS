@@ -54,11 +54,7 @@ extern "C" {
 /* #define HAL_SMARTCARD_MODULE_ENABLED   */
 /* #define HAL_SMBUS_MODULE_ENABLED   */
 #define HAL_SPI_MODULE_ENABLED   
-<<<<<<< HEAD
 #define HAL_TIM_MODULE_ENABLED   
-=======
-/* #define HAL_TIM_MODULE_ENABLED   */
->>>>>>> master
 /* #define HAL_UART_MODULE_ENABLED   */
 /* #define HAL_USART_MODULE_ENABLED   */
 /* #define HAL_WWDG_MODULE_ENABLED   */
