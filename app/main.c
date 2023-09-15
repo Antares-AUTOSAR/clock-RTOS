@@ -14,12 +14,24 @@ void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer,
                                      uint32_t *pulTimerTaskStackSize );
 
 /*Save the buffer dimentions*/
-#define TASK_STACK_SIZE 128u
+#define TASK_STACK_SIZE      128u
+
+/*Queue parameters*/
+#define QUEUE_LENGTH_SERIAL  9
+#define ITEM_SIZE_SERIAL     sizeof( NEW_MsgTypeDef )
+#define QUEUE_LENGTH_CLOCK   45
+#define ITEM_SIZE_CLOCK      sizeof( APP_MsgTypeDef )
+#define QUEUE_LENGTH_DISPLAY 90
+#define ITEM_SIZE_DISPLAY    sizeof( APP_MsgTypeDef )
 
 /*Queue identifier to use*/
-QueueHandle_t serialQueue; 
-QueueHandle_t clockQueue; 
-QueueHandle_t displayQueue;  
+extern QueueHandle_t serialQueue;
+extern QueueHandle_t clockQueue;
+extern QueueHandle_t displayQueue;
+
+QueueHandle_t serialQueue  = { 0 };
+QueueHandle_t clockQueue   = { 0 };
+QueueHandle_t displayQueue = { 0 };
 
 /*Task to developed*/
 static void Task_10ms( void *parameters );
@@ -47,10 +59,22 @@ int main( void )
     uint8_t clockPeriod   = 50;
     uint8_t displayPeriod = 100;
 
+    /*QUEUE ELEMENTS*/
+
+    /* The variable used to hold the queue's data structure. */
+    static StaticQueue_t xStaticQueue;
+    static StaticQueue_t xStaticQueueClock;
+    static StaticQueue_t xStaticQueueDisplay;
+    /* The array to use as the queue's storage area.  This must be at least
+    uxQueueLength * uxItemSize bytes. */
+    uint8_t serialStorageArea[ QUEUE_LENGTH_SERIAL * ITEM_SIZE_SERIAL ];    /*cppcheck-suppress misra-c2012-10.4 ; According of freeRTOS is necessary*/
+    uint8_t clockStorageArea[ QUEUE_LENGTH_CLOCK * ITEM_SIZE_CLOCK ];       /*cppcheck-suppress misra-c2012-10.4 ; According of freeRTOS is necessary*/
+    uint8_t displayStorageArea[ QUEUE_LENGTH_DISPLAY * ITEM_SIZE_DISPLAY ]; /*cppcheck-suppress misra-c2012-10.4 ; According of freeRTOS is necessary*/
+
     /*Queue create*/
-    /*serialQueue = xQueueCreateStatic( 9, sizeof( NEW_MsgTypeDef ) );
-    clockQueue = xQueueCreate( 45, sizeof( APP_MsgTypeDef ) );
-    displayQueue = xQueueCreate( 90, sizeof( APP_MsgTypeDef ) );*/
+    serialQueue  = xQueueCreateStatic( QUEUE_LENGTH_SERIAL, ITEM_SIZE_SERIAL, serialStorageArea, &xStaticQueue );
+    clockQueue   = xQueueCreateStatic( QUEUE_LENGTH_CLOCK, ITEM_SIZE_CLOCK, clockStorageArea, &xStaticQueueClock );
+    displayQueue = xQueueCreateStatic( QUEUE_LENGTH_DISPLAY, ITEM_SIZE_DISPLAY, displayStorageArea, &xStaticQueueDisplay );
 
 
     /*Creation of tasks with different periodicities using static memory*/
@@ -69,7 +93,6 @@ static void Task_10ms( void *parameters )
 
     for( ;; )
     {
-        SEGGER_RTT_printf( 0, "Tarea 10 ms\n" );
         vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( serialPeriodicity ) );
     }
 }
@@ -81,7 +104,6 @@ static void Task_50ms( void *parameters )
 
     for( ;; )
     {
-        SEGGER_RTT_printf( 0, "Tarea 50 ms\n" );
         vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( clockPeriodicity ) );
     }
 }
@@ -93,7 +115,6 @@ static void Task_100ms( void *parameters )
 
     for( ;; )
     {
-        SEGGER_RTT_printf( 0, "Tarea 100 ms\n" );
         vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( displayPeriodicity ) );
     }
 }
