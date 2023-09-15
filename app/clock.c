@@ -96,6 +96,7 @@ void Clock_Task( void )
 
 /**
  * @brief   Process message according to its type
+ * @param   receivedMessage Message received from serial which allows to move between states inside machine
  */
 void Clock_EventMachine( APP_MsgTypeDef *receivedMessage )
 {
@@ -117,6 +118,7 @@ void Clock_EventMachine( APP_MsgTypeDef *receivedMessage )
 
 /**
  * @brief   Function executed when Serial Alarm message has been received
+ * @param   receivedMessage Message received from serial. Due to event machine implementation, this parameter must be passed
  */
 static void state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage )
 {
@@ -131,6 +133,7 @@ static void state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage )
 
 /**
  * @brief   Function executed when Serial Date message has been received
+ * @param   receivedMessage Message received from serial which will set the date of RTC
  */
 static void state_serialMsgDate( APP_MsgTypeDef *receivedMessage )
 {
@@ -151,6 +154,7 @@ static void state_serialMsgDate( APP_MsgTypeDef *receivedMessage )
 
 /**
  * @brief   Function executed when Serial Time message has been received
+ * @param   receivedMessage Message received from serial which will set the time of RTC
  */
 static void state_serialMsgTime( APP_MsgTypeDef *receivedMessage )
 {
@@ -170,6 +174,7 @@ static void state_serialMsgTime( APP_MsgTypeDef *receivedMessage )
 
 /**
  * @brief   Function executed when Clock Date message has been received
+ * @param   receivedMessage Message received from serial. Due to event machine implementation, this parameter must be passed
  */
 static void state_clockMsgPrint( APP_MsgTypeDef *receivedMessage )
 {
