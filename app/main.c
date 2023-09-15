@@ -13,24 +13,38 @@ void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer,
                                      StackType_t **ppxTimerTaskStackBuffer,
                                      uint32_t *pulTimerTaskStackSize );
 
-/*Save the buffer dimentions*/
+/**
+ * @brief Save the buffer dimentions
+ */
 #define TASK_STACK_SIZE      128u
 
-/*Queue parameters*/
-#define QUEUE_LENGTH_SERIAL  9
-#define ITEM_SIZE_SERIAL     sizeof( NEW_MsgTypeDef )
-#define QUEUE_LENGTH_CLOCK   45
-#define ITEM_SIZE_CLOCK      sizeof( APP_MsgTypeDef )
-#define QUEUE_LENGTH_DISPLAY 90
-#define ITEM_SIZE_DISPLAY    sizeof( APP_MsgTypeDef )
+/**
+ * @defgroup Queue parameters
+ @{*/
+#define QUEUE_LENGTH_SERIAL  9                        /*!< Maximum number of items */
+#define ITEM_SIZE_SERIAL     sizeof( NEW_MsgTypeDef ) /*!< The size, in bytes, required to hold each item in the queue. */
+#define QUEUE_LENGTH_CLOCK   45                       /*!< Maximum number of items */
+#define ITEM_SIZE_CLOCK      sizeof( APP_MsgTypeDef ) /*!< The size, in bytes, required to hold each item in the queue. */
+#define QUEUE_LENGTH_DISPLAY 90                       /*!< Maximum number of items */
+#define ITEM_SIZE_DISPLAY    sizeof( APP_MsgTypeDef ) /*!< The size, in bytes, required to hold each item in the queue. */
+/**@} */
 
 /*Queue identifier to use*/
 extern QueueHandle_t serialQueue;
 extern QueueHandle_t clockQueue;
 extern QueueHandle_t displayQueue;
 
-QueueHandle_t serialQueue  = { 0 };
-QueueHandle_t clockQueue   = { 0 };
+/**
+ * @brief Serial Queue identifier to use
+ */
+QueueHandle_t serialQueue = { 0 };
+/**
+ * @brief Serial Queue identifier to use
+ */
+QueueHandle_t clockQueue = { 0 };
+/**
+ * @brief Serial Queue identifier to use
+ */
 QueueHandle_t displayQueue = { 0 };
 
 /*Task to developed*/
@@ -38,6 +52,10 @@ static void Task_10ms( void *parameters );
 static void Task_50ms( void *parameters );
 static void Task_100ms( void *parameters );
 
+/**
+ * @brief The initial function, code development.
+ * @retval Returns an integer
+ */
 int main( void )
 {
     /*Enable RTT and system view*/
@@ -86,6 +104,10 @@ int main( void )
     return 0;
 }
 
+/**
+ * @brief Task 10ms
+ * @param parameters
+ */
 static void Task_10ms( void *parameters )
 {
     TickType_t xLastWakeTime  = xTaskGetTickCount( );
@@ -97,6 +119,10 @@ static void Task_10ms( void *parameters )
     }
 }
 
+/**
+ * @brief Task 50ms
+ * @param parameters
+ */
 static void Task_50ms( void *parameters )
 {
     TickType_t xLastWakeTime = xTaskGetTickCount( );
@@ -108,6 +134,10 @@ static void Task_50ms( void *parameters )
     }
 }
 
+/**
+ * @brief Task 100ms
+ * @param parameters
+ */
 static void Task_100ms( void *parameters )
 {
     TickType_t xLastWakeTime   = xTaskGetTickCount( );
@@ -122,6 +152,12 @@ static void Task_100ms( void *parameters )
 /* configSUPPORT_STATIC_ALLOCATION is set to 1, so the application must provide an
 implementation of vApplicationGetIdleTaskMemory() to provide the memory that is
 used by the Idle task. */
+/**
+ * @brief configSUPPORT_STATIC_ALLOCATION
+ * @param ppxIdleTaskTCBBuffer
+ * @param ppxIdleTaskStackBuffer
+ * @param pulIdleTaskStackSize
+ */
 void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
                                     StackType_t **ppxIdleTaskStackBuffer,
                                     uint32_t *pulIdleTaskStackSize )
@@ -150,6 +186,12 @@ void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
 /* configSUPPORT_STATIC_ALLOCATION and configUSE_TIMERS are both set to 1, so the
 application must provide an implementation of vApplicationGetTimerTaskMemory()
 to provide the memory that is used by the Timer service task. */
+/**
+ * @brief vApplicationGetTimerTaskMemory
+ * @param ppxTimerTaskTCBBuffer
+ * @param ppxTimerTaskStackBuffer
+ * @param pulTimerTaskStackSize
+ */
 void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer,
                                      StackType_t **ppxTimerTaskStackBuffer,
                                      uint32_t *pulTimerTaskStackSize )
