@@ -73,24 +73,6 @@ void Clock_Init( void )
     sDate.Year    = 0x99;
     dateYearH     = 19;
     HAL_RTC_SetDate( &RtcHandler, &sDate, RTC_FORMAT_BCD );
-
-
-    ////////////////////Testing Queue/////////////////////////
-    static APP_MsgTypeDef messageStruct = { 0 };
-
-    messageStruct.tm.tm_hour = 16U;
-    messageStruct.tm.tm_min  = 18U;
-    messageStruct.tm.tm_sec  = 24U;
-    messageStruct.msg        = SERIAL_MSG_TIME;
-
-    xQueueSend( clockQueue, &messageStruct, 0 ); // Send TIME 16:18:24
-
-    messageStruct.tm.tm_mday = 16;
-    messageStruct.tm.tm_mon  = 1U;
-    messageStruct.tm.tm_year = 2199U;
-    messageStruct.msg        = SERIAL_MSG_DATE;
-
-    xQueueSend( clockQueue, &messageStruct, 0 ); // Send DATE 16/01/1999
 }
 
 
@@ -210,10 +192,6 @@ static void state_clockMsgPrint( APP_MsgTypeDef *receivedMessage )
     clockMessage.tm.tm_mon  = sDate.Month;
 
     xQueueSend( displayQueue, &clockMessage, 0 );
-
-    ////////////////////Testing Clock/////////////////////////
-    SEGGER_SYSVIEW_PrintfHost( "%d:%d:%d", clockMessage.tm.tm_hour, clockMessage.tm.tm_min, clockMessage.tm.tm_sec );
-    SEGGER_SYSVIEW_PrintfHost( "%d %d %d", clockMessage.tm.tm_mday, clockMessage.tm.tm_mon, clockMessage.tm.tm_year );
 }
 
 
