@@ -6,6 +6,7 @@
 #include "stm32g0xx.h"
 #include "task.h"
 #include "queue.h"
+#include "timers.h"
 
 /**
  * @brief Struct with array to queue
@@ -47,5 +48,9 @@ typedef struct _APP_MsgTypeDef
 extern QueueHandle_t serialQueue;
 extern QueueHandle_t clockQueue;
 extern QueueHandle_t displayQueue;
+
+extern TimerHandle_t xTimerDisplay;
+
+extern RTC_HandleTypeDef RtcHandler;
 
 #endif
