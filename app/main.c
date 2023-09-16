@@ -29,11 +29,6 @@ void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer,
 #define ITEM_SIZE_DISPLAY    sizeof( APP_MsgTypeDef ) /*!< The size, in bytes, required to hold each item in the queue. */
 /**@} */
 
-/*Queue identifier to use*/
-extern QueueHandle_t serialQueue;
-extern QueueHandle_t clockQueue;
-extern QueueHandle_t displayQueue;
-
 /**
  * @brief Serial Queue identifier to use
  */

@@ -43,4 +43,9 @@ typedef struct _APP_MsgTypeDef
     APP_TmTypeDef tm; /*!< time and date in stdlib tm format */
 } APP_MsgTypeDef;
 
+/*Queue identifier to use*/
+extern QueueHandle_t serialQueue;
+extern QueueHandle_t clockQueue;
+extern QueueHandle_t displayQueue;
+
 #endif
