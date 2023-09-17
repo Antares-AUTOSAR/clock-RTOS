@@ -1,5 +1,5 @@
 /**
- * @file    clock.c
+ * @file    app_clock.c
  * @brief   ****
  *
  * Clock driver source file
@@ -8,7 +8,7 @@
  *
  */
 
-#include "clock.h"
+#include "app_clock.h"
 
 
 /**

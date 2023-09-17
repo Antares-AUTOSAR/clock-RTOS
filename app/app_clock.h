@@ -1,5 +1,5 @@
 /**
- * @file    clock.h
+ * @file    app_clock.h
  * @brief   ****
  *
  * Interfaces for clock process:
@@ -10,8 +10,8 @@
  *
  */
 
-#ifndef CLOCK_H
-#define CLOCK_H
+#ifndef APP_CLOCK_H
+#define APP_CLOCK_H
 
 #include "bsp.h"
 
@@ -29,7 +29,7 @@
 #define RTC_INITIAL_YEAR   0x00 /*!< Initial RTC year 2 last digit */
 #define RTC_INITIAL_YEARH  20   /*!< Initial RTC year 2 first dig  */
 
-#define TIMER_DISPLAY_ID   1    /*!< ID for timer used to update display  */
+#define TIMER_DISPLAY_ID   1 /*!< ID for timer used to update display  */
 
 /**
  * @brief   Struct for store function for each state of event machine
