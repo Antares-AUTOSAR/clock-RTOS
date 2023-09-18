@@ -3,6 +3,7 @@
  *
  */
 #include "bsp.h"
+#include "app_clock.h"
 
 /*Prototype of static memory*/
 void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
@@ -123,8 +124,11 @@ static void Task_50ms( void *parameters )
     TickType_t xLastWakeTime = xTaskGetTickCount( );
     uint8_t clockPeriodicity = *( (uint8_t *)parameters ); /*cppcheck-suppress misra-c2012-11.5 ; Take the value of function parameter*/
 
+    Clock_Init( );
+
     for( ;; )
     {
+        Clock_Task( );
         vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( clockPeriodicity ) );
     }
 }
