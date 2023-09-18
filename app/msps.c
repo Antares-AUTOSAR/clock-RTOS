@@ -1,6 +1,20 @@
-/* Archivo con la funciones de las incilaizaciones auxiliares de la libreria */
+/**
+ * @file    msps.c
+ * @brief   Msp initialization functions
+ *
+ * This file contains the initialization functions for MSP
+ *
+ */
+
 #include "bsp.h"
 
+/**
+ * @brief   Initialize MSP
+ *
+ * This function initializes the MSP for the microcontroller.
+ * It sets up the essential system configuration and clock setting requiered for the microcontroller's operation.
+ * Additionally, it configures the MCU internal clock to run at 64MHz for the AHB bus and 32 MHz for the APB bus.
+ */
 /* cppcheck-suppress misra-c2012-8.4 ; its external linkage is declared at HAL library */
 void HAL_MspInit( void )
 {
@@ -41,6 +55,15 @@ void HAL_MspInit( void )
     HAL_RCC_ClockConfig( &RCC_ClkInitStruct, FLASH_LATENCY_2 );
 }
 
+/**
+ * @brief   Initialize RTC (Real Time Clock)
+ *
+ * This function intializes the RTC for the microcontroller
+ * It configures and enables the necessary clocks and system resources for the RTC operation
+ * Additionally, it enable the LSE (Low Speed External) clock in low-power mode to feed the internal RTC
+ *
+ * @param hrtc: pointer to RTC handle structure
+ */
 /* cppcheck-suppress misra-c2012-8.4 ; its external linkage is declared at HAL library */
 void HAL_RTC_MspInit( RTC_HandleTypeDef *hrtc )
 {
@@ -73,6 +96,14 @@ void HAL_RTC_MspInit( RTC_HandleTypeDef *hrtc )
     __HAL_RCC_RTCAPB_CLK_ENABLE( );
 }
 
+/**
+ * @brief   Initialize FDCAN
+ *
+ * This function initializes the FDCAN peripheral and associated GPIO pins for operation
+ * It configures the clock sources, GPIO pins, and interrupt priorities to enable FDCAN communication
+ *
+ * @param hfdcan: pointer to FDCAN handle structure
+ */
 /* cppcheck-suppress misra-c2012-8.4 ; its external linkage is declared at HAL library */
 void HAL_FDCAN_MspInit( FDCAN_HandleTypeDef *hfdcan )
 {
@@ -96,6 +127,14 @@ void HAL_FDCAN_MspInit( FDCAN_HandleTypeDef *hfdcan )
     HAL_NVIC_EnableIRQ( TIM16_FDCAN_IT0_IRQn );
 }
 
+/**
+ * @brief   Initialize SPI
+ *
+ * This function initializes the SPI peripheral and associated GPIO pins for operation
+ * It enables the SPI clock and the GPIO ports used for SPI communication
+ *
+ * @param hspi: pointer to SPI handle structure
+ */
 /* cppcheck-suppress misra-c2012-8.4 ; its external linkage is declared at HAL library */
 void HAL_SPI_MspInit( SPI_HandleTypeDef *hspi )
 {
