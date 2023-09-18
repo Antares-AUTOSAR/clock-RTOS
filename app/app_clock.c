@@ -30,7 +30,7 @@ static void Clock_EventMachine( APP_MsgTypeDef *receivedMessage );
 /**
  * @brief  Struct for handling RTC peripheral Declared in bsp
  */
-RTC_HandleTypeDef RtcHandler = { 0 };
+RTC_HandleTypeDef RtcHandler;
 
 
 /**
@@ -42,7 +42,7 @@ static uint8_t dateYearH = 19;
 /**
  * @brief  Struct for handling RTC peripheral Declared in bsp
  */
-TimerHandle_t xTimerDisplay = { 0 };
+TimerHandle_t xTimerDisplay;
 
 
 /**
