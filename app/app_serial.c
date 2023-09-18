@@ -96,3 +96,301 @@ void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs
         xQueueSendFromISR( SerialQueue, &NewMessage, NULL );
     }
 }
+
+void Serial_Task( void )
+{
+    static APP_MsgTypeDef RecieveMsg = { 0 };
+
+    while( xQueueReceive( SerialQueue, &RecieveMsg, 0 ) == pdTRUE )
+    {
+        if( CanTp_SingleFrameRx( &NewMessage[ NUM_1 ], &NewMessage[ NUM_0 ] ) == NUM_1 )
+        {
+            Serial_StMachine( &RecieveMsg );
+        }
+        else
+        {
+            RecieveMsg.msg = ERROR_STATE;
+            Serial_StMachine( &RecieveMsg );
+        }
+    }
+}
+
+void Serial_StMachine( const APP_MsgTypeDef *data )
+{
+    static SerialStates StMachine[ NUM_5 ] = {
+    { SerialTimeState },
+    { SerialDateState },
+    { SerialAlarmState },
+    { SerialOkState },
+    { SerialErrorState } };
+
+    static APP_MsgTypeDef NextEvent;
+    NextEvent.msg = data->msg - NUM_1;
+
+    StMachine[ NextEvent.msg ].ptr_funct( );
+}
+
+void SerialTimeState( void )
+{
+    SEGGER_RTT_printf( 0, "serial\n" );
+    static APP_MsgTypeDef SerialMsg;
+
+    if( Valid_Time( &NewMessage[ NUM_0 ] ) == NUM_1 )
+    {
+        SerialMsg.msg        = OK_STATE;
+        SerialMsg.tm.tm_hour = NewMessage[ NUM_2 ];
+        SerialMsg.tm.tm_min  = NewMessage[ NUM_3 ];
+        SerialMsg.tm.tm_sec  = NewMessage[ NUM_4 ];
+
+        xQueueSend( SerialQueue, &SerialMsg, 0 );
+    }
+    else
+    {
+        SerialMsg.msg = ERROR_STATE;
+        xQueueSend( SerialQueue, &SerialMsg, 0 );
+    }
+}
+
+void SerialDateState( void )
+{
+    static APP_MsgTypeDef SerialMsg;
+
+    if( Valid_Date( &NewMessage[ NUM_1 ] ) == NUM_1 )
+    {
+        SerialMsg.msg        = SERIAL_MSG_DATE;
+        SerialMsg.tm.tm_wday = WeekDay( &NewMessage[ NUM_1 ] );
+        SerialMsg.tm.tm_mday = NewMessage[ NUM_2 ];
+        SerialMsg.tm.tm_mon  = NewMessage[ NUM_3 ];
+        SerialMsg.tm.tm_yday = NewMessage[ NUM_4 ];
+        SerialMsg.tm.tm_year = NewMessage[ NUM_5 ];
+
+        xQueueSend( SerialQueue, &SerialMsg, 0 );
+    }
+    else
+    {
+        SerialMsg.msg = ERROR_STATE;
+        xQueueSend( SerialQueue, &SerialMsg, 0 );
+    }
+}
+
+void SerialAlarmState( void )
+{
+    static APP_MsgTypeDef SerialMsg;
+
+    if( Valid_Alarm( &NewMessage[ NUM_1 ] ) == NUM_1 )
+    {
+        SerialMsg.msg              = SERIAL_MSG_ALARM;
+        SerialMsg.tm.tm_hour_alarm = NewMessage[ NUM_2 ];
+        SerialMsg.tm.tm_min_alarm  = NewMessage[ NUM_3 ];
+
+        xQueueSend( SerialQueue, &SerialMsg, 0 );
+    }
+    else
+    {
+        SerialMsg.msg = ERROR_STATE;
+        xQueueSend( SerialQueue, &SerialMsg, 0 );
+    }
+}
+
+void SerialOkState( void )
+{
+    uint8_t i               = NUM_0;
+    uint8_t msn_ok[ NUM_1 ] = { HEX_55 };
+    static APP_MsgTypeDef SerialMsg;
+
+    if( NewMessage[ NUM_1 ] == NUM_1 )
+    {
+        i = ( NUM_4 << NUM_4 ) + ( HEX_55 & HEX_0F );
+    }
+    else if( NewMessage[ NUM_1 ] == NUM_2 )
+    {
+        i = ( NUM_5 << NUM_4 ) + ( HEX_55 & HEX_0F );
+    }
+    else if( NewMessage[ NUM_1 ] == NUM_3 )
+    {
+        i = ( NUM_3 << NUM_4 ) + ( HEX_55 & HEX_0F );
+    }
+    else
+    {
+    }
+
+    CanTp_SingleFrameTx( &msn_ok[ NUM_0 ], i );
+    SerialMsg.msg = NewMessage[ 1 ];
+    xQueueSend( ClockQueue, &SerialMsg, 0 );
+}
+
+void SerialErrorState( void )
+{
+    uint8_t i                  = NUM_0;
+    uint8_t msn_error[ NUM_1 ] = { HEX_AA };
+
+    if( NewMessage[ NUM_1 ] == NUM_1 )
+    {
+        i = ( NUM_4 << NUM_4 ) + ( HEX_AA & HEX_0F );
+    }
+    else if( NewMessage[ NUM_1 ] == NUM_2 )
+    {
+        i = ( NUM_5 << NUM_4 ) + ( HEX_AA & HEX_0F );
+    }
+    else if( NewMessage[ NUM_1 ] == NUM_3 )
+    {
+        i = ( NUM_3 << NUM_4 ) + ( HEX_AA & HEX_0F );
+    }
+    else
+    {
+    }
+
+    CanTp_SingleFrameTx( &msn_error[ NUM_0 ], i );
+}
+
+static uint8_t Valid_Time( const uint8_t *data )
+{
+    uint8_t ret_val = NUM_0;
+
+    if( ( data[ NUM_1 ] <= HEX_23 ) && ( data[ NUM_2 ] <= HEX_59 ) && ( data[ NUM_3 ] <= HEX_59 ) )
+    {
+        ret_val = NUM_1;
+    }
+
+    return ret_val;
+}
+
+static uint8_t Valid_Alarm( const uint8_t *data )
+{
+    uint8_t ret_val = NUM_0;
+
+    if( ( data[ NUM_1 ] <= HEX_23 ) && ( data[ NUM_2 ] <= HEX_59 ) )
+    {
+        ret_val = NUM_1;
+    }
+
+    return ret_val;
+}
+
+static uint8_t Valid_Date( const uint8_t *data )
+{
+    uint8_t ret_val;
+    uint16_t year;
+    year = data[ NUM_3 ];
+    year = ( year << NUM_8 ) + data[ NUM_4 ];
+
+    if( ( ( data[ NUM_1 ] >= HEX_1 ) && ( data[ NUM_1 ] <= HEX_31 ) ) &&
+        ( ( data[ NUM_2 ] >= JANUARY ) && ( data[ NUM_2 ] <= DECEMBER ) ) &&
+        ( ( year >= HEX_1901 ) && ( year <= HEX_2099 ) ) )
+    {
+        if( ( year % NUM_4 ) == NUM_0 ) // Check leap year and february
+        {
+            if( ( data[ NUM_2 ] == FEBRUARY ) && ( data[ NUM_1 ] <= HEX_29 ) )
+            {
+                ret_val = NUM_1;
+            }
+            else
+            {
+                ret_val = NUM_0;
+            }
+        }
+        else if( ( data[ NUM_2 ] == FEBRUARY ) && ( data[ NUM_1 ] <= HEX_28 ) ) // Check for february
+        {
+            ret_val = NUM_1;
+        }
+        else if( ( ( data[ NUM_2 ] == APRIL ) ||
+                   ( data[ NUM_2 ] == JUNE ) ||
+                   ( data[ NUM_2 ] == SEPTEMBER ) ||
+                   ( data[ NUM_2 ] == NOVEMBER ) ) &&
+                 ( data[ NUM_2 ] <= HEX_30 ) ) // Check for months with 30 days
+        {
+            ret_val = NUM_1;
+        }
+        else if( ( data[ NUM_2 ] == JANUARY ) ||
+                 ( data[ NUM_2 ] == MARCH ) ||
+                 ( data[ NUM_2 ] == MAY ) ||
+                 ( data[ NUM_2 ] == JULY ) ||
+                 ( data[ NUM_2 ] == AUGUST ) ||
+                 ( data[ NUM_2 ] == OCTOBER ) ||
+                 ( data[ NUM_2 ] == DECEMBER ) ) // Otherwise, the month has 31 days
+        {
+            ret_val = NUM_1;
+        }
+        else
+        {
+            ret_val = NUM_0;
+        }
+    }
+    else
+    {
+        ret_val = NUM_0;
+    }
+
+    return ret_val;
+}
+
+uint32_t WeekDay( const uint8_t *data )
+{
+    uint32_t dayofweek;
+    uint32_t days;
+    uint32_t month;
+    uint32_t MSyear;
+    uint32_t LSyear;
+    uint32_t const correctdays[ NUM_7 ] = { HEX_5, HEX_6, HEX_0, HEX_1, HEX_2, HEX_3, HEX_4 };
+    uint32_t year;
+    uint32_t century;
+    uint32_t yearcentury;
+
+    days   = ( data[ NUM_1 ] >> NUM_4 ) & HEX_0F;
+    days   = ( days * NUM_10 ) + ( data[ NUM_1 ] & HEX_0F );
+    month  = ( data[ NUM_2 ] >> NUM_4 ) & HEX_0F;
+    month  = ( month * NUM_10 ) + ( data[ NUM_2 ] & HEX_0F );
+    MSyear = ( data[ NUM_3 ] >> NUM_4 ) & HEX_0F;
+    MSyear = ( MSyear * NUM_10 ) + ( data[ NUM_3 ] & HEX_0F );
+    LSyear = ( data[ NUM_4 ] >> NUM_4 ) & HEX_0F;
+    LSyear = ( LSyear * NUM_10 ) + ( data[ NUM_4 ] & HEX_0F );
+
+    year = ( MSyear * NUM_100 ) + LSyear;
+
+    if( month < NUM_3 )
+    {
+        month += NUM_12;
+        year--;
+    }
+
+    century     = year / NUM_100;
+    yearcentury = year % NUM_100;
+
+    dayofweek = ( days + ( ( NUM_13 * ( month + NUM_1 ) ) / NUM_5 ) + yearcentury + ( yearcentury / NUM_4 ) + ( century / NUM_4 ) + ( NUM_5 * century ) ) % NUM_7;
+
+    dayofweek = correctdays[ dayofweek ];
+
+    dayofweek++;
+
+    return dayofweek;
+}
+
+static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size )
+{
+    uint8_t data_length;
+
+    data_length = size >> NUM_4;
+
+    for( uint8_t i = NUM_0; i < data_length; i++ )
+    {
+        data[ i + NUM_1 ] = data[ NUM_0 ];
+    }
+
+    data[ NUM_0 ] = data_length;
+
+    HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, data );
+}
+
+static uint8_t CanTp_SingleFrameRx( const uint8_t *data, const uint8_t *size )
+{
+    uint8_t msgRecieve = NUM_0;
+
+    if( ( ( *data == NUM_1 ) && ( *size == NUM_4 ) ) ||
+        ( ( *data == NUM_2 ) && ( *size == NUM_5 ) ) ||
+        ( ( *data == NUM_3 ) && ( *size == NUM_3 ) ) )
+    {
+        msgRecieve = NUM_1;
+    }
+
+    return msgRecieve;
+}
