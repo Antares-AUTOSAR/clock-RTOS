@@ -25,6 +25,7 @@ SRCS += stm32g0xx_hal_pwr.c
 SRCS += stm32g0xx_hal_tim.c
 SRCS += stm32g0xx_hal_tim_ex.c
 SRCS += stm32g0xx_hal_gpio.c stm32g0xx_hal_pwr_ex.c
+SRCS += app_clock.c
 SRCS += stm32g0xx_hal_spi.c stm32g0xx_hal_spi_ex.c hel_lcd.c
 # linker file
 LINKER = linker.ld
