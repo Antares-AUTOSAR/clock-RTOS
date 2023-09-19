@@ -20,9 +20,7 @@ FDCAN_HandleTypeDef CANHandler;
 
 static FDCAN_TxHeaderTypeDef CANTxHeader;
 
-APP_MsgTypeDef MSGHandler;
-
-QueueHandle_t ClockQueue;
+// APP_MsgTypeDef MSGHandler;
 
 void Serial_Init( void )
 {
@@ -93,7 +91,7 @@ void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs
         /* Retrieve Rx messages from RX FIFO0 */
         HAL_FDCAN_GetRxMessage( hfdcan, FDCAN_RX_FIFO0, &CANRxHeader, NewMessage );
 
-        xQueueSendFromISR( SerialQueue, &NewMessage, NULL );
+        xQueueSendFromISR( serialQueue, &NewMessage, NULL );
     }
 }
 
@@ -101,7 +99,7 @@ void Serial_Task( void )
 {
     static APP_MsgTypeDef RecieveMsg = { 0 };
 
-    while( xQueueReceive( SerialQueue, &RecieveMsg, 0 ) == pdTRUE )
+    while( xQueueReceive( serialQueue, &RecieveMsg, 0 ) == pdTRUE )
     {
         if( CanTp_SingleFrameRx( &NewMessage[ NUM_1 ], &NewMessage[ NUM_0 ] ) == NUM_1 )
         {
@@ -132,7 +130,6 @@ void Serial_StMachine( const APP_MsgTypeDef *data )
 
 void SerialTimeState( void )
 {
-    SEGGER_RTT_printf( 0, "serial\n" );
     static APP_MsgTypeDef SerialMsg;
 
     if( Valid_Time( &NewMessage[ NUM_0 ] ) == NUM_1 )
@@ -142,12 +139,12 @@ void SerialTimeState( void )
         SerialMsg.tm.tm_min  = NewMessage[ NUM_3 ];
         SerialMsg.tm.tm_sec  = NewMessage[ NUM_4 ];
 
-        xQueueSend( SerialQueue, &SerialMsg, 0 );
+        xQueueSend( serialQueue, &SerialMsg, 0 );
     }
     else
     {
         SerialMsg.msg = ERROR_STATE;
-        xQueueSend( SerialQueue, &SerialMsg, 0 );
+        xQueueSend( serialQueue, &SerialMsg, 0 );
     }
 }
 
@@ -161,15 +158,15 @@ void SerialDateState( void )
         SerialMsg.tm.tm_wday = WeekDay( &NewMessage[ NUM_1 ] );
         SerialMsg.tm.tm_mday = NewMessage[ NUM_2 ];
         SerialMsg.tm.tm_mon  = NewMessage[ NUM_3 ];
-        SerialMsg.tm.tm_yday = NewMessage[ NUM_4 ];
-        SerialMsg.tm.tm_year = NewMessage[ NUM_5 ];
+        SerialMsg.tm.tm_year = NewMessage[ NUM_4 ] << NUM_8;
+        SerialMsg.tm.tm_year += NewMessage[ NUM_5 ];
 
-        xQueueSend( SerialQueue, &SerialMsg, 0 );
+        xQueueSend( serialQueue, &SerialMsg, 0 );
     }
     else
     {
         SerialMsg.msg = ERROR_STATE;
-        xQueueSend( SerialQueue, &SerialMsg, 0 );
+        xQueueSend( serialQueue, &SerialMsg, 0 );
     }
 }
 
@@ -183,12 +180,12 @@ void SerialAlarmState( void )
         SerialMsg.tm.tm_hour_alarm = NewMessage[ NUM_2 ];
         SerialMsg.tm.tm_min_alarm  = NewMessage[ NUM_3 ];
 
-        xQueueSend( SerialQueue, &SerialMsg, 0 );
+        xQueueSend( serialQueue, &SerialMsg, 0 );
     }
     else
     {
         SerialMsg.msg = ERROR_STATE;
-        xQueueSend( SerialQueue, &SerialMsg, 0 );
+        xQueueSend( serialQueue, &SerialMsg, 0 );
     }
 }
 
@@ -216,7 +213,7 @@ void SerialOkState( void )
 
     CanTp_SingleFrameTx( &msn_ok[ NUM_0 ], i );
     SerialMsg.msg = NewMessage[ 1 ];
-    xQueueSend( ClockQueue, &SerialMsg, 0 );
+    xQueueSend( clockQueue, &SerialMsg, 0 );
 }
 
 void SerialErrorState( void )
