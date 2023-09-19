@@ -3,9 +3,6 @@
 
 #include "bsp.h"
 
-#define TIME_STATE               1u /*!< Time state     */
-#define DATE_STATE               2u /*!< Date state     */
-#define ALARM_STATE              3u /*!< Alarm state    */
 #define OK_STATE                 4u /*!< Ok state       */
 #define ERROR_STATE              5u /*!< Error state    */
 

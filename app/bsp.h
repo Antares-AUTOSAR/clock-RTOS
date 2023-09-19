@@ -43,6 +43,19 @@ typedef struct _APP_MsgTypeDef
     APP_TmTypeDef tm; /*!< time and date in stdlib tm format */
 } APP_MsgTypeDef;
 
+typedef enum
+/* cppcheck-suppress misra-c2012-2.4 ; To supress declaration of variable type enum */
+{
+    SERIAL_MSG_NONE = 0u, /*!< No serial message    */
+    SERIAL_MSG_TIME,      /*!< Time serial message  */
+    SERIAL_MSG_DATE,      /*!< Date serial message  */
+    SERIAL_MSG_ALARM      /*!< Alarm serial message */
+} APP_Messages;
+
+extern APP_MsgTypeDef MSGHandler;
+
+extern FDCAN_HandleTypeDef CANHandler;
+
 /*Queue identifier to use*/
 extern QueueHandle_t serialQueue;
 extern QueueHandle_t clockQueue;

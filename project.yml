@@ -53,6 +53,7 @@
     - app/ints.c          # Do not test interrupt vectors
     - app/msps.c          # Do not test extra initlization functions
     - app/hel_lcd.c          # Do not test extra initlization functions
+    - app/app_serial.c          # Do not test extra initlization functions
 
 
 # Configure the mock generator

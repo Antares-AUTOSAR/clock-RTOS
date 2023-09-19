@@ -3,6 +3,7 @@
  *
  */
 #include "bsp.h"
+#include "app_serial.h"
 
 /*Prototype of static memory*/
 void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
@@ -107,9 +108,11 @@ static void Task_10ms( void *parameters )
 {
     TickType_t xLastWakeTime  = xTaskGetTickCount( );
     uint8_t serialPeriodicity = *( (uint8_t *)parameters ); /*cppcheck-suppress misra-c2012-11.5 ; Take the value of function parameter*/
+    Serial_Init( );
 
     for( ;; )
     {
+        Serial_Task( );
         vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( serialPeriodicity ) );
     }
 }

@@ -13,14 +13,11 @@ void SerialAlarmState( void );
 void SerialOkState( void );
 void SerialErrorState( void );
 
-
 static uint8_t NewMessage[ NUM_8 ];
 
 FDCAN_HandleTypeDef CANHandler;
 
 static FDCAN_TxHeaderTypeDef CANTxHeader;
-
-// APP_MsgTypeDef MSGHandler;
 
 void Serial_Init( void )
 {
@@ -154,7 +151,7 @@ void SerialDateState( void )
 
     if( Valid_Date( &NewMessage[ NUM_1 ] ) == NUM_1 )
     {
-        SerialMsg.msg        = SERIAL_MSG_DATE;
+        SerialMsg.msg        = OK_STATE;
         SerialMsg.tm.tm_wday = WeekDay( &NewMessage[ NUM_1 ] );
         SerialMsg.tm.tm_mday = NewMessage[ NUM_2 ];
         SerialMsg.tm.tm_mon  = NewMessage[ NUM_3 ];
@@ -176,7 +173,7 @@ void SerialAlarmState( void )
 
     if( Valid_Alarm( &NewMessage[ NUM_1 ] ) == NUM_1 )
     {
-        SerialMsg.msg              = SERIAL_MSG_ALARM;
+        SerialMsg.msg              = OK_STATE;
         SerialMsg.tm.tm_hour_alarm = NewMessage[ NUM_2 ];
         SerialMsg.tm.tm_min_alarm  = NewMessage[ NUM_3 ];
 
