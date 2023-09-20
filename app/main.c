@@ -37,7 +37,7 @@ QueueHandle_t serialQueue = { 0 };
 /**
  * @brief Serial Queue identifier to use
  */
-QueueHandle_t clockQueue = { 0 };
+QueueHandle_t clockQueue;
 /**
  * @brief Serial Queue identifier to use
  */

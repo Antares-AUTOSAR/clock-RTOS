@@ -1,29 +1,24 @@
 /**
  * @file    app_clock.c
- * @brief   ****
+ * @brief   Clock driver source file
  *
- * Clock driver source file
- * Includes source for functions:
- *  Work in progress
- *
+ * Find here source for interfaces and private functions which allows to
+ * initialize and set the clock
  */
 
 #include "app_clock.h"
 
 
-/**
- * @brief  Function prototypes for each state action procedure
- */
+/* Function prototypes for each state action procedure */
 static void state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage );
 static void state_serialMsgDate( APP_MsgTypeDef *receivedMessage );
 static void state_serialMsgTime( APP_MsgTypeDef *receivedMessage );
 static void state_clockMsgPrint( APP_MsgTypeDef *receivedMessage );
 
+/* Function prototype to send an update message every second*/
 static void Clock_Update_DateAndTime( TimerHandle_t pxTimer );
 
-/**
- * @brief  Function to trigger the event machine
- */
+/* Function prototype to trigger the event machine */
 static void Clock_EventMachine( APP_MsgTypeDef *receivedMessage );
 
 
@@ -34,13 +29,13 @@ RTC_HandleTypeDef RtcHandler;
 
 
 /**
- * @brief  Struct for handling date correctly
+ * @brief  Variable for handling date correctly (stores 2 higher digits of year)
  */
-static uint8_t dateYearH = 19;
+static uint8_t dateYearH;
 
 
 /**
- * @brief  Struct for handling RTC peripheral Declared in bsp
+ * @brief  Struct for handling Software timer
  */
 TimerHandle_t xTimerDisplay;
 
@@ -50,7 +45,6 @@ TimerHandle_t xTimerDisplay;
  *
  * Initializes RTC peripheral using 32.768kHz external clock
  * Sets time and date to 12:00:00 JAN 1 1999
- *
  */
 void Clock_Init( void )
 {
@@ -87,11 +81,10 @@ void Clock_Init( void )
 
 
 /**
- * @brief   Run continuosuly. It allows to configure the clock
+ * @brief   Run periodically. It allows to configure the clock
  *
  * Verifies if clockQueue has elements to read, if it's true passes the received
  * message(s) to eventmachine for processing data according to its type
- *
  */
 void Clock_Task( void )
 {
@@ -106,7 +99,16 @@ void Clock_Task( void )
 
 /**
  * @brief   Process message according to its type
- * @param   receivedMessage Message received from serial which allows to move between states inside machine
+ * @param   receivedMessage Message readed from clockQueue which allows to move between states inside machine
+ *
+ * The state machine is builded with pointers to functions stored inside a struct (StateNode)
+ * which represent a state of the machine
+ *
+ * For improve the code reading, an array of StateNode (stateMachine) stores all the nodes
+ * (states of the machine)
+ *
+ * Every time this function is executed, it  calls a process according to the received
+ * message's type
  */
 void Clock_EventMachine( APP_MsgTypeDef *receivedMessage )
 {
@@ -127,8 +129,13 @@ void Clock_EventMachine( APP_MsgTypeDef *receivedMessage )
 
 
 /**
- * @brief   Function executed when Serial Alarm message has been received
- * @param   receivedMessage Message received from serial. Due to event machine implementation, this parameter must be passed
+ * @brief   (State) Function executed when Serial Alarm message has been received
+ * @param   receivedMessage Message received from clockQueue
+ *
+ * Due to event machine implementation, the parameter must be passed but specified
+ * as UNUSED until alarm feature is integrated to project
+ *
+ * Sends message to clockQueue everytime a type alarm message has been received
  */
 static void state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage )
 {
@@ -142,8 +149,11 @@ static void state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage )
 
 
 /**
- * @brief   Function executed when Serial Date message has been received
- * @param   receivedMessage Message received from serial which will set the date of RTC
+ * @brief   (State) Function executed when Serial Date message has been received
+ * @param   receivedMessage Message received from clockQueue
+ *
+ * Sets the RTC with received date
+ * Sends message to clockQueue everytime a type date message has been received
  */
 static void state_serialMsgDate( APP_MsgTypeDef *receivedMessage )
 {
@@ -164,8 +174,11 @@ static void state_serialMsgDate( APP_MsgTypeDef *receivedMessage )
 
 
 /**
- * @brief   Function executed when Serial Time message has been received
- * @param   receivedMessage Message received from serial which will set the time of RTC
+ * @brief   (State) Function executed when Serial Time message has been received
+ * @param   receivedMessage Message received from clockQueue
+ *
+ * Sets the RTC with received time
+ * Sends message to clockQueue everytime a time date message has been received
  */
 static void state_serialMsgTime( APP_MsgTypeDef *receivedMessage )
 {
@@ -184,8 +197,12 @@ static void state_serialMsgTime( APP_MsgTypeDef *receivedMessage )
 
 
 /**
- * @brief   Function executed when Clock Date message has been received
- * @param   receivedMessage Message received from serial. Due to event machine implementation, this parameter must be passed
+ * @brief   (State) Function executed when Clock Date message has been received
+ * @param   receivedMessage Message received from clockQueue.
+ *
+ * Sends a message to display queue indicating data must be printed in LCD
+ * Due to event machine implementation, the parameter must be passed but specified
+ * as UNUSED
  */
 static void state_clockMsgPrint( APP_MsgTypeDef *receivedMessage )
 {
@@ -214,6 +231,9 @@ static void state_clockMsgPrint( APP_MsgTypeDef *receivedMessage )
 /**
  * @brief   Function executed every second to print data in LCD
  * @param   pxTimer Timer handler
+ *
+ * Sends a message every second to clockQueue indicating data must be printed
+ * in LCD
  */
 void Clock_Update_DateAndTime( TimerHandle_t pxTimer )
 {
