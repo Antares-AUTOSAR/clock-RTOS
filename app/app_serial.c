@@ -7,17 +7,19 @@ static uint8_t Valid_Alarm( const uint8_t *data );
 static uint8_t Valid_Date( const uint8_t *data );
 static uint32_t WeekDay( const uint8_t *data );
 static void Serial_StMachine( const APP_MsgTypeDef *data );
-void SerialTimeState( void );
-void SerialDateState( void );
-void SerialAlarmState( void );
-void SerialOkState( void );
-void SerialErrorState( void );
+static void SerialTimeState( void );
+static void SerialDateState( void );
+static void SerialAlarmState( void );
+static void SerialOkState( void );
+static void SerialErrorState( void );
 
 static uint8_t NewMessage[ NUM_8 ];
 
 FDCAN_HandleTypeDef CANHandler;
 
 static FDCAN_TxHeaderTypeDef CANTxHeader;
+
+static uint8_t flag;
 
 void Serial_Init( void )
 {
@@ -89,6 +91,7 @@ void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs
         HAL_FDCAN_GetRxMessage( hfdcan, FDCAN_RX_FIFO0, &CANRxHeader, NewMessage );
 
         xQueueSendFromISR( serialQueue, &NewMessage, NULL );
+        flag = NUM_1;
     }
 }
 
@@ -100,7 +103,12 @@ void Serial_Task( void )
     {
         if( CanTp_SingleFrameRx( &NewMessage[ NUM_1 ], &NewMessage[ NUM_0 ] ) == NUM_1 )
         {
-            Serial_StMachine( &RecieveMsg );
+            if( flag == NUM_1 )
+            {
+                flag           = NUM_0;
+                RecieveMsg.msg = NewMessage[ NUM_1 ];
+                Serial_StMachine( &RecieveMsg );
+            }
         }
         else
         {
@@ -149,7 +157,7 @@ void SerialDateState( void )
 {
     static APP_MsgTypeDef SerialMsg;
 
-    if( Valid_Date( &NewMessage[ NUM_1 ] ) == NUM_1 )
+    if( Valid_Date( &NewMessage[ NUM_0 ] ) == NUM_1 )
     {
         SerialMsg.msg        = OK_STATE;
         SerialMsg.tm.tm_wday = WeekDay( &NewMessage[ NUM_1 ] );
@@ -171,7 +179,7 @@ void SerialAlarmState( void )
 {
     static APP_MsgTypeDef SerialMsg;
 
-    if( Valid_Alarm( &NewMessage[ NUM_1 ] ) == NUM_1 )
+    if( Valid_Alarm( &NewMessage[ NUM_0 ] ) == NUM_1 )
     {
         SerialMsg.msg              = OK_STATE;
         SerialMsg.tm.tm_hour_alarm = NewMessage[ NUM_2 ];
@@ -241,7 +249,7 @@ static uint8_t Valid_Time( const uint8_t *data )
 {
     uint8_t ret_val = NUM_0;
 
-    if( ( data[ NUM_1 ] <= HEX_23 ) && ( data[ NUM_2 ] <= HEX_59 ) && ( data[ NUM_3 ] <= HEX_59 ) )
+    if( ( data[ NUM_2 ] <= HEX_23 ) && ( data[ NUM_3 ] <= HEX_59 ) && ( data[ NUM_4 ] <= HEX_59 ) )
     {
         ret_val = NUM_1;
     }
@@ -253,7 +261,7 @@ static uint8_t Valid_Alarm( const uint8_t *data )
 {
     uint8_t ret_val = NUM_0;
 
-    if( ( data[ NUM_1 ] <= HEX_23 ) && ( data[ NUM_2 ] <= HEX_59 ) )
+    if( ( data[ NUM_2 ] <= HEX_23 ) && ( data[ NUM_3 ] <= HEX_59 ) )
     {
         ret_val = NUM_1;
     }
@@ -265,16 +273,16 @@ static uint8_t Valid_Date( const uint8_t *data )
 {
     uint8_t ret_val;
     uint16_t year;
-    year = data[ NUM_3 ];
-    year = ( year << NUM_8 ) + data[ NUM_4 ];
+    year = data[ NUM_4 ] << NUM_8;
+    year += data[ NUM_5 ];
 
-    if( ( ( data[ NUM_1 ] >= HEX_1 ) && ( data[ NUM_1 ] <= HEX_31 ) ) &&
-        ( ( data[ NUM_2 ] >= JANUARY ) && ( data[ NUM_2 ] <= DECEMBER ) ) &&
+    if( ( ( data[ NUM_2 ] >= HEX_1 ) && ( data[ NUM_2 ] <= HEX_31 ) ) &&
+        ( ( data[ NUM_3 ] >= JANUARY ) && ( data[ NUM_3 ] <= DECEMBER ) ) &&
         ( ( year >= HEX_1901 ) && ( year <= HEX_2099 ) ) )
     {
         if( ( year % NUM_4 ) == NUM_0 ) // Check leap year and february
         {
-            if( ( data[ NUM_2 ] == FEBRUARY ) && ( data[ NUM_1 ] <= HEX_29 ) )
+            if( ( data[ NUM_3 ] == FEBRUARY ) && ( data[ NUM_2 ] <= HEX_29 ) )
             {
                 ret_val = NUM_1;
             }
@@ -283,25 +291,25 @@ static uint8_t Valid_Date( const uint8_t *data )
                 ret_val = NUM_0;
             }
         }
-        else if( ( data[ NUM_2 ] == FEBRUARY ) && ( data[ NUM_1 ] <= HEX_28 ) ) // Check for february
+        else if( ( data[ NUM_3 ] == FEBRUARY ) && ( data[ NUM_2 ] <= HEX_28 ) ) // Check for february
         {
             ret_val = NUM_1;
         }
-        else if( ( ( data[ NUM_2 ] == APRIL ) ||
-                   ( data[ NUM_2 ] == JUNE ) ||
-                   ( data[ NUM_2 ] == SEPTEMBER ) ||
-                   ( data[ NUM_2 ] == NOVEMBER ) ) &&
+        else if( ( ( data[ NUM_3 ] == APRIL ) ||
+                   ( data[ NUM_3 ] == JUNE ) ||
+                   ( data[ NUM_3 ] == SEPTEMBER ) ||
+                   ( data[ NUM_3 ] == NOVEMBER ) ) &&
                  ( data[ NUM_2 ] <= HEX_30 ) ) // Check for months with 30 days
         {
             ret_val = NUM_1;
         }
-        else if( ( data[ NUM_2 ] == JANUARY ) ||
-                 ( data[ NUM_2 ] == MARCH ) ||
-                 ( data[ NUM_2 ] == MAY ) ||
-                 ( data[ NUM_2 ] == JULY ) ||
-                 ( data[ NUM_2 ] == AUGUST ) ||
-                 ( data[ NUM_2 ] == OCTOBER ) ||
-                 ( data[ NUM_2 ] == DECEMBER ) ) // Otherwise, the month has 31 days
+        else if( ( data[ NUM_3 ] == JANUARY ) ||
+                 ( data[ NUM_3 ] == MARCH ) ||
+                 ( data[ NUM_3 ] == MAY ) ||
+                 ( data[ NUM_3 ] == JULY ) ||
+                 ( data[ NUM_3 ] == AUGUST ) ||
+                 ( data[ NUM_3 ] == OCTOBER ) ||
+                 ( data[ NUM_3 ] == DECEMBER ) ) // Otherwise, the month has 31 days
         {
             ret_val = NUM_1;
         }
@@ -330,14 +338,14 @@ uint32_t WeekDay( const uint8_t *data )
     uint32_t century;
     uint32_t yearcentury;
 
-    days   = ( data[ NUM_1 ] >> NUM_4 ) & HEX_0F;
-    days   = ( days * NUM_10 ) + ( data[ NUM_1 ] & HEX_0F );
-    month  = ( data[ NUM_2 ] >> NUM_4 ) & HEX_0F;
-    month  = ( month * NUM_10 ) + ( data[ NUM_2 ] & HEX_0F );
-    MSyear = ( data[ NUM_3 ] >> NUM_4 ) & HEX_0F;
-    MSyear = ( MSyear * NUM_10 ) + ( data[ NUM_3 ] & HEX_0F );
-    LSyear = ( data[ NUM_4 ] >> NUM_4 ) & HEX_0F;
-    LSyear = ( LSyear * NUM_10 ) + ( data[ NUM_4 ] & HEX_0F );
+    days   = ( data[ NUM_2 ] >> NUM_4 ) & HEX_0F;
+    days   = ( days * NUM_10 ) + ( data[ NUM_2 ] & HEX_0F );
+    month  = ( data[ NUM_3 ] >> NUM_4 ) & HEX_0F;
+    month  = ( month * NUM_10 ) + ( data[ NUM_3 ] & HEX_0F );
+    MSyear = ( data[ NUM_4 ] >> NUM_4 ) & HEX_0F;
+    MSyear = ( MSyear * NUM_10 ) + ( data[ NUM_4 ] & HEX_0F );
+    LSyear = ( data[ NUM_5 ] >> NUM_4 ) & HEX_0F;
+    LSyear = ( LSyear * NUM_10 ) + ( data[ NUM_5 ] & HEX_0F );
 
     year = ( MSyear * NUM_100 ) + LSyear;
 
