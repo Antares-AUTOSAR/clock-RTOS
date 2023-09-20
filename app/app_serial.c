@@ -13,13 +13,11 @@ static void SerialAlarmState( void );
 static void SerialOkState( void );
 static void SerialErrorState( void );
 
-static uint8_t NewMessage[ NUM_8 ];
+static NEW_MsgTypeDef NewMessage;
 
 FDCAN_HandleTypeDef CANHandler;
 
 static FDCAN_TxHeaderTypeDef CANTxHeader;
-
-static uint8_t flag;
 
 void Serial_Init( void )
 {
@@ -85,13 +83,14 @@ void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs
 {
     FDCAN_RxHeaderTypeDef CANRxHeader;
 
+
     if( ( RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE ) != NUM_0 )
     {
+        static uint8_t RxData[ NUM_8 ];
         /* Retrieve Rx messages from RX FIFO0 */
-        HAL_FDCAN_GetRxMessage( hfdcan, FDCAN_RX_FIFO0, &CANRxHeader, NewMessage );
+        HAL_FDCAN_GetRxMessage( hfdcan, FDCAN_RX_FIFO0, &CANRxHeader, RxData );
 
         xQueueSendFromISR( serialQueue, &NewMessage, NULL );
-        flag = NUM_1;
     }
 }
 
@@ -101,14 +100,9 @@ void Serial_Task( void )
 
     while( xQueueReceive( serialQueue, &RecieveMsg, 0 ) == pdTRUE )
     {
-        if( CanTp_SingleFrameRx( &NewMessage[ NUM_1 ], &NewMessage[ NUM_0 ] ) == NUM_1 )
+        if( CanTp_SingleFrameRx( &NewMessage.Data[ NUM_1 ], &NewMessage.Data[ NUM_0 ] ) == NUM_1 )
         {
-            if( flag == NUM_1 )
-            {
-                flag           = NUM_0;
-                RecieveMsg.msg = NewMessage[ NUM_1 ];
-                Serial_StMachine( &RecieveMsg );
-            }
+            Serial_StMachine( &RecieveMsg );
         }
         else
         {
@@ -136,13 +130,15 @@ void Serial_StMachine( const APP_MsgTypeDef *data )
 void SerialTimeState( void )
 {
     static APP_MsgTypeDef SerialMsg;
+    SEGGER_RTT_printf( 0, "time\n" );
 
-    if( Valid_Time( &NewMessage[ NUM_0 ] ) == NUM_1 )
+    if( Valid_Time( &NewMessage.Data[ NUM_0 ] ) == NUM_1 )
     {
         SerialMsg.msg        = OK_STATE;
-        SerialMsg.tm.tm_hour = NewMessage[ NUM_2 ];
-        SerialMsg.tm.tm_min  = NewMessage[ NUM_3 ];
-        SerialMsg.tm.tm_sec  = NewMessage[ NUM_4 ];
+        SerialMsg.tm.tm_hour = NewMessage.Data[ NUM_2 ];
+        SerialMsg.tm.tm_min  = NewMessage.Data[ NUM_3 ];
+        SerialMsg.tm.tm_sec  = NewMessage.Data[ NUM_4 ];
+        SEGGER_RTT_printf( 0, "%d\n", SerialMsg.msg );
 
         xQueueSend( serialQueue, &SerialMsg, 0 );
     }
@@ -157,14 +153,14 @@ void SerialDateState( void )
 {
     static APP_MsgTypeDef SerialMsg;
 
-    if( Valid_Date( &NewMessage[ NUM_0 ] ) == NUM_1 )
+    if( Valid_Date( &NewMessage.Data[ NUM_0 ] ) == NUM_1 )
     {
         SerialMsg.msg        = OK_STATE;
-        SerialMsg.tm.tm_wday = WeekDay( &NewMessage[ NUM_1 ] );
-        SerialMsg.tm.tm_mday = NewMessage[ NUM_2 ];
-        SerialMsg.tm.tm_mon  = NewMessage[ NUM_3 ];
-        SerialMsg.tm.tm_year = NewMessage[ NUM_4 ] << NUM_8;
-        SerialMsg.tm.tm_year += NewMessage[ NUM_5 ];
+        SerialMsg.tm.tm_wday = WeekDay( &NewMessage.Data[ NUM_0 ] );
+        SerialMsg.tm.tm_mday = NewMessage.Data[ NUM_2 ];
+        SerialMsg.tm.tm_mon  = NewMessage.Data[ NUM_3 ];
+        SerialMsg.tm.tm_year = NewMessage.Data[ NUM_4 ] << NUM_8;
+        SerialMsg.tm.tm_year += NewMessage.Data[ NUM_5 ];
 
         xQueueSend( serialQueue, &SerialMsg, 0 );
     }
@@ -179,11 +175,11 @@ void SerialAlarmState( void )
 {
     static APP_MsgTypeDef SerialMsg;
 
-    if( Valid_Alarm( &NewMessage[ NUM_0 ] ) == NUM_1 )
+    if( Valid_Alarm( &NewMessage.Data[ NUM_0 ] ) == NUM_1 )
     {
         SerialMsg.msg              = OK_STATE;
-        SerialMsg.tm.tm_hour_alarm = NewMessage[ NUM_2 ];
-        SerialMsg.tm.tm_min_alarm  = NewMessage[ NUM_3 ];
+        SerialMsg.tm.tm_hour_alarm = NewMessage.Data[ NUM_2 ];
+        SerialMsg.tm.tm_min_alarm  = NewMessage.Data[ NUM_3 ];
 
         xQueueSend( serialQueue, &SerialMsg, 0 );
     }
@@ -200,15 +196,15 @@ void SerialOkState( void )
     uint8_t msn_ok[ NUM_1 ] = { HEX_55 };
     static APP_MsgTypeDef SerialMsg;
 
-    if( NewMessage[ NUM_1 ] == NUM_1 )
+    if( NewMessage.Data[ NUM_1 ] == NUM_1 )
     {
         i = ( NUM_4 << NUM_4 ) + ( HEX_55 & HEX_0F );
     }
-    else if( NewMessage[ NUM_1 ] == NUM_2 )
+    else if( NewMessage.Data[ NUM_1 ] == NUM_2 )
     {
         i = ( NUM_5 << NUM_4 ) + ( HEX_55 & HEX_0F );
     }
-    else if( NewMessage[ NUM_1 ] == NUM_3 )
+    else if( NewMessage.Data[ NUM_1 ] == NUM_3 )
     {
         i = ( NUM_3 << NUM_4 ) + ( HEX_55 & HEX_0F );
     }
@@ -217,7 +213,7 @@ void SerialOkState( void )
     }
 
     CanTp_SingleFrameTx( &msn_ok[ NUM_0 ], i );
-    SerialMsg.msg = NewMessage[ 1 ];
+    SerialMsg.msg = NewMessage.Data[ NUM_1 ];
     xQueueSend( clockQueue, &SerialMsg, 0 );
 }
 
@@ -226,15 +222,15 @@ void SerialErrorState( void )
     uint8_t i                  = NUM_0;
     uint8_t msn_error[ NUM_1 ] = { HEX_AA };
 
-    if( NewMessage[ NUM_1 ] == NUM_1 )
+    if( NewMessage.Data[ NUM_1 ] == NUM_1 )
     {
         i = ( NUM_4 << NUM_4 ) + ( HEX_AA & HEX_0F );
     }
-    else if( NewMessage[ NUM_1 ] == NUM_2 )
+    else if( NewMessage.Data[ NUM_1 ] == NUM_2 )
     {
         i = ( NUM_5 << NUM_4 ) + ( HEX_AA & HEX_0F );
     }
-    else if( NewMessage[ NUM_1 ] == NUM_3 )
+    else if( NewMessage.Data[ NUM_1 ] == NUM_3 )
     {
         i = ( NUM_3 << NUM_4 ) + ( HEX_AA & HEX_0F );
     }
