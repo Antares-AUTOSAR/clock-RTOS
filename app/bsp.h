@@ -1,8 +1,7 @@
 /**
  * @file bsp.h
  * @brief Init the structs
- * Inicialization of structs with Data, Time, Alarm values and kind of messages for
- * each machine.
+ * Inicialization of structs with Data, Time and Alarm values.
  */
 
 #ifndef BSP_H_
