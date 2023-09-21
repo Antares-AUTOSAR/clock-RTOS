@@ -50,8 +50,9 @@ typedef struct _APP_MsgTypeDef
     APP_TmTypeDef tm; /*!< time and date in stdlib tm format */
 } APP_MsgTypeDef;
 
-extern APP_MsgTypeDef MSGHandler;
-
+/**
+ * @brief  Structure type variable for CAN handler
+ */
 extern FDCAN_HandleTypeDef CANHandler;
 
 /**
