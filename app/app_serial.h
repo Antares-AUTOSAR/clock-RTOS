@@ -3,9 +3,17 @@
 
 #include "bsp.h"
 
+/** 
+  * @defgroup To indicate the state of the data
+  @{ */
 #define OK_STATE                 4u /*!< Ok state       */
 #define ERROR_STATE              5u /*!< Error state    */
+/**
+  @} */
 
+/** 
+  * @defgroup Months, months of the year in hexa
+  @{ */
 #define JANUARY                  0x01u /*!< January in hexa   */
 #define FEBRUARY                 0x02u /*!< February in hexa  */
 #define MARCH                    0x03u /*!< March in hexa     */
@@ -18,7 +26,12 @@
 #define OCTOBER                  0x10u /*!< October in hexa   */
 #define NOVEMBER                 0x11u /*!< November in hexa  */
 #define DECEMBER                 0x12u /*!< December in hexa  */
+/**
+  @} */
 
+/** 
+  * @defgroup Numbers, defines for numbers in decimal
+  @{ */
 #define NUM_0                    0u   /*!< Number 0   */
 #define NUM_1                    1u   /*!< Number 1   */
 #define NUM_2                    2u   /*!< Number 2   */
@@ -31,7 +44,12 @@
 #define NUM_12                   12u  /*!< Number 12  */
 #define NUM_13                   13u  /*!< Number 13  */
 #define NUM_100                  100u /*!< Number 100 */
+/**
+  @} */
 
+/** 
+  * @defgroup Numbers, defines for numbers in hexa
+  @{ */
 #define HEX_0                    0x00u   /*!< Number 0 in hexa    */
 #define HEX_1                    0x01u   /*!< Number 1 in hexa    */
 #define HEX_2                    0x02u   /*!< Number 2 in hexa    */
@@ -51,7 +69,12 @@
 #define HEX_0F                   0x0Fu   /*!< Number 0F in hexa   */
 #define HEX_1901                 0x1901u /*!< Number 1901 in hexa */
 #define HEX_2099                 0x2099u /*!< Number 2099 in hexa */
+/**
+  @} */
 
+/** 
+  * @defgroup Defines for CAN configuration
+  @{ */
 #define VAL_EXTFILTERSNBR        0u     /*!< Value for ExtFiltersNbr        */
 #define VAL_STDFILTERSNDR        1u     /*!< Value for StdFiltersNbr        */
 #define VAL_NOMINALPRESCALER     8u     /*!< Value for NominalPrescaler     */
@@ -63,6 +86,8 @@
 #define VAL_FILTERID1            0x111u /*!< Value for FilterID1            */
 #define VAL_FILTERID2            0x7FFu /*!< Value for FilterID2            */
 #define VAL_BUFFERINDEXES        0u     /*!< Value for BufferIndexes        */
+/**
+  @} */
 
 /**
  * @brief Struct with pointer to function
