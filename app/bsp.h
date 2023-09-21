@@ -62,12 +62,12 @@ typedef enum
 } APP_Messages;
 
 /*Queue identifier to use*/
-extern QueueHandle_t serialQueue;     /* Serial Queue identifier to use in the serial machine. */
-extern QueueHandle_t clockQueue;      /* Serial Queue identifier to use in the clock machine   */
-extern QueueHandle_t displayQueue;    /* Serial Queue identifier to use in the display machine.   */
+extern QueueHandle_t serialQueue;  /* Serial Queue identifier to use in the serial machine. */
+extern QueueHandle_t clockQueue;   /* Serial Queue identifier to use in the clock machine   */
+extern QueueHandle_t displayQueue; /* Serial Queue identifier to use in the display machine.   */
 
-extern TimerHandle_t xTimerDisplay;   /* Struct for handling Display Software timer   */
+extern TimerHandle_t xTimerDisplay; /* Struct for handling Display Software timer   */
 
-extern RTC_HandleTypeDef RtcHandler;  /* Struct for handling Display Software timer   */  
+extern RTC_HandleTypeDef RtcHandler; /* Struct for handling Display Software timer   */
 
 #endif
