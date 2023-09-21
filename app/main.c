@@ -196,7 +196,7 @@ static void heart_Init( void )
     GPIO_InitTypeDef GPIO_InitStruct;
     __HAL_RCC_GPIOC_CLK_ENABLE( ); /*Enable clock on port C*/
 
-    GPIO_InitStruct.Pin   = 0xff;                /*Pins to set as output*/
+    GPIO_InitStruct.Pin   = GPIO_PIN_0;                /*Pins to set as output*/
     GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP; /*Output on mode push-pull*/
     GPIO_InitStruct.Pull  = GPIO_NOPULL;         /*No pull-up niether pull-down*/
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW; /*Pin speed*/
