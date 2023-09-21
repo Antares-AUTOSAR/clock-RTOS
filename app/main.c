@@ -35,7 +35,7 @@ void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer,
 /**
  * @brief Timer periodicity.
  */
-#define timerPeriod          300u
+#define hertbeat_timer  300u
 
 /**
  * @brief Serial Queue identifier to use in the serial machine.
@@ -114,7 +114,7 @@ int main( void )
     xTaskCreateStatic( Task_100ms, "Task100ms", TASK_STACK_SIZE, &displayPeriod, 1u, xTaskStack_100ms, &xTaskBuffer_100ms );
 
     /*Create a timer with a time of 300 ticks, self-recharging, Heart beat*/
-    xTimer = xTimerCreate( "Timer Heart", pdMS_TO_TICKS( timerPeriod ), pdTRUE, &TIMER_1_ID, vTimerCallback );
+    xTimer = xTimerCreate( "Timer Heart", pdMS_TO_TICKS( hertbeat_timer ), pdTRUE, &TIMER_1_ID, vTimerCallback );
     xTimerStart( xTimer, 0 ); /*Timer starts*/
 
     vTaskStartScheduler( );
