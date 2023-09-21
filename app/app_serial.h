@@ -69,7 +69,7 @@
  */
 typedef struct SerialStates
 {
-    void ( *ptr_funct )( void ); /*!< Pointer to function */
+    void ( *ptr_funct )( const NEW_MsgTypeDef *pdata ); /*!< Pointer to function */
 } SerialStates;
 
 extern void Serial_Init( void );

@@ -6,14 +6,12 @@ static uint8_t Valid_Time( const uint8_t *data );
 static uint8_t Valid_Alarm( const uint8_t *data );
 static uint8_t Valid_Date( const uint8_t *data );
 static uint32_t WeekDay( const uint8_t *data );
-static void Serial_StMachine( const APP_MsgTypeDef *data );
-static void SerialTimeState( void );
-static void SerialDateState( void );
-static void SerialAlarmState( void );
-static void SerialOkState( void );
-static void SerialErrorState( void );
-
-static NEW_MsgTypeDef NewMessage;
+static void Serial_StMachine( NEW_MsgTypeDef *pdata );
+static void SerialTimeState( const NEW_MsgTypeDef *pmsg );
+static void SerialDateState( const NEW_MsgTypeDef *pmsg );
+static void SerialAlarmState( const NEW_MsgTypeDef *pmsg );
+static void SerialOkState( const NEW_MsgTypeDef *pmsg );
+static void SerialErrorState( const NEW_MsgTypeDef *pmsg );
 
 FDCAN_HandleTypeDef CANHandler;
 
@@ -83,36 +81,35 @@ void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs
 {
     FDCAN_RxHeaderTypeDef CANRxHeader;
 
+    static NEW_MsgTypeDef NewMessage;
 
     if( ( RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE ) != NUM_0 )
     {
-        static uint8_t RxData[ NUM_8 ];
         /* Retrieve Rx messages from RX FIFO0 */
-        HAL_FDCAN_GetRxMessage( hfdcan, FDCAN_RX_FIFO0, &CANRxHeader, RxData );
+        HAL_FDCAN_GetRxMessage( hfdcan, FDCAN_RX_FIFO0, &CANRxHeader, &NewMessage.Data[ NUM_0 ] );
 
-        xQueueSendFromISR( serialQueue, &NewMessage, NULL );
+        xQueueSendFromISR( serialQueue, &NewMessage.Data[ NUM_0 ], NULL );
     }
 }
 
 void Serial_Task( void )
 {
-    static APP_MsgTypeDef RecieveMsg = { 0 };
+    static NEW_MsgTypeDef RecieveMsg = { 0 };
 
-    while( xQueueReceive( serialQueue, &RecieveMsg, 0 ) == pdTRUE )
+    while( xQueueReceive( serialQueue, &RecieveMsg.Data[ NUM_0 ], 0 ) == pdTRUE )
     {
-        if( CanTp_SingleFrameRx( &NewMessage.Data[ NUM_1 ], &NewMessage.Data[ NUM_0 ] ) == NUM_1 )
+        if( CanTp_SingleFrameRx( &RecieveMsg.Data[ NUM_1 ], &RecieveMsg.Data[ NUM_0 ] ) == NUM_1 )
         {
             Serial_StMachine( &RecieveMsg );
         }
         else
         {
-            RecieveMsg.msg = ERROR_STATE;
             Serial_StMachine( &RecieveMsg );
         }
     }
 }
 
-void Serial_StMachine( const APP_MsgTypeDef *data )
+void Serial_StMachine( NEW_MsgTypeDef *pdata )
 {
     static SerialStates StMachine[ NUM_5 ] = {
     { SerialTimeState },
@@ -121,122 +118,103 @@ void Serial_StMachine( const APP_MsgTypeDef *data )
     { SerialOkState },
     { SerialErrorState } };
 
-    static APP_MsgTypeDef NextEvent;
-    NextEvent.msg = data->msg - NUM_1;
+    static NEW_MsgTypeDef NextEvent;
+    NextEvent.Data[ NUM_0 ] = pdata->Data[ NUM_1 ];
 
-    StMachine[ NextEvent.msg ].ptr_funct( );
+    StMachine[ NextEvent.Data[ NUM_0 ] - NUM_1 ].ptr_funct( pdata );
 }
 
-void SerialTimeState( void )
+void SerialTimeState( const NEW_MsgTypeDef *pmsg )
 {
-    static APP_MsgTypeDef SerialMsg;
-    SEGGER_RTT_printf( 0, "time\n" );
+    static NEW_MsgTypeDef SerialMsg;
 
-    if( Valid_Time( &NewMessage.Data[ NUM_0 ] ) == NUM_1 )
+    if( Valid_Time( &pmsg->Data[ NUM_0 ] ) == NUM_1 )
     {
-        SerialMsg.msg        = OK_STATE;
-        SerialMsg.tm.tm_hour = NewMessage.Data[ NUM_2 ];
-        SerialMsg.tm.tm_min  = NewMessage.Data[ NUM_3 ];
-        SerialMsg.tm.tm_sec  = NewMessage.Data[ NUM_4 ];
-        SEGGER_RTT_printf( 0, "%d\n", SerialMsg.msg );
+        SerialMsg.Data[ NUM_0 ] = pmsg->Data[ NUM_0 ];
+        SerialMsg.Data[ NUM_1 ] = OK_STATE;
+        SerialMsg.Data[ NUM_2 ] = pmsg->Data[ NUM_2 ];
+        SerialMsg.Data[ NUM_3 ] = pmsg->Data[ NUM_3 ];
+        SerialMsg.Data[ NUM_4 ] = pmsg->Data[ NUM_4 ];
 
         xQueueSend( serialQueue, &SerialMsg, 0 );
     }
     else
     {
-        SerialMsg.msg = ERROR_STATE;
+        SerialMsg.Data[ NUM_1 ] = ERROR_STATE;
         xQueueSend( serialQueue, &SerialMsg, 0 );
     }
 }
 
-void SerialDateState( void )
+void SerialDateState( const NEW_MsgTypeDef *pmsg )
 {
-    static APP_MsgTypeDef SerialMsg;
+    static NEW_MsgTypeDef SerialMsg;
 
-    if( Valid_Date( &NewMessage.Data[ NUM_0 ] ) == NUM_1 )
+    if( Valid_Date( &pmsg->Data[ NUM_0 ] ) == NUM_1 )
     {
-        SerialMsg.msg        = OK_STATE;
-        SerialMsg.tm.tm_wday = WeekDay( &NewMessage.Data[ NUM_0 ] );
-        SerialMsg.tm.tm_mday = NewMessage.Data[ NUM_2 ];
-        SerialMsg.tm.tm_mon  = NewMessage.Data[ NUM_3 ];
-        SerialMsg.tm.tm_year = NewMessage.Data[ NUM_4 ] << NUM_8;
-        SerialMsg.tm.tm_year += NewMessage.Data[ NUM_5 ];
-
+        SerialMsg.Data[ NUM_0 ] = pmsg->Data[ NUM_0 ];
+        SerialMsg.Data[ NUM_1 ] = OK_STATE;
+        SerialMsg.Data[ NUM_2 ] = pmsg->Data[ NUM_2 ];
+        SerialMsg.Data[ NUM_3 ] = pmsg->Data[ NUM_3 ];
+        SerialMsg.Data[ NUM_4 ] = pmsg->Data[ NUM_4 ];
+        SerialMsg.Data[ NUM_5 ] = pmsg->Data[ NUM_5 ];
         xQueueSend( serialQueue, &SerialMsg, 0 );
     }
     else
     {
-        SerialMsg.msg = ERROR_STATE;
+        SerialMsg.Data[ NUM_1 ] = ERROR_STATE;
         xQueueSend( serialQueue, &SerialMsg, 0 );
     }
 }
 
-void SerialAlarmState( void )
+void SerialAlarmState( const NEW_MsgTypeDef *pmsg )
 {
-    static APP_MsgTypeDef SerialMsg;
+    static NEW_MsgTypeDef SerialMsg;
 
-    if( Valid_Alarm( &NewMessage.Data[ NUM_0 ] ) == NUM_1 )
+    if( Valid_Alarm( &pmsg->Data[ NUM_0 ] ) == NUM_1 )
     {
-        SerialMsg.msg              = OK_STATE;
-        SerialMsg.tm.tm_hour_alarm = NewMessage.Data[ NUM_2 ];
-        SerialMsg.tm.tm_min_alarm  = NewMessage.Data[ NUM_3 ];
-
+        SerialMsg.Data[ NUM_0 ] = pmsg->Data[ NUM_0 ];
+        SerialMsg.Data[ NUM_1 ] = OK_STATE;
+        SerialMsg.Data[ NUM_2 ] = pmsg->Data[ NUM_2 ];
+        SerialMsg.Data[ NUM_3 ] = pmsg->Data[ NUM_3 ];
         xQueueSend( serialQueue, &SerialMsg, 0 );
     }
     else
     {
-        SerialMsg.msg = ERROR_STATE;
+        SerialMsg.Data[ NUM_1 ] = ERROR_STATE;
         xQueueSend( serialQueue, &SerialMsg, 0 );
     }
 }
 
-void SerialOkState( void )
+void SerialOkState( const NEW_MsgTypeDef *pmsg )
 {
-    uint8_t i               = NUM_0;
-    uint8_t msn_ok[ NUM_1 ] = { HEX_55 };
-    static APP_MsgTypeDef SerialMsg;
+    uint8_t i;
+    uint8_t msg_ok[ NUM_1 ] = { HEX_55 };
+    static APP_MsgTypeDef clockMsg;
 
-    if( NewMessage.Data[ NUM_1 ] == NUM_1 )
-    {
-        i = ( NUM_4 << NUM_4 ) + ( HEX_55 & HEX_0F );
-    }
-    else if( NewMessage.Data[ NUM_1 ] == NUM_2 )
-    {
-        i = ( NUM_5 << NUM_4 ) + ( HEX_55 & HEX_0F );
-    }
-    else if( NewMessage.Data[ NUM_1 ] == NUM_3 )
-    {
-        i = ( NUM_3 << NUM_4 ) + ( HEX_55 & HEX_0F );
-    }
-    else
-    {
-    }
+    clockMsg.msg        = pmsg->Data[ NUM_1 ];
+    clockMsg.tm.tm_hour = pmsg->Data[ NUM_2 ];
+    clockMsg.tm.tm_min  = pmsg->Data[ NUM_3 ];
+    clockMsg.tm.tm_sec  = pmsg->Data[ NUM_4 ];
+    clockMsg.tm.tm_wday = WeekDay( &pmsg->Data[ NUM_0 ] );
+    clockMsg.tm.tm_mday = pmsg->Data[ NUM_2 ];
+    clockMsg.tm.tm_mon  = pmsg->Data[ NUM_3 ];
+    clockMsg.tm.tm_year = pmsg->Data[ NUM_4 ] << NUM_8;
+    clockMsg.tm.tm_year += pmsg->Data[ NUM_5 ];
+    clockMsg.tm.tm_hour_alarm = pmsg->Data[ NUM_2 ];
+    clockMsg.tm.tm_min_alarm  = pmsg->Data[ NUM_3 ];
 
-    CanTp_SingleFrameTx( &msn_ok[ NUM_0 ], i );
-    SerialMsg.msg = NewMessage.Data[ NUM_1 ];
-    xQueueSend( clockQueue, &SerialMsg, 0 );
+    i = pmsg->Data[ NUM_0 ];
+
+    CanTp_SingleFrameTx( &msg_ok[ NUM_0 ], i );
+    xQueueSend( clockQueue, &clockMsg, 0 );
 }
 
-void SerialErrorState( void )
+void SerialErrorState( const NEW_MsgTypeDef *pmsg )
 {
-    uint8_t i                  = NUM_0;
+    uint8_t i;
     uint8_t msn_error[ NUM_1 ] = { HEX_AA };
 
-    if( NewMessage.Data[ NUM_1 ] == NUM_1 )
-    {
-        i = ( NUM_4 << NUM_4 ) + ( HEX_AA & HEX_0F );
-    }
-    else if( NewMessage.Data[ NUM_1 ] == NUM_2 )
-    {
-        i = ( NUM_5 << NUM_4 ) + ( HEX_AA & HEX_0F );
-    }
-    else if( NewMessage.Data[ NUM_1 ] == NUM_3 )
-    {
-        i = ( NUM_3 << NUM_4 ) + ( HEX_AA & HEX_0F );
-    }
-    else
-    {
-    }
+    i = pmsg->Data[ NUM_0 ];
 
     CanTp_SingleFrameTx( &msn_error[ NUM_0 ], i );
 }
@@ -365,16 +343,12 @@ uint32_t WeekDay( const uint8_t *data )
 
 static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size )
 {
-    uint8_t data_length;
-
-    data_length = size >> NUM_4;
-
-    for( uint8_t i = NUM_0; i < data_length; i++ )
+    for( uint8_t i = NUM_0; i < size; i++ )
     {
         data[ i + NUM_1 ] = data[ NUM_0 ];
     }
 
-    data[ NUM_0 ] = data_length;
+    data[ NUM_0 ] = size;
 
     HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, data );
 }
