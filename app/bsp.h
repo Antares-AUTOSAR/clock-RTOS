@@ -55,10 +55,10 @@ typedef struct _APP_MsgTypeDef
  */
 typedef enum
 {
-    SERIAL_MSG_ALARM,
-    SERIAL_MSG_DATE,
-    SERIAL_MSG_TIME,
-    CLOCK_MSG_PRINT
+    SERIAL_MSG_ALARM, /**< Received Alarm     - message type 0 */
+    SERIAL_MSG_DATE,  /**< Received Date      - message type 1 */
+    SERIAL_MSG_TIME,  /**< Received Time      - message type 2 */
+    CLOCK_MSG_PRINT   /**< Print clock data   - message type 3 */
 } APP_Messages;
 
 /*Queue identifier to use*/
@@ -66,8 +66,10 @@ extern QueueHandle_t serialQueue;
 extern QueueHandle_t clockQueue;
 extern QueueHandle_t displayQueue;
 
+/*Timer handlers*/
 extern TimerHandle_t xTimerDisplay;
 
+/*RTC handler*/
 extern RTC_HandleTypeDef RtcHandler;
 
 #endif
