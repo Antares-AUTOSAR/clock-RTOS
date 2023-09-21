@@ -55,10 +55,10 @@ typedef struct _APP_MsgTypeDef
  */
 typedef enum
 {
-    SERIAL_MSG_ALARM, /**< Received Alarm     - message type 0 */
-    SERIAL_MSG_DATE,  /**< Received Date      - message type 1 */
-    SERIAL_MSG_TIME,  /**< Received Time      - message type 2 */
-    CLOCK_MSG_PRINT   /**< Print clock data   - message type 3 */
+    SERIAL_MSG_ALARM, /**< Received Alarm message type */
+    SERIAL_MSG_DATE,  /**< Received Date message type */
+    SERIAL_MSG_TIME,  /**< Received Time message type */
+    CLOCK_MSG_PRINT   /**< Print clock data message type */
 } APP_Messages;
 
 /*Queue identifier to use*/
