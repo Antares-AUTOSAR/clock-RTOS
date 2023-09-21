@@ -10,30 +10,30 @@
 /**
  * @brief Save the buffer dimentions.
  */
-#define TASK_STACK_SIZE      128u
+#define TASK_STACK_SIZE       128u
 
 /**
  * @defgroup Queue parameters
  @{*/
-#define QUEUE_LENGTH_SERIAL  9                        /*!< Maximum number of items */
-#define ITEM_SIZE_SERIAL     sizeof( NEW_MsgTypeDef ) /*!< The size, in bytes, required to hold each item in the queue. */
-#define QUEUE_LENGTH_CLOCK   45                       /*!< Maximum number of items */
-#define ITEM_SIZE_CLOCK      sizeof( APP_MsgTypeDef ) /*!< The size, in bytes, required to hold each item in the queue. */
-#define QUEUE_LENGTH_DISPLAY 90                       /*!< Maximum number of items */
-#define ITEM_SIZE_DISPLAY    sizeof( APP_MsgTypeDef ) /*!< The size, in bytes, required to hold each item in the queue. */
+#define QUEUE_LENGTH_SERIAL   9                        /*!< Maximum number of items */
+#define ITEM_SIZE_SERIAL      sizeof( NEW_MsgTypeDef ) /*!< The size, in bytes, required to hold each item in the queue. */
+#define QUEUE_LENGTH_CLOCK    45                       /*!< Maximum number of items */
+#define ITEM_SIZE_CLOCK       sizeof( APP_MsgTypeDef ) /*!< The size, in bytes, required to hold each item in the queue. */
+#define QUEUE_LENGTH_DISPLAY  90                       /*!< Maximum number of items */
+#define ITEM_SIZE_DISPLAY     sizeof( APP_MsgTypeDef ) /*!< The size, in bytes, required to hold each item in the queue. */
 /**@} */
 
 /**
  * @defgroup Periodicity and Priority
  @{*/
-#define hertbeat_timer       300u                /*!< Periodicity of heart beat task */
-#define TIMER_HEART_ID       (void *)(uint32_t)2 /*!< ID for timer used to HEART BEAT */
-#define SERIAL_PERIODICITY   (void *)(int)10     /*!< Serial's task periodicity  */
-#define CLOCK_PERIODICITY    (void *)(int)50     /*!< Clock's task periodicity   */
-#define DISPLAY_PERIODICITY  (void *)(int)100    /*!< Display's task periodicity */
-#define SERIAL_PRIORITY      3u                  /*!< Serial's task priority     */
-#define CLOCK_PRIORITY       2u                  /*!< Clock's task priority      */
-#define DISPLAY_PRIORITY     1u                  /*!< Display's task priority    */
+#define HEARTBEAT_PERIODICITY 300u                /*!< Periodicity of heart beat task */
+#define TIMER_HEART_ID        (void *)(uint32_t)2 /*!< ID for timer used to HEART BEAT */
+#define SERIAL_PERIODICITY    (void *)(int)10     /*!< Serial's task periodicity  */
+#define CLOCK_PERIODICITY     (void *)(int)50     /*!< Clock's task periodicity   */
+#define DISPLAY_PERIODICITY   (void *)(int)100    /*!< Display's task periodicity */
+#define SERIAL_PRIORITY       3u                  /*!< Serial's task priority     */
+#define CLOCK_PRIORITY        2u                  /*!< Clock's task priority      */
+#define DISPLAY_PRIORITY      1u                  /*!< Display's task priority    */
 /**@} */
 
 /**
@@ -107,7 +107,7 @@ int main( void )
     xTaskCreateStatic( Task_100ms, "Task100ms", TASK_STACK_SIZE, DISPLAY_PERIODICITY, DISPLAY_PRIORITY, xTaskStack_100ms, &xTaskBuffer_100ms );
 
     /*Create a timer with a time of 300 ticks, self-recharging, Heart beat*/
-    xTimer = xTimerCreate( "Timer Heart", pdMS_TO_TICKS( hertbeat_timer ), pdTRUE, TIMER_HEART_ID, vTimerCallback );
+    xTimer = xTimerCreate( "Timer Heart", pdMS_TO_TICKS( HEARTBEAT_PERIODICITY ), pdTRUE, TIMER_HEART_ID, vTimerCallback );
     xTimerStart( xTimer, 0 ); /*Timer starts*/
 
     vTaskStartScheduler( );
