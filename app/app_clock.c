@@ -7,7 +7,7 @@
  */
 
 #include "app_clock.h"
-
+#include "bsp.h"
 
 /* Function prototypes for each state action procedure */
 static void state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage );

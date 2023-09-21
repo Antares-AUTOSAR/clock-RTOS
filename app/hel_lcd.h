@@ -8,8 +8,13 @@
 #ifndef HEL_LCD_H_
 #define HEL_LCD_H_
 
-#include "bsp.h"
-#include <stdint.h>
+/**
+ * @defgroup Backlight states
+ @{*/
+#define LCD_OFF    0u /*!< Brief description */
+#define LCD_ON     1u /*!< Brief description */
+#define LCD_TOGGLE 2u /*!< Brief description */
+/**@} */
 
 /**
  * @brief Struct for LCD HANDLER.

@@ -9,14 +9,6 @@
 #include "hel_lcd.h"
 #include <stdint.h>
 
-/**
- * @defgroup Backlight states
- @{*/
-#define LCD_OFF    0u /*!< Brief description */
-#define LCD_ON     1u /*!< Brief description */
-#define LCD_TOGGLE 2u /*!< Brief description */
-/**@} */
-
 /*Prototype of function*/
 static void delay_ms( uint32_t miliseconds );
 

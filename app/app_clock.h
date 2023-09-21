@@ -10,9 +10,6 @@
 #ifndef APP_CLOCK_H
 #define APP_CLOCK_H
 
-#include "bsp.h"
-
-
 #define TOTAL_CLOCK_STATES 4U /*!< Total states in event machine */
 
 /**
