@@ -33,9 +33,11 @@ void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer,
 /**@} */
 
 /**
- * @brief Timer periodicity.
- */
-#define hertbeat_timer       300u
+ * @defgroup Periodicity task
+ @{*/
+#define hertbeat_timer       300u                /*!< Periodicity of heart beat task */
+#define TIMER_HEART_ID       (void *)(uint32_t)2 /*!< ID for timer used to HEART BEAT */
+/**@} */
 
 /**
  * @brief Serial Queue identifier to use in the serial machine.
@@ -105,7 +107,6 @@ int main( void )
     displayQueue = xQueueCreateStatic( QUEUE_LENGTH_DISPLAY, ITEM_SIZE_DISPLAY, displayStorageArea, &xStaticQueueDisplay );
 
     /*Timmer create*/
-    static unsigned long TIMER_1_ID = 1; /*Timmer ID*/
     TimerHandle_t xTimer;
 
     /*Creation of tasks with different periodicities using static memory*/
@@ -114,7 +115,7 @@ int main( void )
     xTaskCreateStatic( Task_100ms, "Task100ms", TASK_STACK_SIZE, &displayPeriod, 1u, xTaskStack_100ms, &xTaskBuffer_100ms );
 
     /*Create a timer with a time of 300 ticks, self-recharging, Heart beat*/
-    xTimer = xTimerCreate( "Timer Heart", pdMS_TO_TICKS( hertbeat_timer ), pdTRUE, &TIMER_1_ID, vTimerCallback );
+    xTimer = xTimerCreate( "Timer Heart", pdMS_TO_TICKS( hertbeat_timer ), pdTRUE, TIMER_HEART_ID, vTimerCallback );
     xTimerStart( xTimer, 0 ); /*Timer starts*/
 
     vTaskStartScheduler( );
