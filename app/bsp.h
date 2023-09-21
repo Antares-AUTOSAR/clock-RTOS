@@ -1,3 +1,9 @@
+/**
+ * @file bsp.h
+ * @brief Init the structs
+ * Inicialization of structs with Data, Time and Alarm values.
+ */
+
 #ifndef BSP_H_
 #define BSP_H_
 

@@ -1,7 +1,9 @@
 /**
  * @file    main.c
- *
+ * @brief Enabling of queues and tasks with static memory.
+ * Develop the heart beat task.
  */
+
 #include "bsp.h"
 #include "app_serial.h"
 #include "app_clock.h"
@@ -16,7 +18,7 @@ void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer,
                                      uint32_t *pulTimerTaskStackSize );
 
 /**
- * @brief Save the buffer dimentions
+ * @brief Save the buffer dimentions.
  */
 #define TASK_STACK_SIZE      128u
 
@@ -32,15 +34,15 @@ void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer,
 /**@} */
 
 /**
- * @brief Serial Queue identifier to use
+ * @brief Serial Queue identifier to use in the serial machine.
  */
 QueueHandle_t serialQueue = { 0 };
 /**
- * @brief Serial Queue identifier to use
+ * @brief Serial Queue identifier to use in the clock machine.
  */
 QueueHandle_t clockQueue;
 /**
- * @brief Serial Queue identifier to use
+ * @brief Serial Queue identifier to use in the display machine.
  */
 QueueHandle_t displayQueue = { 0 };
 
@@ -51,6 +53,9 @@ static void Task_100ms( void *parameters );
 
 /**
  * @brief The initial function, code development.
+ * Initializing the task of each event machine (serial, clock and display) and initializing
+ * the queues with static memory.
+ *
  * @retval Returns an integer
  */
 int main( void )
@@ -103,7 +108,9 @@ int main( void )
 
 /**
  * @brief Task 10ms
- * @param parameters
+ * Developing serial event machine tasks every 10 ms.
+ *
+ * @param[in] parameters Periodicity value.
  */
 static void Task_10ms( void *parameters )
 {
@@ -120,7 +127,9 @@ static void Task_10ms( void *parameters )
 
 /**
  * @brief Task 50ms
- * @param parameters
+ * Developing clock event machine tasks every 50 ms.
+ *
+ * @param[in] parameters Periodicity value.
  */
 static void Task_50ms( void *parameters )
 {
@@ -138,7 +147,9 @@ static void Task_50ms( void *parameters )
 
 /**
  * @brief Task 100ms
- * @param parameters
+ * Developing display event machine tasks every 100 ms.
+ *
+ * @param[in] parameters Periodicity value.
  */
 static void Task_100ms( void *parameters )
 {
@@ -151,14 +162,13 @@ static void Task_100ms( void *parameters )
     }
 }
 
-/* configSUPPORT_STATIC_ALLOCATION is set to 1, so the application must provide an
-implementation of vApplicationGetIdleTaskMemory() to provide the memory that is
-used by the Idle task. */
 /**
  * @brief configSUPPORT_STATIC_ALLOCATION
- * @param ppxIdleTaskTCBBuffer
- * @param ppxIdleTaskStackBuffer
- * @param pulIdleTaskStackSize
+ * Function to add necessary quantity of static memory for each task.
+ *
+ * @param[in] ppxIdleTaskTCBBuffer   Pass out a pointer to the StaticTask_t structure.
+ * @param[in] ppxIdleTaskStackBuffer Pass out the array that will be used.
+ * @param[in] pulIdleTaskStackSize   Pass out the size of the array.
  */
 void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
                                     StackType_t **ppxIdleTaskStackBuffer,
@@ -184,15 +194,13 @@ void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
     *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
 }
 
-
-/* configSUPPORT_STATIC_ALLOCATION and configUSE_TIMERS are both set to 1, so the
-application must provide an implementation of vApplicationGetTimerTaskMemory()
-to provide the memory that is used by the Timer service task. */
 /**
  * @brief vApplicationGetTimerTaskMemory
- * @param ppxTimerTaskTCBBuffer
- * @param ppxTimerTaskStackBuffer
- * @param pulTimerTaskStackSize
+ * Provide the memory that is used by the Timer service task.
+ *
+ * @param[in] ppxTimerTaskTCBBuffer   Pass out a pointer to the StaticTask_t structure.
+ * @param[in] ppxTimerTaskStackBuffer Pass out the array that will be used.
+ * @param[in] pulTimerTaskStackSize   Pass out the size of the array.
  */
 void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer,
                                      StackType_t **ppxTimerTaskStackBuffer,
