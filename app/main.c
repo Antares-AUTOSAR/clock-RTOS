@@ -7,15 +7,6 @@
 #include "bsp.h"
 #include "app_clock.h"
 
-/*Prototype of static memory*/
-void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
-                                    StackType_t **ppxIdleTaskStackBuffer,
-                                    uint32_t *pulIdleTaskStackSize );
-/*Prototype of timer in static memory*/
-void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer,
-                                     StackType_t **ppxTimerTaskStackBuffer,
-                                     uint32_t *pulTimerTaskStackSize );
-
 /**
  * @brief Save the buffer dimentions.
  */
@@ -33,16 +24,22 @@ void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer,
 /**@} */
 
 /**
- * @defgroup Periodicity task
+ * @defgroup Periodicity and Priority
  @{*/
 #define hertbeat_timer       300u                /*!< Periodicity of heart beat task */
 #define TIMER_HEART_ID       (void *)(uint32_t)2 /*!< ID for timer used to HEART BEAT */
+#define SERIAL_PERIODICITY   (void *)(int)10     /*!< Serial's task periodicity  */
+#define CLOCK_PERIODICITY    (void *)(int)50     /*!< Clock's task periodicity   */
+#define DISPLAY_PERIODICITY  (void *)(int)100    /*!< Display's task periodicity */
+#define SERIAL_PRIORITY      3u                  /*!< Serial's task priority     */
+#define CLOCK_PRIORITY       2u                  /*!< Clock's task priority      */
+#define DISPLAY_PRIORITY     1u                  /*!< Display's task priority    */
 /**@} */
 
 /**
  * @brief Serial Queue identifier to use in the serial machine.
  */
-QueueHandle_t serialQueue = { 0 };
+QueueHandle_t serialQueue; /*cppcheck-suppress misra-c2012-8.7 ; Take the value of function parameter*/
 /**
  * @brief Serial Queue identifier to use in the clock machine.
  */
@@ -50,7 +47,7 @@ QueueHandle_t clockQueue;
 /**
  * @brief Serial Queue identifier to use in the display machine.
  */
-QueueHandle_t displayQueue = { 0 };
+QueueHandle_t displayQueue;
 
 /*Task to developed*/
 static void Task_10ms( void *parameters );
@@ -84,11 +81,6 @@ int main( void )
     static StackType_t xTaskStack_50ms[ TASK_STACK_SIZE ];
     static StackType_t xTaskStack_100ms[ TASK_STACK_SIZE ];
 
-    /*Periodicity of each task*/
-    uint8_t serialPeriod  = 10;
-    uint8_t clockPeriod   = 50;
-    uint8_t displayPeriod = 100;
-
     /*QUEUE ELEMENTS*/
 
     /* The variable used to hold the queue's data structure. */
@@ -110,9 +102,9 @@ int main( void )
     TimerHandle_t xTimer;
 
     /*Creation of tasks with different periodicities using static memory*/
-    xTaskCreateStatic( Task_10ms, "Task10ms", TASK_STACK_SIZE, &serialPeriod, 3u, xTaskStack_10ms, &xTaskBuffer_10ms );
-    xTaskCreateStatic( Task_50ms, "Task50ms", TASK_STACK_SIZE, &clockPeriod, 2u, xTaskStack_50ms, &xTaskBuffer_50ms );
-    xTaskCreateStatic( Task_100ms, "Task100ms", TASK_STACK_SIZE, &displayPeriod, 1u, xTaskStack_100ms, &xTaskBuffer_100ms );
+    xTaskCreateStatic( Task_10ms, "Task10ms", TASK_STACK_SIZE, SERIAL_PERIODICITY, SERIAL_PRIORITY, xTaskStack_10ms, &xTaskBuffer_10ms );
+    xTaskCreateStatic( Task_50ms, "Task50ms", TASK_STACK_SIZE, CLOCK_PERIODICITY, CLOCK_PRIORITY, xTaskStack_50ms, &xTaskBuffer_50ms );
+    xTaskCreateStatic( Task_100ms, "Task100ms", TASK_STACK_SIZE, DISPLAY_PERIODICITY, DISPLAY_PRIORITY, xTaskStack_100ms, &xTaskBuffer_100ms );
 
     /*Create a timer with a time of 300 ticks, self-recharging, Heart beat*/
     xTimer = xTimerCreate( "Timer Heart", pdMS_TO_TICKS( hertbeat_timer ), pdTRUE, TIMER_HEART_ID, vTimerCallback );
@@ -224,6 +216,7 @@ static void heart_beat( void )
  * @param[in] ppxIdleTaskStackBuffer Pass out the array that will be used.
  * @param[in] pulIdleTaskStackSize   Pass out the size of the array.
  */
+/*cppcheck-suppress misra-c2012-8.4 ; According of freeRTOS is necessary*/
 void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
                                     StackType_t **ppxIdleTaskStackBuffer,
                                     uint32_t *pulIdleTaskStackSize )
@@ -256,6 +249,7 @@ void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
  * @param[in] ppxTimerTaskStackBuffer Pass out the array that will be used.
  * @param[in] pulTimerTaskStackSize   Pass out the size of the array.
  */
+/*cppcheck-suppress misra-c2012-8.4 ; According of freeRTOS is necessary*/
 void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer,
                                      StackType_t **ppxTimerTaskStackBuffer,
                                      uint32_t *pulTimerTaskStackSize )
