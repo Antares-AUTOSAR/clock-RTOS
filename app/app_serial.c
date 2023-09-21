@@ -26,12 +26,12 @@ static FDCAN_TxHeaderTypeDef CANTxHeader;
 /**
  * @brief   **Initialize of CAN port**
  *
- * Is the function to initialize all the required to start working with the CAN port 
+ * Is the function to initialize all the required to start working with the CAN port
  * and the messages reception processing
  *
  * @param   CANHandler  [out] Structure type variable to configure CAN operation mode
  * @param   CANTxHeader [out] Structure type variable to configure CAN transmicion
- * 
+ *
  * @note Declaration of the options to configure the FDCAN1 module to transmit to the CAN bus at 100Kbps
  *       and sample point of 75%, the frequency with which the CAN module is powered is
  *       fCAN = fHSI / CANHandler.Init.ClockDivider / CANHandler.Init.NominalPrescaler
@@ -93,7 +93,7 @@ void Serial_Init( void )
 /**
  * @brief   **Reception of CAN messages**
  *
- * Callback to the CAN interrup, it is activated when a message 
+ * Callback to the CAN interrup, it is activated when a message
  * is recieve then is store in the variable NewMessage
  *
  * @param   hfdcan      [in]  To handle CAN
@@ -144,7 +144,7 @@ void Serial_Task( void )
  * @brief   **Main state machine**
  *
  * Is going to implement the state machine in charge of calling the function for the
- * new message, after the interruption of CAN is trigger, depending if it is a message of time, 
+ * new message, after the interruption of CAN is trigger, depending if it is a message of time,
  * date and alarm.
  *
  * @param   pdata  [in]  Pointer to data struct
@@ -167,7 +167,7 @@ void Serial_StMachine( NEW_MsgTypeDef *pdata )
 /**
  * @brief   **Serial time function**
  *
- * Is going to evaluate if the data for time is valid 
+ * Is going to evaluate if the data for time is valid
  * and send the message to the queue.
  *
  * @param   pdata  [in]  Pointer to data struct
@@ -196,7 +196,7 @@ void SerialTimeState( const NEW_MsgTypeDef *pmsg )
 /**
  * @brief   **Serial date function**
  *
- * Is going to evaluate if the data for date is valid 
+ * Is going to evaluate if the data for date is valid
  * and send the message to the queue.
  *
  * @param   pdata  [in]  Pointer to data struct
@@ -225,7 +225,7 @@ void SerialDateState( const NEW_MsgTypeDef *pmsg )
 /**
  * @brief   **Serial alarm function**
  *
- * Is going to evaluate if the data for alarm is valid 
+ * Is going to evaluate if the data for alarm is valid
  * and send the message to the queue.
  *
  * @param   pdata  [in]  Pointer to data struct
@@ -308,7 +308,7 @@ void SerialErrorState( const NEW_MsgTypeDef *pmsg )
  *
  * @param   data          [in]  Pointer to data
  *
- * @retval  The function returns 1 if time is correct and 0 if not 
+ * @retval  The function returns 1 if time is correct and 0 if not
  */
 static uint8_t Valid_Time( const uint8_t *data )
 {
@@ -326,12 +326,12 @@ static uint8_t Valid_Time( const uint8_t *data )
  * @brief   **Validate alarm**
  *
  * This function validates if the Alarm message is in range,
- * from 0 to 23 for hours and from 0 to 59 to minutes, 
+ * from 0 to 23 for hours and from 0 to 59 to minutes,
  * no seconds nedded, and then returns the result.
  *
  * @param   data          [in]  Pointer to data
  *
- * @retval  The function returns 1 if the alarm is correct and 0 if not 
+ * @retval  The function returns 1 if the alarm is correct and 0 if not
  */
 static uint8_t Valid_Alarm( const uint8_t *data )
 {
@@ -353,10 +353,10 @@ static uint8_t Valid_Alarm( const uint8_t *data )
  * from 1901 to 2099 for years and returns the result.
  * In addition it also vaidates if the date is in a leap-year
  * and adjust the month of February to manage 29 days.
- * 
+ *
  * @param   data          [in]  Pointer to data
  *
- * @retval  The function returns 1 if the date is correct and 0 if not 
+ * @retval  The function returns 1 if the date is correct and 0 if not
  */
 static uint8_t Valid_Date( const uint8_t *data )
 {
@@ -420,10 +420,10 @@ static uint8_t Valid_Date( const uint8_t *data )
  *
  * This function calculates the day of the week according to the date,
  * to do this, we will use Zeller's congruence. Taking the day, month and year
- * to calculate the year of the century and the century. In this algorithm 
+ * to calculate the year of the century and the century. In this algorithm
  * January and February are counted as months 13 and 14 of the previous year.
  * With this data we use the formula for the Gregorian calendar.
- * 
+ *
  * @param   data          [in]  Pointer to data
  */
 uint32_t WeekDay( const uint8_t *data )
@@ -473,7 +473,7 @@ uint32_t WeekDay( const uint8_t *data )
  * This function transmit the ok or error messages through the terminal
  * when the data is already procesed, will be send 0x55 if the data was in range
  * and the 0xAA if the data was not in range with CAN-ID of 0x122
- * 
+ *
  * @param   data [in] Pointer to data
  * @param   size [in] Size of data
  */
@@ -492,13 +492,13 @@ static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size )
 /**
  * @brief   **CAN-TP single frame format**
  *
- * The function validate if the message received 
+ * The function validate if the message received
  * complies with CAN-TP single frame format.
  *
  * @param   data        [in]     Pointer to data
  * @param   size        [in]     Size of data
  *
- * @retval  The function returns 1 when a certain number of bytes were received, 
+ * @retval  The function returns 1 when a certain number of bytes were received,
  *          otherwise, no message was received
  */
 static uint8_t CanTp_SingleFrameRx( const uint8_t *data, const uint8_t *size )

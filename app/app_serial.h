@@ -3,7 +3,7 @@
 
 #include "bsp.h"
 
-/** 
+/**
   * @defgroup To indicate the state of the data
   @{ */
 #define OK_STATE                 4u /*!< Ok state       */
@@ -11,8 +11,8 @@
 /**
   @} */
 
-/** 
-  * @defgroup Months, months of the year in hexa
+/**
+  * @defgroup Months of the year in hexa
   @{ */
 #define JANUARY                  0x01u /*!< January in hexa   */
 #define FEBRUARY                 0x02u /*!< February in hexa  */
@@ -29,8 +29,8 @@
 /**
   @} */
 
-/** 
-  * @defgroup Numbers, defines for numbers in decimal
+/**
+  * @defgroup Decimal numbers
   @{ */
 #define NUM_0                    0u   /*!< Number 0   */
 #define NUM_1                    1u   /*!< Number 1   */
@@ -47,8 +47,8 @@
 /**
   @} */
 
-/** 
-  * @defgroup Numbers, defines for numbers in hexa
+/**
+  * @defgroup Numbers in hexa
   @{ */
 #define HEX_0                    0x00u   /*!< Number 0 in hexa    */
 #define HEX_1                    0x01u   /*!< Number 1 in hexa    */
@@ -72,7 +72,7 @@
 /**
   @} */
 
-/** 
+/**
   * @defgroup Defines for CAN configuration
   @{ */
 #define VAL_EXTFILTERSNBR        0u     /*!< Value for ExtFiltersNbr        */
