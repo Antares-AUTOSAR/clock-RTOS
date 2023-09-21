@@ -68,6 +68,6 @@ extern QueueHandle_t displayQueue; /* Serial Queue identifier to use in the disp
 
 extern TimerHandle_t xTimerDisplay; /* Struct for handling Display Software timer   */
 
-extern RTC_HandleTypeDef RtcHandler; /* Struct for handling Display Software timer   */
+extern RTC_HandleTypeDef RtcHandler; /* Struct for handling RTC peripheral Declared in bsp   */
 
 #endif
