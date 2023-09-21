@@ -49,6 +49,9 @@ QueueHandle_t displayQueue = { 0 };
 static void Task_10ms( void *parameters );
 static void Task_50ms( void *parameters );
 static void Task_100ms( void *parameters );
+static void Heart_Init( void );
+static void heart_beat( void );
+static void vTimerCallback( TimerHandle_t pxTimer ); /*Funcion Timmer Callback*/
 
 /**
  * @brief The initial function, code development.
@@ -63,6 +66,7 @@ int main( void )
     HAL_Init( );
     SEGGER_SYSVIEW_Conf( );
     SEGGER_SYSVIEW_Start( );
+    Heart_Init( );
 
     /*Declaration of task control structures for the static memory*/
     static StaticTask_t xTaskBuffer_10ms;
@@ -95,11 +99,18 @@ int main( void )
     clockQueue   = xQueueCreateStatic( QUEUE_LENGTH_CLOCK, ITEM_SIZE_CLOCK, clockStorageArea, &xStaticQueueClock );
     displayQueue = xQueueCreateStatic( QUEUE_LENGTH_DISPLAY, ITEM_SIZE_DISPLAY, displayStorageArea, &xStaticQueueDisplay );
 
+    /*Timmer create*/
+    static unsigned long TIMER_1_ID = 1; /*Timmer ID*/
+    TimerHandle_t xTimer;
 
     /*Creation of tasks with different periodicities using static memory*/
     xTaskCreateStatic( Task_10ms, "Task10ms", TASK_STACK_SIZE, &serialPeriod, 3u, xTaskStack_10ms, &xTaskBuffer_10ms );
     xTaskCreateStatic( Task_50ms, "Task50ms", TASK_STACK_SIZE, &clockPeriod, 2u, xTaskStack_50ms, &xTaskBuffer_50ms );
     xTaskCreateStatic( Task_100ms, "Task100ms", TASK_STACK_SIZE, &displayPeriod, 1u, xTaskStack_100ms, &xTaskBuffer_100ms );
+
+    /*Create a timer with a time of 300 ticks, self-recharging, Heart beat*/
+    xTimer = xTimerCreate( "Timer Heart", pdMS_TO_TICKS( 300 ), pdTRUE, &TIMER_1_ID, vTimerCallback );
+    xTimerStart( xTimer, 0 ); /*Timer starts*/
 
     vTaskStartScheduler( );
     return 0;
@@ -157,6 +168,46 @@ static void Task_100ms( void *parameters )
     {
         vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( displayPeriodicity ) );
     }
+}
+
+/**
+ * @brief Call back timer.
+ *
+ * @param[in] pxTimer
+ */
+void vTimerCallback( TimerHandle_t pxTimer )
+{
+    (void)pxTimer;
+    heart_beat( );
+}
+
+/**
+ * @brief Init the port C(LEDS).
+ * Inicialization of leds, Led0.
+ */
+static void Heart_Init( void )
+{
+
+    GPIO_InitTypeDef GPIO_InitStruct;
+    __HAL_RCC_GPIOC_CLK_ENABLE( ); /*Enable clock on port C*/
+
+    GPIO_InitStruct.Pin   = 0xff;                /*Pins to set as output*/
+    GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP; /*Output on mode push-pull*/
+    GPIO_InitStruct.Pull  = GPIO_NOPULL;         /*No pull-up niether pull-down*/
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW; /*Pin speed*/
+    /*Use the previous parameters to set configuration on pin C0*/
+    HAL_GPIO_Init( GPIOC, &GPIO_InitStruct );
+
+    HAL_GPIO_WritePin( GPIOC, GPIO_PIN_0, RESET );
+}
+
+/**
+ * @brief Heart beat
+ * GPIO_PIN_0 ON, when the time is equal or greater that 300ms.
+ */
+static void heart_beat( void )
+{
+    HAL_GPIO_TogglePin( GPIOC, GPIO_PIN_0 );
 }
 
 /**
