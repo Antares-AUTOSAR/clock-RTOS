@@ -49,7 +49,7 @@ QueueHandle_t displayQueue = { 0 };
 static void Task_10ms( void *parameters );
 static void Task_50ms( void *parameters );
 static void Task_100ms( void *parameters );
-static void Heart_Init( void );
+static void heart_Init( void );
 static void heart_beat( void );
 static void vTimerCallback( TimerHandle_t pxTimer ); /*Funcion Timmer Callback*/
 
@@ -66,7 +66,7 @@ int main( void )
     HAL_Init( );
     SEGGER_SYSVIEW_Conf( );
     SEGGER_SYSVIEW_Start( );
-    Heart_Init( );
+    heart_Init( );
 
     /*Declaration of task control structures for the static memory*/
     static StaticTask_t xTaskBuffer_10ms;
@@ -185,7 +185,7 @@ void vTimerCallback( TimerHandle_t pxTimer )
  * @brief Init the port C(LEDS).
  * Inicialization of leds, Led0.
  */
-static void Heart_Init( void )
+static void heart_Init( void )
 {
 
     GPIO_InitTypeDef GPIO_InitStruct;
