@@ -6,6 +6,7 @@
 #include "stm32g0xx.h"
 #include "task.h"
 #include "queue.h"
+#include "timers.h"
 
 /**
  * @brief Struct with array to queue
@@ -56,9 +57,24 @@ extern APP_MsgTypeDef MSGHandler;
 
 extern FDCAN_HandleTypeDef CANHandler;
 
+/**
+ * @brief   Enum with message types used as events
+ */
+typedef enum
+{
+    SERIAL_MSG_ALARM,
+    SERIAL_MSG_DATE,
+    SERIAL_MSG_TIME,
+    CLOCK_MSG_PRINT
+} APP_Messages;
+
 /*Queue identifier to use*/
 extern QueueHandle_t serialQueue;
 extern QueueHandle_t clockQueue;
 extern QueueHandle_t displayQueue;
+
+extern TimerHandle_t xTimerDisplay;
+
+extern RTC_HandleTypeDef RtcHandler;
 
 #endif
