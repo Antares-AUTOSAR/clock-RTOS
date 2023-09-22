@@ -1,8 +1,6 @@
 #ifndef APP_SERIAL_H__
 #define APP_SERIAL_H__
 
-#include "bsp.h"
-
 #define JANUARY                       0x01u /*!< January in hexa   */
 #define FEBRUARY                      0x02u /*!< February in hexa  */
 #define MARCH                         0x03u /*!< March in hexa     */
