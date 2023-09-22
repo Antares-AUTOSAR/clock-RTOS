@@ -7,7 +7,15 @@
  */
 
 #include "app_clock.h"
+#include "bsp.h"
 
+/**
+ * @brief   Struct for store function for each state of event machine
+ */
+typedef struct
+{
+    void ( *stateFunc )( APP_MsgTypeDef *receivedMessage ); /*!< Pointer to function which perform state statements */
+} StateNode;
 
 /* Function prototypes for each state action procedure */
 static void state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage );

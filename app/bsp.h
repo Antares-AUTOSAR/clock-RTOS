@@ -13,6 +13,7 @@
 #include "task.h"
 #include "queue.h"
 #include "timers.h"
+#include <stdint.h>
 
 /**
  * @brief Struct with array to queue
@@ -60,19 +61,19 @@ extern FDCAN_HandleTypeDef CANHandler;
  */
 typedef enum
 {
-    SERIAL_MSG_ALARM,
-    SERIAL_MSG_DATE,
-    SERIAL_MSG_TIME,
-    CLOCK_MSG_PRINT
+    SERIAL_MSG_ALARM, /**< Received Alarm message type */
+    SERIAL_MSG_DATE,  /**< Received Date message type */
+    SERIAL_MSG_TIME,  /**< Received Time message type */
+    CLOCK_MSG_PRINT   /**< Print clock data message type */
 } APP_Messages;
 
 /*Queue identifier to use*/
-extern QueueHandle_t serialQueue;
-extern QueueHandle_t clockQueue;
-extern QueueHandle_t displayQueue;
+extern QueueHandle_t serialQueue;  /* Serial Queue identifier to use in the serial machine. */
+extern QueueHandle_t clockQueue;   /* Serial Queue identifier to use in the clock machine   */
+extern QueueHandle_t displayQueue; /* Serial Queue identifier to use in the display machine.   */
 
-extern TimerHandle_t xTimerDisplay;
+extern TimerHandle_t xTimerDisplay; /* Struct for handling Display Software timer   */
 
-extern RTC_HandleTypeDef RtcHandler;
+extern RTC_HandleTypeDef RtcHandler; /* Struct for handling RTC peripheral Declared in bsp   */
 
 #endif
