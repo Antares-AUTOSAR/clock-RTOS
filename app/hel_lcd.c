@@ -9,7 +9,6 @@
 #include "hel_lcd.h"
 
 
-
 /**
  * @brief  Function to initialize the LCD.
  *

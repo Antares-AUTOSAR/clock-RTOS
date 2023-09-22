@@ -40,7 +40,7 @@
 /**
  * @brief Serial Queue identifier to use in the serial machine.
  */
-QueueHandle_t serialQueue; /*cppcheck-suppress misra-c2012-8.7 ; Take the value of function parameter*/
+QueueHandle_t serialQueue;
 /**
  * @brief Serial Queue identifier to use in the clock machine.
  */

@@ -3,9 +3,9 @@
 
 static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size );
 static uint8_t CanTp_SingleFrameRx( const uint8_t *data, const uint8_t *size );
-static uint8_t Valid_Time( const uint8_t *data );
-static uint8_t Valid_Alarm( const uint8_t *data );
-static uint8_t Valid_Date( const uint8_t *data );
+static uint8_t Validate_Time( const uint8_t *data );
+static uint8_t Validate_Alarm( const uint8_t *data );
+static uint8_t Validate_Date( const uint8_t *data );
 static uint32_t WeekDay( const uint8_t *data );
 static void Serial_StMachine( NEW_MsgTypeDef *pdata );
 static void SerialTimeState( const NEW_MsgTypeDef *pmsg );
@@ -137,7 +137,7 @@ void SerialTimeState( const NEW_MsgTypeDef *pmsg )
 {
     static NEW_MsgTypeDef SerialMsg;
 
-    if( Valid_Time( &pmsg->Data[ SINGLE_FRAME_ELEMENT ] ) == NUM_1 )
+    if( Validate_Time( &pmsg->Data[ SINGLE_FRAME_ELEMENT ] ) == NUM_1 )
     {
         SerialMsg.Data[ SINGLE_FRAME_ELEMENT ] = pmsg->Data[ SINGLE_FRAME_ELEMENT ];
         SerialMsg.Data[ TIME_DATA_ELEMENT ]    = OK_STATE;
@@ -158,7 +158,7 @@ void SerialDateState( const NEW_MsgTypeDef *pmsg )
 {
     static NEW_MsgTypeDef SerialMsg;
 
-    if( Valid_Date( &pmsg->Data[ SINGLE_FRAME_ELEMENT ] ) == NUM_1 )
+    if( Validate_Date( &pmsg->Data[ SINGLE_FRAME_ELEMENT ] ) == NUM_1 )
     {
         SerialMsg.Data[ SINGLE_FRAME_ELEMENT ]  = pmsg->Data[ SINGLE_FRAME_ELEMENT ];
         SerialMsg.Data[ DATE_DATA_ELEMENT ]     = OK_STATE;
@@ -179,7 +179,7 @@ void SerialAlarmState( const NEW_MsgTypeDef *pmsg )
 {
     static NEW_MsgTypeDef SerialMsg;
 
-    if( Valid_Alarm( &pmsg->Data[ SINGLE_FRAME_ELEMENT ] ) == NUM_1 )
+    if( Validate_Alarm( &pmsg->Data[ SINGLE_FRAME_ELEMENT ] ) == NUM_1 )
     {
         SerialMsg.Data[ SINGLE_FRAME_ELEMENT ] = pmsg->Data[ SINGLE_FRAME_ELEMENT ];
         SerialMsg.Data[ ALARM_DATA_ELEMENT ]   = OK_STATE;
@@ -228,7 +228,7 @@ void SerialErrorState( const NEW_MsgTypeDef *pmsg )
     CanTp_SingleFrameTx( &msn_error[ SINGLE_FRAME_ELEMENT ], i );
 }
 
-static uint8_t Valid_Time( const uint8_t *data )
+static uint8_t Validate_Time( const uint8_t *data )
 {
     uint8_t ret_val = NUM_0;
 
@@ -242,7 +242,7 @@ static uint8_t Valid_Time( const uint8_t *data )
     return ret_val;
 }
 
-static uint8_t Valid_Alarm( const uint8_t *data )
+static uint8_t Validate_Alarm( const uint8_t *data )
 {
     uint8_t ret_val = NUM_0;
 
@@ -255,7 +255,7 @@ static uint8_t Valid_Alarm( const uint8_t *data )
     return ret_val;
 }
 
-static uint8_t Valid_Date( const uint8_t *data )
+static uint8_t Validate_Date( const uint8_t *data )
 {
     uint8_t ret_val;
     uint16_t year;
