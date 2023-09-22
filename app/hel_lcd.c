@@ -7,7 +7,7 @@
  */
 #include "bsp.h"
 #include "hel_lcd.h"
-#include <stdint.h>
+
 
 /*Prototype of function*/
 static void delay_ms( uint32_t miliseconds );

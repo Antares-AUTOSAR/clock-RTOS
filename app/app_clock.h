@@ -28,15 +28,6 @@
 
 #define TIMER_DISPLAY_ID   (void *)(uint32_t)1 /*!< ID for timer used to update display  */
 
-/**
- * @brief   Struct for store function for each state of event machine
- */
-typedef struct
-{
-    void ( *stateFunc )( APP_MsgTypeDef *receivedMessage ); /*!< Pointer to function which perform state statements */
-} StateNode;
-
-
 void Clock_Init( void );
 void Clock_Task( void );
 
