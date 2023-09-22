@@ -17,8 +17,6 @@
 #define LCD_TOGGLE 2u /*!< Brief description */
 /**@} */
 
-/*Prototype of function*/
-static void delay_ms( uint32_t miliseconds );
 
 /**
  * @brief  Function to initialize the LCD.
@@ -39,10 +37,10 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
 
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, SET );
     HAL_GPIO_WritePin( hlcd->RstPort, hlcd->RstPin, RESET );
-    delay_ms( 2 );
+    vTaskDelay( pdMS_TO_TICKS( 2 ) );
 
     HAL_GPIO_WritePin( hlcd->RstPort, hlcd->RstPin, SET );
-    delay_ms( 20 );
+    vTaskDelay( pdMS_TO_TICKS( 20 ) );
 
     while( i == 0u )
     {
@@ -55,7 +53,7 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
             flag_error = HAL_ERROR;
         }
 
-        delay_ms( 2 );
+        vTaskDelay( pdMS_TO_TICKS( 2 ) );
 
         value = HEL_LCD_Command( hlcd, (uint8_t)0x30 );
 
@@ -105,7 +103,7 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
             flag_error = HAL_ERROR;
         }
 
-        delay_ms( 200 );
+        vTaskDelay( pdMS_TO_TICKS( 200 ) );
 
         value = HEL_LCD_Command( hlcd, (uint8_t)0x70 );
 
@@ -139,7 +137,7 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
             flag_error = HAL_ERROR;
         }
 
-        delay_ms( 10 );
+        vTaskDelay( pdMS_TO_TICKS( 10 ) );
 
         i = 1;
     }
@@ -321,19 +319,4 @@ uint8_t HEL_LCD_Contrast( LCD_HandleTypeDef *hlcd, uint8_t contrast )
     }
 
     return value;
-}
-
-/**
- * @brief   Function to reproduce delays.
- *
- * @param[in] miliseconds Variable to developed the milliseconds.
- */
-static void delay_ms( uint32_t miliseconds )
-{
-
-    uint32_t start = HAL_GetTick( );
-
-    while( ( HAL_GetTick( ) - start ) < miliseconds )
-    {
-    }
 }
