@@ -64,7 +64,9 @@ typedef enum
     SERIAL_MSG_ALARM, /**< Received Alarm message type */
     SERIAL_MSG_DATE,  /**< Received Date message type */
     SERIAL_MSG_TIME,  /**< Received Time message type */
-    CLOCK_MSG_PRINT   /**< Print clock data message type */
+    CLOCK_MSG_PRINT,  /**< Print clock data message type */
+    OK_STATE,         /**< Ok state of data    */
+    ERROR_STATE       /*!< Error state of data */
 } APP_Messages;
 
 /*Queue identifier to use*/
@@ -75,14 +77,5 @@ extern QueueHandle_t displayQueue; /* Serial Queue identifier to use in the disp
 extern TimerHandle_t xTimerDisplay; /* Struct for handling Display Software timer   */
 
 extern RTC_HandleTypeDef RtcHandler; /* Struct for handling RTC peripheral Declared in bsp   */
-
-/**
- * @brief   Enum with states of serial data
- */
-typedef enum
-{                  /* cppcheck-suppress misra-c2012-2.4 ; Used in serial application */
-    OK_STATE = 4u, /*!< Ok state of data    */
-    ERROR_STATE    /*!< Error state of data */
-} APP_States;
 
 #endif

@@ -315,7 +315,6 @@ uint32_t WeekDay( const uint8_t *data )
     uint32_t month;
     uint32_t MSyear;
     uint32_t LSyear;
-    uint32_t const correctdays[ NUM_7 ] = { HEX_5, HEX_6, HEX_0, HEX_1, HEX_2, HEX_3, HEX_4 };
     uint32_t year;
     uint32_t century;
     uint32_t yearcentury;
@@ -341,10 +340,6 @@ uint32_t WeekDay( const uint8_t *data )
     yearcentury = year % NUM_100;
 
     dayofweek = ( days + ( ( NUM_13 * ( month + NUM_1 ) ) / NUM_5 ) + yearcentury + ( yearcentury / NUM_4 ) + ( century / NUM_4 ) + ( NUM_5 * century ) ) % NUM_7;
-
-    dayofweek = correctdays[ dayofweek ];
-
-    dayofweek++;
 
     return dayofweek;
 }
