@@ -13,6 +13,7 @@
 #include "task.h"
 #include "queue.h"
 #include "timers.h"
+#include <stdint.h>
 
 /**
  * @brief Struct with array to queue
