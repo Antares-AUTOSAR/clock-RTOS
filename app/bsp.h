@@ -80,9 +80,9 @@ extern RTC_HandleTypeDef RtcHandler; /* Struct for handling RTC peripheral Decla
  * @brief   Enum with states of serial data
  */
 typedef enum
-{
-    OK_STATE = 4u,  /*!< Ok state of data    */
-    ERROR_STATE     /*!< Error state of data */
+{                  /* cppcheck-suppress misra-c2012-2.4 ; Used in serial application */
+    OK_STATE = 4u, /*!< Ok state of data    */
+    ERROR_STATE    /*!< Error state of data */
 } APP_States;
 
 #endif
