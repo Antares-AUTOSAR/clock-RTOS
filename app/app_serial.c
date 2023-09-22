@@ -1,4 +1,5 @@
 #include "app_serial.h"
+#include "bsp.h"
 
 static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size );
 static uint8_t CanTp_SingleFrameRx( const uint8_t *data, const uint8_t *size );
