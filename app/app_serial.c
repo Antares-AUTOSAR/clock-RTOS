@@ -14,6 +14,14 @@ static void SerialAlarmState( const NEW_MsgTypeDef *pmsg );
 static void SerialOkState( const NEW_MsgTypeDef *pmsg );
 static void SerialErrorState( const NEW_MsgTypeDef *pmsg );
 
+/**
+ * @brief Struct with pointer to function
+ */
+typedef struct SerialStates
+{
+    void ( *ptr_funct )( const NEW_MsgTypeDef *pdata ); /*!< Pointer to function */
+} SerialStates;
+
 FDCAN_HandleTypeDef CANHandler;
 
 static FDCAN_TxHeaderTypeDef CANTxHeader;

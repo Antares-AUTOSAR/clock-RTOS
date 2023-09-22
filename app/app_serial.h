@@ -78,14 +78,6 @@
 #define VAL_FILTERID2                 0x7FFu /*!< Value for FilterID2            */
 #define VAL_BUFFERINDEXES             0u     /*!< Value for BufferIndexes        */
 
-/**
- * @brief Struct with pointer to function
- */
-typedef struct SerialStates
-{
-    void ( *ptr_funct )( const NEW_MsgTypeDef *pdata ); /*!< Pointer to function */
-} SerialStates;
-
 extern void Serial_Init( void );
 extern void Serial_Task( void );
 
