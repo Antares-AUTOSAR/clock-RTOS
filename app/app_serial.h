@@ -43,13 +43,6 @@
 #define ALARM_HOUR_ELEMENT            2u /*!< Alarm hour element recieved */
 #define ALARM_MIN_ELEMENT             3u /*!< Alarm min element recieved  */
 
-#define HEX_0                         0x00u /*!< Number 0 in hexa    */
-#define HEX_1                         0x01u /*!< Number 1 in hexa    */
-#define HEX_2                         0x02u /*!< Number 2 in hexa    */
-#define HEX_3                         0x03u /*!< Number 3 in hexa    */
-#define HEX_4                         0x04u /*!< Number 4 in hexa    */
-#define HEX_5                         0x05u /*!< Number 5 in hexa    */
-#define HEX_6                         0x06u /*!< Number 6 in hexa    */
 #define HEX_0F                        0x0Fu /*!< Number 0F in hexa   */
 
 #define DATA_OK                       0x55u /*!< Message for ok data in hexa         */
