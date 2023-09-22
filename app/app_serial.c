@@ -196,7 +196,6 @@ void SerialAlarmState( const NEW_MsgTypeDef *pmsg )
 
 void SerialOkState( const NEW_MsgTypeDef *pmsg )
 {
-    uint8_t i;
     uint8_t msg_ok[ NUM_1 ] = { DATA_OK };
     static APP_MsgTypeDef clockMsg;
 
@@ -212,20 +211,15 @@ void SerialOkState( const NEW_MsgTypeDef *pmsg )
     clockMsg.tm.tm_hour_alarm = pmsg->Data[ ALARM_HOUR_ELEMENT ];
     clockMsg.tm.tm_min_alarm  = pmsg->Data[ ALARM_MIN_ELEMENT ];
 
-    i = pmsg->Data[ SINGLE_FRAME_ELEMENT ];
-
-    CanTp_SingleFrameTx( &msg_ok[ NUM_0 ], i );
+    CanTp_SingleFrameTx( &msg_ok[ NUM_0 ], pmsg->Data[ SINGLE_FRAME_ELEMENT ] );
     xQueueSend( clockQueue, &clockMsg, 0 );
 }
 
 void SerialErrorState( const NEW_MsgTypeDef *pmsg )
 {
-    uint8_t i;
     uint8_t msn_error[ NUM_1 ] = { DATA_ERROR };
 
-    i = pmsg->Data[ SINGLE_FRAME_ELEMENT ];
-
-    CanTp_SingleFrameTx( &msn_error[ SINGLE_FRAME_ELEMENT ], i );
+    CanTp_SingleFrameTx( &msn_error[ SINGLE_FRAME_ELEMENT ], pmsg->Data[ SINGLE_FRAME_ELEMENT ] );
 }
 
 static uint8_t Validate_Time( const uint8_t *data )
