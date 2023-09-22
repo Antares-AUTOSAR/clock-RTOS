@@ -1,3 +1,13 @@
+/**
+ * @file    app_serial.c
+ * @brief   **Message processing implementation**
+ *
+ * Contains the functions to initialize the CAN port with the apropiate parameters,
+ * the callback to the CAN interruption, also the main state machine to message processing were
+ * the CAN frame will be evaluate to aprove it or not and to be assigned to the struct
+ * variable by the fuction in charge of it.
+ *
+ */
 #include "app_serial.h"
 
 static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size );
@@ -13,9 +23,6 @@ static void SerialAlarmState( const NEW_MsgTypeDef *pmsg );
 static void SerialOkState( const NEW_MsgTypeDef *pmsg );
 static void SerialErrorState( const NEW_MsgTypeDef *pmsg );
 
-/**
- * @brief  Structure type variable for user CAN initialization
- */
 FDCAN_HandleTypeDef CANHandler;
 
 /**

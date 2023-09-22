@@ -46,6 +46,9 @@ typedef struct _APP_MsgTypeDef
 
 extern APP_MsgTypeDef MSGHandler;
 
+/**
+ * @brief  Structure type variable for user CAN initialization
+ */
 extern FDCAN_HandleTypeDef CANHandler;
 
 /**

@@ -1,3 +1,11 @@
+/**
+ * @file    app_serial.h
+ * @brief   **Message processing implementation**
+ *
+ * Contains the defines to initialize the CAN port with the apropiate parameters,
+ * and other defines needed in the aplication.
+ *
+ */
 #ifndef APP_SERIAL_H__
 #define APP_SERIAL_H__
 
