@@ -76,4 +76,13 @@ extern TimerHandle_t xTimerDisplay; /* Struct for handling Display Software time
 
 extern RTC_HandleTypeDef RtcHandler; /* Struct for handling RTC peripheral Declared in bsp   */
 
+/**
+ * @brief   Enum with states of serial data
+ */
+typedef enum
+{
+    OK_STATE = 4u,  /*!< Ok state of data    */
+    ERROR_STATE     /*!< Error state of data */
+} APP_States;
+
 #endif

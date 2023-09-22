@@ -3,9 +3,6 @@
 
 #include "bsp.h"
 
-#define OK_STATE                 4u /*!< Ok state       */
-#define ERROR_STATE              5u /*!< Error state    */
-
 #define JANUARY                  0x01u /*!< January in hexa   */
 #define FEBRUARY                 0x02u /*!< February in hexa  */
 #define MARCH                    0x03u /*!< March in hexa     */
