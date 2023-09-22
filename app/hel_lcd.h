@@ -11,10 +11,23 @@
 /**
  * @defgroup Backlight states
  @{*/
-#define LCD_OFF    0u /*!< Brief description */
-#define LCD_ON     1u /*!< Brief description */
-#define LCD_TOGGLE 2u /*!< Brief description */
+#define LCD_OFF                0u /*!< Brief description */
+#define LCD_ON                 1u /*!< Brief description */
+#define LCD_TOGGLE             2u /*!< Brief description */
 /**@} */
+
+
+#define ONE_MILISECOND         1u /*!< Brief description */
+
+#define CLEAR_SCREEN           0 /*!< Brief description */
+#define ENTRY_MODE             1 /*!< Brief description */
+#define DISPLAY_ON             2 /*!< Brief description */
+#define INTERNAL_OSC_FREQUENCY 3 /*!< Brief description */
+#define WAKE_UP                4 /*!< Brief description */
+#define FUNCION_SET            5 /*!< Brief description */
+#define POWER_CONTROL          6 /*!< Brief description */
+#define FOLLOWER_CONTROL       7 /*!< Brief description */
+#define CONSTRAST              8 /*!< Brief description */
 
 /**
  * @brief Struct for LCD HANDLER.

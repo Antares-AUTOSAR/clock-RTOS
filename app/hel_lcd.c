@@ -9,7 +9,6 @@
 #include "hel_lcd.h"
 
 
-
 /**
  * @brief  Function to initialize the LCD.
  *
@@ -21,9 +20,10 @@
 uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
 {
 
-    uint8_t value      = HAL_OK;
-    uint8_t i          = 0;
-    uint8_t flag_error = 0;
+    uint8_t value                   = HAL_OK;
+    uint8_t i                       = 0;
+    uint8_t flag_error              = 0;
+    uint8_t const commands_lcd[ 9 ] = { 0x01, 0x06, 0x0D, 0x14, 0x30, 0x39, 0x56, 0x6D, 0x70 };
 
     HEL_LCD_MspInit( hlcd );
 
@@ -37,7 +37,7 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
     while( i == 0u )
     {
 
-        value = HEL_LCD_Command( hlcd, (uint8_t)0x30 );
+        value = HEL_LCD_Command( hlcd, commands_lcd[ WAKE_UP ] );
 
         if( value == HAL_ERROR )
         {
@@ -47,7 +47,7 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
 
         vTaskDelay( pdMS_TO_TICKS( 2 ) );
 
-        value = HEL_LCD_Command( hlcd, (uint8_t)0x30 );
+        value = HEL_LCD_Command( hlcd, commands_lcd[ WAKE_UP ] );
 
         if( value == HAL_ERROR )
         {
@@ -55,7 +55,7 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
             flag_error = HAL_ERROR;
         }
 
-        value = HEL_LCD_Command( hlcd, (uint8_t)0x30 );
+        value = HEL_LCD_Command( hlcd, commands_lcd[ WAKE_UP ] );
 
         if( value == HAL_ERROR )
         {
@@ -63,7 +63,7 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
             flag_error = HAL_ERROR;
         }
 
-        value = HEL_LCD_Command( hlcd, (uint8_t)0x39 );
+        value = HEL_LCD_Command( hlcd, commands_lcd[ FUNCION_SET ] );
 
         if( value == HAL_ERROR )
         {
@@ -71,7 +71,7 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
             flag_error = HAL_ERROR;
         }
 
-        value = HEL_LCD_Command( hlcd, (uint8_t)0x14 );
+        value = HEL_LCD_Command( hlcd, commands_lcd[ INTERNAL_OSC_FREQUENCY ] );
 
         if( value == HAL_ERROR )
         {
@@ -79,7 +79,7 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
             flag_error = HAL_ERROR;
         }
 
-        value = HEL_LCD_Command( hlcd, (uint8_t)0x56 );
+        value = HEL_LCD_Command( hlcd, commands_lcd[ POWER_CONTROL ] );
 
         if( value == HAL_ERROR )
         {
@@ -87,7 +87,7 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
             flag_error = HAL_ERROR;
         }
 
-        value = HEL_LCD_Command( hlcd, (uint8_t)0x6D );
+        value = HEL_LCD_Command( hlcd, commands_lcd[ FOLLOWER_CONTROL ] );
 
         if( value == HAL_ERROR )
         {
@@ -97,7 +97,7 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
 
         vTaskDelay( pdMS_TO_TICKS( 200 ) );
 
-        value = HEL_LCD_Command( hlcd, (uint8_t)0x70 );
+        value = HEL_LCD_Command( hlcd, commands_lcd[ CONSTRAST ] );
 
         if( value == HAL_ERROR )
         {
@@ -105,7 +105,7 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
             flag_error = HAL_ERROR;
         }
 
-        value = HEL_LCD_Command( hlcd, (uint8_t)0x0D );
+        value = HEL_LCD_Command( hlcd, commands_lcd[ DISPLAY_ON ] );
 
         if( value == HAL_ERROR )
         {
@@ -113,7 +113,7 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
             flag_error = HAL_ERROR;
         }
 
-        value = HEL_LCD_Command( hlcd, (uint8_t)0x06 );
+        value = HEL_LCD_Command( hlcd, commands_lcd[ ENTRY_MODE ] );
 
         if( value == HAL_ERROR )
         {
@@ -121,7 +121,7 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
             flag_error = HAL_ERROR;
         }
 
-        value = HEL_LCD_Command( hlcd, (uint8_t)0x01 );
+        value = HEL_LCD_Command( hlcd, commands_lcd[ CLEAR_SCREEN ] );
 
         if( value == HAL_ERROR )
         {
@@ -174,7 +174,7 @@ uint8_t HEL_LCD_Command( LCD_HandleTypeDef *hlcd, uint8_t cmd )
     HAL_GPIO_WritePin( hlcd->RsPort, hlcd->RsPin, RESET );
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, RESET );
 
-    value = HAL_SPI_Transmit( hlcd->SpiHandler, &cmd, sizeof( cmd ), HAL_MAX_DELAY );
+    value = HAL_SPI_Transmit( hlcd->SpiHandler, &cmd, sizeof( cmd ), ONE_MILISECOND );
 
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, SET );
 
@@ -197,7 +197,7 @@ uint8_t HEL_LCD_Data( LCD_HandleTypeDef *hlcd, uint8_t data )
     HAL_GPIO_WritePin( hlcd->RsPort, hlcd->RsPin, SET );
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, RESET );
 
-    value = HAL_SPI_Transmit( hlcd->SpiHandler, &data, sizeof( data ), HAL_MAX_DELAY );
+    value = HAL_SPI_Transmit( hlcd->SpiHandler, &data, sizeof( data ), ONE_MILISECOND );
 
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, SET );
 
