@@ -9,6 +9,9 @@
 #ifndef APP_SERIAL_H__
 #define APP_SERIAL_H__
 
+/** 
+  * @defgroup Months, months of the year in hexa
+  @{ */
 #define JANUARY                       0x01u /*!< January in hexa   */
 #define FEBRUARY                      0x02u /*!< February in hexa  */
 #define MARCH                         0x03u /*!< March in hexa     */
@@ -21,7 +24,12 @@
 #define OCTOBER                       0x10u /*!< October in hexa   */
 #define NOVEMBER                      0x11u /*!< November in hexa  */
 #define DECEMBER                      0x12u /*!< December in hexa  */
+/**
+  @} */
 
+/** 
+  * @defgroup Numbers, defines for numbers in decimal
+  @{ */
 #define NUM_0                         0u   /*!< Number 0   */
 #define NUM_1                         1u   /*!< Number 1   */
 #define NUM_3                         3u   /*!< Number 3   */
@@ -33,7 +41,12 @@
 #define NUM_12                        12u  /*!< Number 12  */
 #define NUM_13                        13u  /*!< Number 13  */
 #define NUM_100                       100u /*!< Number 100 */
+/**
+  @} */
 
+/** 
+  * @defgroup Defines for incoming data elements
+  @{ */
 #define SINGLE_FRAME_ELEMENT          0u /*!< Single frame element recieved */
 
 #define TIME_DATA_ELEMENT             1u /*!< Time data element recieved */
@@ -51,11 +64,21 @@
 #define ALARM_HOUR_ELEMENT            2u /*!< Alarm hour element recieved */
 #define ALARM_MIN_ELEMENT             3u /*!< Alarm min element recieved  */
 
-#define HEX_0F                        0x0Fu /*!< Number 0F in hexa   */
-
 #define DATA_OK                       0x55u /*!< Message for ok data in hexa         */
 #define DATA_ERROR                    0xAAu /*!< Message for error in data in hexa   */
+/**
+  @} */
 
+/** 
+  * @defgroup Mask for least significant nibble
+  @{ */
+#define HEX_0F                        0x0Fu /*!< Number 0F in hexa   */
+/**
+  @} */
+
+/** 
+  * @defgroup Numbers, defines for numbers in hexa
+  @{ */
 #define MAX_HOUR_HEX                  0x23u   /*!< Max hour 23 in hexa                         */
 #define MAX_MIN_HEX                   0x59u   /*!< Max minutes 59 in hexa                      */
 #define MAX_SEC_HEX                   0x59u   /*!< Max seconds 59 in hexa                      */
@@ -66,7 +89,12 @@
 #define MAX_DAYS_HEX_31               0x31u   /*!< Max days 31 in hexa                         */
 #define MIN_YEAR_HEX                  0x1901u /*!< Min year, 1901 in hexa                      */
 #define MAX_YEAR_HEX                  0x2099u /*!< Max year, 2099 in hexa                      */
+/**
+  @} */
 
+/** 
+  * @defgroup Defines for CAN configuration
+  @{ */
 #define VAL_EXTFILTERSNBR             0u     /*!< Value for ExtFiltersNbr        */
 #define VAL_STDFILTERSNDR             1u     /*!< Value for StdFiltersNbr        */
 #define VAL_NOMINALPRESCALER          8u     /*!< Value for NominalPrescaler     */
@@ -78,6 +106,8 @@
 #define VAL_FILTERID1                 0x111u /*!< Value for FilterID1            */
 #define VAL_FILTERID2                 0x7FFu /*!< Value for FilterID2            */
 #define VAL_BUFFERINDEXES             0u     /*!< Value for BufferIndexes        */
+/**
+  @} */
 
 extern void Serial_Init( void );
 extern void Serial_Task( void );
