@@ -9,101 +9,75 @@
 #ifndef APP_SERIAL_H__
 #define APP_SERIAL_H__
 
-#include "bsp.h"
+#define JANUARY                       0x01u /*!< January in hexa   */
+#define FEBRUARY                      0x02u /*!< February in hexa  */
+#define MARCH                         0x03u /*!< March in hexa     */
+#define APRIL                         0x04u /*!< April in hexa     */
+#define MAY                           0x05u /*!< May in hexa       */
+#define JUNE                          0x06u /*!< June in hexa      */
+#define JULY                          0x07u /*!< July in hexa      */
+#define AUGUST                        0x08u /*!< August in hexa    */
+#define SEPTEMBER                     0x09u /*!< September in hexa */
+#define OCTOBER                       0x10u /*!< October in hexa   */
+#define NOVEMBER                      0x11u /*!< November in hexa  */
+#define DECEMBER                      0x12u /*!< December in hexa  */
 
-/**
-  * @defgroup To indicate the state of the data
-  @{ */
-#define OK_STATE                 4u /*!< Ok state       */
-#define ERROR_STATE              5u /*!< Error state    */
-/**
-  @} */
+#define NUM_0                         0u   /*!< Number 0   */
+#define NUM_1                         1u   /*!< Number 1   */
+#define NUM_3                         3u   /*!< Number 3   */
+#define NUM_4                         4u   /*!< Number 4   */
+#define NUM_5                         5u   /*!< Number 5   */
+#define NUM_7                         7u   /*!< Number 7   */
+#define NUM_8                         8u   /*!< Number 8   */
+#define NUM_10                        10u  /*!< Number 10  */
+#define NUM_12                        12u  /*!< Number 12  */
+#define NUM_13                        13u  /*!< Number 13  */
+#define NUM_100                       100u /*!< Number 100 */
 
-/**
-  * @defgroup Months of the year in hexa
-  @{ */
-#define JANUARY                  0x01u /*!< January in hexa   */
-#define FEBRUARY                 0x02u /*!< February in hexa  */
-#define MARCH                    0x03u /*!< March in hexa     */
-#define APRIL                    0x04u /*!< April in hexa     */
-#define MAY                      0x05u /*!< May in hexa       */
-#define JUNE                     0x06u /*!< June in hexa      */
-#define JULY                     0x07u /*!< July in hexa      */
-#define AUGUST                   0x08u /*!< August in hexa    */
-#define SEPTEMBER                0x09u /*!< September in hexa */
-#define OCTOBER                  0x10u /*!< October in hexa   */
-#define NOVEMBER                 0x11u /*!< November in hexa  */
-#define DECEMBER                 0x12u /*!< December in hexa  */
-/**
-  @} */
+#define SINGLE_FRAME_ELEMENT          0u /*!< Single frame element recieved */
 
-/**
-  * @defgroup Decimal numbers
-  @{ */
-#define NUM_0                    0u   /*!< Number 0   */
-#define NUM_1                    1u   /*!< Number 1   */
-#define NUM_2                    2u   /*!< Number 2   */
-#define NUM_3                    3u   /*!< Number 3   */
-#define NUM_4                    4u   /*!< Number 4   */
-#define NUM_5                    5u   /*!< Number 5   */
-#define NUM_7                    7u   /*!< Number 7   */
-#define NUM_8                    8u   /*!< Number 8   */
-#define NUM_10                   10u  /*!< Number 10  */
-#define NUM_12                   12u  /*!< Number 12  */
-#define NUM_13                   13u  /*!< Number 13  */
-#define NUM_100                  100u /*!< Number 100 */
-/**
-  @} */
+#define TIME_DATA_ELEMENT             1u /*!< Time data element recieved */
+#define TIME_HOUR_ELEMENT             2u /*!< Time hour element recieved */
+#define TIME_MIN_ELEMENT              3u /*!< Time min element recieved  */
+#define TIME_SEC_ELEMENT              4u /*!< Time sec element recieved  */
 
-/**
-  * @defgroup Numbers in hexa
-  @{ */
-#define HEX_0                    0x00u   /*!< Number 0 in hexa    */
-#define HEX_1                    0x01u   /*!< Number 1 in hexa    */
-#define HEX_2                    0x02u   /*!< Number 2 in hexa    */
-#define HEX_3                    0x03u   /*!< Number 3 in hexa    */
-#define HEX_4                    0x04u   /*!< Number 4 in hexa    */
-#define HEX_5                    0x05u   /*!< Number 5 in hexa    */
-#define HEX_6                    0x06u   /*!< Number 6 in hexa    */
-#define HEX_0F                   0x0Fu   /*!< Number F in hexa    */
-#define HEX_23                   0x23u   /*!< Number 23 in hexa   */
-#define HEX_28                   0x28u   /*!< Number 28 in hexa   */
-#define HEX_29                   0x29u   /*!< Number 29 in hexa   */
-#define HEX_30                   0x30u   /*!< Number 30 in hexa   */
-#define HEX_31                   0x31u   /*!< Number 31 in hexa   */
-#define HEX_55                   0x55u   /*!< Number 55 in hexa   */
-#define HEX_59                   0x59u   /*!< Number 59 in hexa   */
-#define HEX_AA                   0xAAu   /*!< Number AA in hexa   */
-#define HEX_0F                   0x0Fu   /*!< Number 0F in hexa   */
-#define HEX_1901                 0x1901u /*!< Number 1901 in hexa */
-#define HEX_2099                 0x2099u /*!< Number 2099 in hexa */
-/**
-  @} */
+#define DATE_DATA_ELEMENT             1u /*!< Date data element recieved     */
+#define DATE_DAY_ELEMENT              2u /*!< Date day element recieved      */
+#define DATE_MON_ELEMENT              3u /*!< Date month element recieved    */
+#define DATE_MSB_YEAR_ELEMENT         4u /*!< Date MSB year element recieved */
+#define DATE_LSB_YEAR_ELEMENT         5u /*!< Date MSB year element recieved */
 
-/**
-  * @defgroup Defines for CAN configuration
-  @{ */
-#define VAL_EXTFILTERSNBR        0u     /*!< Value for ExtFiltersNbr        */
-#define VAL_STDFILTERSNDR        1u     /*!< Value for StdFiltersNbr        */
-#define VAL_NOMINALPRESCALER     8u     /*!< Value for NominalPrescaler     */
-#define VAL_NOMINALSYNCJUMPWIDTH 1u     /*!< Value for NominalSyncJumpWidth */
-#define VAL_NOMINALTIMESEG1      11u    /*!< Value for NominalTimeSeg1      */
-#define VAL_NOMINALTIMESEG2      4u     /*!< Value for NominalTimeSeg2      */
-#define VAL_IDENTIFIER           0x122u /*!< Value for Identifier           */
-#define VAL_FILTERINDEX          0u     /*!< Value for FilterIndex          */
-#define VAL_FILTERID1            0x111u /*!< Value for FilterID1            */
-#define VAL_FILTERID2            0x7FFu /*!< Value for FilterID2            */
-#define VAL_BUFFERINDEXES        0u     /*!< Value for BufferIndexes        */
-/**
-  @} */
+#define ALARM_DATA_ELEMENT            1u /*!< Alarm data element recieved */
+#define ALARM_HOUR_ELEMENT            2u /*!< Alarm hour element recieved */
+#define ALARM_MIN_ELEMENT             3u /*!< Alarm min element recieved  */
 
-/**
- * @brief Struct with pointer to function
- */
-typedef struct SerialStates
-{
-    void ( *ptr_funct )( const NEW_MsgTypeDef *pdata ); /*!< Pointer to function */
-} SerialStates;
+#define HEX_0F                        0x0Fu /*!< Number 0F in hexa   */
+
+#define DATA_OK                       0x55u /*!< Message for ok data in hexa         */
+#define DATA_ERROR                    0xAAu /*!< Message for error in data in hexa   */
+
+#define MAX_HOUR_HEX                  0x23u   /*!< Max hour 23 in hexa                         */
+#define MAX_MIN_HEX                   0x59u   /*!< Max minutes 59 in hexa                      */
+#define MAX_SEC_HEX                   0x59u   /*!< Max seconds 59 in hexa                      */
+#define DAYS_IN_FERUARY_HEX           0x28u   /*!< Days in february, 28 in hexa                */
+#define DAYS_IN_LEAP_YEAR_FERUARY_HEX 0x29u   /*!< Days in leap year in february, 29 in hexa   */
+#define MIN_DAY_HEX                   0x01u   /*!< Min day, 1 in hexa                          */
+#define MAX_DAYS_HEX_30               0x30u   /*!< Max days 30 in hexa                         */
+#define MAX_DAYS_HEX_31               0x31u   /*!< Max days 31 in hexa                         */
+#define MIN_YEAR_HEX                  0x1901u /*!< Min year, 1901 in hexa                      */
+#define MAX_YEAR_HEX                  0x2099u /*!< Max year, 2099 in hexa                      */
+
+#define VAL_EXTFILTERSNBR             0u     /*!< Value for ExtFiltersNbr        */
+#define VAL_STDFILTERSNDR             1u     /*!< Value for StdFiltersNbr        */
+#define VAL_NOMINALPRESCALER          8u     /*!< Value for NominalPrescaler     */
+#define VAL_NOMINALSYNCJUMPWIDTH      1u     /*!< Value for NominalSyncJumpWidth */
+#define VAL_NOMINALTIMESEG1           11u    /*!< Value for NominalTimeSeg1      */
+#define VAL_NOMINALTIMESEG2           4u     /*!< Value for NominalTimeSeg2      */
+#define VAL_IDENTIFIER                0x122u /*!< Value for Identifier           */
+#define VAL_FILTERINDEX               0u     /*!< Value for FilterIndex          */
+#define VAL_FILTERID1                 0x111u /*!< Value for FilterID1            */
+#define VAL_FILTERID2                 0x7FFu /*!< Value for FilterID2            */
+#define VAL_BUFFERINDEXES             0u     /*!< Value for BufferIndexes        */
 
 extern void Serial_Init( void );
 extern void Serial_Task( void );

@@ -1,3 +1,9 @@
+/**
+ * @file bsp.h
+ * @brief Init the structs
+ * Inicialization of structs with Data, Time and Alarm values.
+ */
+
 #ifndef BSP_H_
 #define BSP_H_
 
@@ -7,6 +13,7 @@
 #include "task.h"
 #include "queue.h"
 #include "timers.h"
+#include <stdint.h>
 
 /**
  * @brief Struct with array to queue
@@ -44,10 +51,8 @@ typedef struct _APP_MsgTypeDef
     APP_TmTypeDef tm; /*!< time and date in stdlib tm format */
 } APP_MsgTypeDef;
 
-extern APP_MsgTypeDef MSGHandler;
-
 /**
- * @brief  Structure type variable for user CAN initialization
+ * @brief  Structure type variable for CAN handler
  */
 extern FDCAN_HandleTypeDef CANHandler;
 
@@ -56,19 +61,21 @@ extern FDCAN_HandleTypeDef CANHandler;
  */
 typedef enum
 {
-    SERIAL_MSG_ALARM,
-    SERIAL_MSG_DATE,
-    SERIAL_MSG_TIME,
-    CLOCK_MSG_PRINT
+    SERIAL_MSG_ALARM, /**< Received Alarm message type */
+    SERIAL_MSG_DATE,  /**< Received Date message type */
+    SERIAL_MSG_TIME,  /**< Received Time message type */
+    CLOCK_MSG_PRINT,  /**< Print clock data message type */
+    OK_STATE,         /**< Ok state of data    */
+    ERROR_STATE       /*!< Error state of data */
 } APP_Messages;
 
 /*Queue identifier to use*/
-extern QueueHandle_t serialQueue;
-extern QueueHandle_t clockQueue;
-extern QueueHandle_t displayQueue;
+extern QueueHandle_t serialQueue;  /* Serial Queue identifier to use in the serial machine. */
+extern QueueHandle_t clockQueue;   /* Serial Queue identifier to use in the clock machine   */
+extern QueueHandle_t displayQueue; /* Serial Queue identifier to use in the display machine.   */
 
-extern TimerHandle_t xTimerDisplay;
+extern TimerHandle_t xTimerDisplay; /* Struct for handling Display Software timer   */
 
-extern RTC_HandleTypeDef RtcHandler;
+extern RTC_HandleTypeDef RtcHandler; /* Struct for handling RTC peripheral Declared in bsp   */
 
 #endif
