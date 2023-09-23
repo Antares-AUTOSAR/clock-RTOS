@@ -52,6 +52,11 @@ typedef struct _APP_MsgTypeDef
 } APP_MsgTypeDef;
 
 /**
+ * @brief  Structure type variable for CAN handler
+ */
+extern FDCAN_HandleTypeDef CANHandler;
+
+/**
  * @brief   Enum with message types used as events
  */
 typedef enum
@@ -59,7 +64,9 @@ typedef enum
     SERIAL_MSG_ALARM, /**< Received Alarm message type */
     SERIAL_MSG_DATE,  /**< Received Date message type */
     SERIAL_MSG_TIME,  /**< Received Time message type */
-    CLOCK_MSG_PRINT   /**< Print clock data message type */
+    CLOCK_MSG_PRINT,  /**< Print clock data message type */
+    OK_STATE,         /**< Ok state of data    */
+    ERROR_STATE       /*!< Error state of data */
 } APP_Messages;
 
 /*Queue identifier to use*/

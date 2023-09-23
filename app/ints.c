@@ -24,3 +24,9 @@ void SysTick_Handler( void )
     /* increment the internal tick for the hal drivers */
     HAL_IncTick( );
 }
+
+/* cppcheck-suppress misra-c2012-8.4 ; function cannot be modify */
+void TIM16_FDCAN_IT0_IRQHandler( void )
+{
+    HAL_FDCAN_IRQHandler( &CANHandler );
+}

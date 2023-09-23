@@ -5,6 +5,7 @@
  */
 
 #include "bsp.h"
+#include "app_serial.h"
 #include "app_clock.h"
 
 /**
@@ -39,7 +40,7 @@
 /**
  * @brief Serial Queue identifier to use in the serial machine.
  */
-QueueHandle_t serialQueue; /*cppcheck-suppress misra-c2012-8.7 ; Take the value of function parameter*/
+QueueHandle_t serialQueue;
 /**
  * @brief Serial Queue identifier to use in the clock machine.
  */
@@ -124,9 +125,11 @@ static void Task_10ms( void *parameters )
 {
     TickType_t xLastWakeTime  = xTaskGetTickCount( );
     uint8_t serialPeriodicity = *( (uint8_t *)parameters ); /*cppcheck-suppress misra-c2012-11.5 ; Take the value of function parameter*/
+    Serial_Init( );
 
     for( ;; )
     {
+        Serial_Task( );
         vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( serialPeriodicity ) );
     }
 }
