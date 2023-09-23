@@ -77,7 +77,7 @@
   @} */
 
 /**
-  * @defgroup Numbers, defines for numbers in hexa
+  * @defgroup Max and min values of data in hexa
   @{ */
 #define MAX_HOUR_HEX                  0x23u   /*!< Max hour 23 in hexa                         */
 #define MAX_MIN_HEX                   0x59u   /*!< Max minutes 59 in hexa                      */
@@ -93,7 +93,7 @@
   @} */
 
 /**
-  * @defgroup Defines for CAN configuration
+  * @defgroup Values for CAN configuration
   @{ */
 #define VAL_EXTFILTERSNBR             0u     /*!< Value for ExtFiltersNbr        */
 #define VAL_STDFILTERSNDR             1u     /*!< Value for StdFiltersNbr        */

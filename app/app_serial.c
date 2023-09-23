@@ -24,6 +24,8 @@ static void SerialAlarmState( const NEW_MsgTypeDef *pmsg );
 static void SerialOkState( const NEW_MsgTypeDef *pmsg );
 static void SerialErrorState( const NEW_MsgTypeDef *pmsg );
 
+FDCAN_HandleTypeDef CANHandler;
+
 /**
  * @brief Struct with pointer to function
  */
@@ -31,8 +33,6 @@ typedef struct SerialStates
 {
     void ( *ptr_funct )( const NEW_MsgTypeDef *pdata ); /*!< Pointer to function */
 } SerialStates;
-
-FDCAN_HandleTypeDef CANHandler;
 
 /**
  * @brief  Structure type variable for CAN transmissin initialization
@@ -44,9 +44,6 @@ static FDCAN_TxHeaderTypeDef CANTxHeader;
  *
  * Is the function to initialize all the required to start working with the CAN port
  * and the messages reception processing
- *
- * @param   CANHandler  [out] Structure type variable to configure CAN operation mode
- * @param   CANTxHeader [out] Structure type variable to configure CAN transmicion
  *
  * @note Declaration of the options to configure the FDCAN1 module to transmit to the CAN bus at 100Kbps
  *       and sample point of 75%, the frequency with which the CAN module is powered is
@@ -186,7 +183,7 @@ void Serial_StMachine( NEW_MsgTypeDef *pdata )
  * Is going to evaluate if the data for time is valid
  * and send the message to the queue.
  *
- * @param   pdata  [in]  Pointer to data struct
+ * @param   pmsg  [in]  Pointer to data struct
  */
 void SerialTimeState( const NEW_MsgTypeDef *pmsg )
 {
@@ -215,7 +212,7 @@ void SerialTimeState( const NEW_MsgTypeDef *pmsg )
  * Is going to evaluate if the data for date is valid
  * and send the message to the queue.
  *
- * @param   pdata  [in]  Pointer to data struct
+ * @param   pmsg  [in]  Pointer to data struct
  */
 void SerialDateState( const NEW_MsgTypeDef *pmsg )
 {
@@ -244,7 +241,7 @@ void SerialDateState( const NEW_MsgTypeDef *pmsg )
  * Is going to evaluate if the data for alarm is valid
  * and send the message to the queue.
  *
- * @param   pdata  [in]  Pointer to data struct
+ * @param   pmsg  [in]  Pointer to data struct
  */
 void SerialAlarmState( const NEW_MsgTypeDef *pmsg )
 {
@@ -272,7 +269,7 @@ void SerialAlarmState( const NEW_MsgTypeDef *pmsg )
  * and send it to the queue of the clock, then it will transmit
  * a message through CAN to indicate the data is valid.
  *
- * @param   pdata  [in]  Pointer to data struct
+ * @param   pmsg  [in]  Pointer to data struct
  */
 void SerialOkState( const NEW_MsgTypeDef *pmsg )
 {
@@ -300,7 +297,7 @@ void SerialOkState( const NEW_MsgTypeDef *pmsg )
  *
  * Is going to transmit a message through CAN to indicate the data is not valid.
  *
- * @param   pdata  [in]  Pointer to data struct
+ * @param   pmsg  [in]  Pointer to data struct
  */
 void SerialErrorState( const NEW_MsgTypeDef *pmsg )
 {
@@ -440,6 +437,9 @@ static uint8_t Validate_Date( const uint8_t *data )
  * With this data we use the formula for the Gregorian calendar.
  *
  * @param   data          [in]  Pointer to data
+ *
+ * @retval  The function returns the values 0-Saturday, 1-Sunday, 2-Monday,
+ *          3-Tuesday, 4-Wednesday, 5-Thursday, 6-Friday
  */
 uint32_t WeekDay( const uint8_t *data )
 {
