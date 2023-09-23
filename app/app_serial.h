@@ -9,7 +9,7 @@
 #ifndef APP_SERIAL_H__
 #define APP_SERIAL_H__
 
-/** 
+/**
   * @defgroup Months, months of the year in hexa
   @{ */
 #define JANUARY                       0x01u /*!< January in hexa   */
@@ -27,7 +27,7 @@
 /**
   @} */
 
-/** 
+/**
   * @defgroup Numbers, defines for numbers in decimal
   @{ */
 #define NUM_0                         0u   /*!< Number 0   */
@@ -44,7 +44,7 @@
 /**
   @} */
 
-/** 
+/**
   * @defgroup Defines for incoming data elements
   @{ */
 #define SINGLE_FRAME_ELEMENT          0u /*!< Single frame element recieved */
@@ -69,14 +69,14 @@
 /**
   @} */
 
-/** 
+/**
   * @defgroup Mask for least significant nibble
   @{ */
 #define HEX_0F                        0x0Fu /*!< Number 0F in hexa   */
 /**
   @} */
 
-/** 
+/**
   * @defgroup Numbers, defines for numbers in hexa
   @{ */
 #define MAX_HOUR_HEX                  0x23u   /*!< Max hour 23 in hexa                         */
@@ -92,7 +92,7 @@
 /**
   @} */
 
-/** 
+/**
   * @defgroup Defines for CAN configuration
   @{ */
 #define VAL_EXTFILTERSNBR             0u     /*!< Value for ExtFiltersNbr        */
