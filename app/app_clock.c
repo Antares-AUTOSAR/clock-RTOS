@@ -47,6 +47,8 @@ static uint8_t dateYearH;
  */
 TimerHandle_t xTimerDisplay;
 
+QueueHandle_t clockQueue;
+QueueHandle_t displayQueue;
 
 /**
  * @brief   Use once to Initialize the clock
@@ -145,7 +147,7 @@ void Clock_EventMachine( APP_MsgTypeDef *receivedMessage )
  *
  * Sends message to clockQueue everytime a type alarm message has been received
  */
-static void state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage )
+void state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage )
 {
     static APP_MsgTypeDef clockMessage = { 0 };
 
@@ -163,7 +165,7 @@ static void state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage )
  * Sets the RTC with received date
  * Sends message to clockQueue everytime a type date message has been received
  */
-static void state_serialMsgDate( APP_MsgTypeDef *receivedMessage )
+void state_serialMsgDate( APP_MsgTypeDef *receivedMessage )
 {
     static APP_MsgTypeDef clockMessage = { 0 };
 
@@ -188,7 +190,7 @@ static void state_serialMsgDate( APP_MsgTypeDef *receivedMessage )
  * Sets the RTC with received time
  * Sends message to clockQueue everytime a time date message has been received
  */
-static void state_serialMsgTime( APP_MsgTypeDef *receivedMessage )
+void state_serialMsgTime( APP_MsgTypeDef *receivedMessage )
 {
     static APP_MsgTypeDef clockMessage = { 0 };
 
@@ -212,7 +214,7 @@ static void state_serialMsgTime( APP_MsgTypeDef *receivedMessage )
  * Due to event machine implementation, the parameter must be passed but specified
  * as UNUSED
  */
-static void state_clockMsgPrint( APP_MsgTypeDef *receivedMessage )
+void state_clockMsgPrint( APP_MsgTypeDef *receivedMessage )
 {
     static APP_MsgTypeDef clockMessage = { 0 };
 
