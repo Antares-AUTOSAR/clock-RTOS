@@ -18,10 +18,10 @@ typedef struct
 } StateNode;
 
 /* Function prototypes for each state action procedure */
-static void state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage );
-static void state_serialMsgDate( APP_MsgTypeDef *receivedMessage );
-static void state_serialMsgTime( APP_MsgTypeDef *receivedMessage );
-static void state_clockMsgPrint( APP_MsgTypeDef *receivedMessage );
+STATIC void state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage );
+STATIC void state_serialMsgDate( APP_MsgTypeDef *receivedMessage );
+STATIC void state_serialMsgTime( APP_MsgTypeDef *receivedMessage );
+STATIC void state_clockMsgPrint( APP_MsgTypeDef *receivedMessage );
 
 /* Function prototype to send an update message every second*/
 static void Clock_Update_DateAndTime( TimerHandle_t pxTimer );
@@ -47,8 +47,8 @@ static uint8_t dateYearH;
  */
 TimerHandle_t xTimerDisplay;
 
-QueueHandle_t clockQueue;
-QueueHandle_t displayQueue;
+CLOCK_QUEUE_TESTING
+DISPLAY_QUEUE_TESTING
 
 /**
  * @brief   Use once to Initialize the clock

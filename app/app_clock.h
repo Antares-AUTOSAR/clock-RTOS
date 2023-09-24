@@ -10,6 +10,16 @@
 #ifndef APP_CLOCK_H
 #define APP_CLOCK_H
 
+#ifdef UTEST
+#define STATIC
+#define CLOCK_QUEUE_TESTING   QueueHandle_t clockQueue;
+#define DISPLAY_QUEUE_TESTING QueueHandle_t displayQueue;
+#else
+#define STATIC static
+#define CLOCK_QUEUE_TESTING
+#define DISPLAY_QUEUE_TESTING
+#endif
+
 #define TOTAL_CLOCK_STATES 4U /*!< Total states in event machine */
 
 /**
