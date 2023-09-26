@@ -7,6 +7,7 @@
 #include "bsp.h"
 #include "app_serial.h"
 #include "app_clock.h"
+#include "app_display.h"
 
 /**
  * @brief Save the buffer dimentions.
@@ -163,8 +164,11 @@ static void Task_100ms( void *parameters )
 {
     TickType_t xLastWakeTime    = xTaskGetTickCount( );
     uint32_t displayPeriodicity = (uint32_t)parameters; /*cppcheck-suppress misra-c2012-11.6 ; Take the value of function parameter*/
+    Display_Init( );
+
     for( ;; )
     {
+        Display_Task( );
         vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( displayPeriodicity ) );
     }
 }

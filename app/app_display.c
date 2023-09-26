@@ -24,7 +24,6 @@ static LCD_HandleTypeDef hlcd;
 
 static void Time( APP_MsgTypeDef *DisplayMsg );
 static void Display_Machine( APP_MsgTypeDef *DisplayMsg );
-static void Date( APP_MsgTypeDef *DisplayMsg );
 
 static char *get_month( uint8_t month )
 {
@@ -106,7 +105,6 @@ static void Display_Machine( APP_MsgTypeDef *DisplayMsg )
     static DisplayNode stateMachine[ DISPLAYS ] =
     {
     { Time },
-    { Date },
     };
 
     /*  Variable to handle the current state  */
@@ -131,34 +129,3 @@ static void Time( APP_MsgTypeDef *DisplayMsg )
     (void)HEL_LCD_String( &hlcd, string );
 }
 
-static void Date( APP_MsgTypeDef *DisplayMsg )
-{
-    char date_string[]       = "000,00 0000 00"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print date*/
-    const char *month_abbrev = get_month( DisplayMsg->tm.tm_mon );
-
-    const char *weekday_abbreviations[] =
-    {
-    "SU", "MO", "TU", "WE", "TH", "FR", "SA" };
-
-    const char *weekday_abbrev = weekday_abbreviations[ DisplayMsg->tm.tm_wday ];
-    date_string[ 0 ]           = month_abbrev[ 0 ];
-    date_string[ 1 ]           = month_abbrev[ 1 ];
-    date_string[ 2 ]           = month_abbrev[ 2 ];
-    /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    date_string[ 4 ] = '0' + ( DisplayMsg->tm.tm_mday / 10u ) % 10; /* cppcheck-suppress misra-c2012-10.4  ;Array to print date */
-    /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    date_string[ 5 ] = '0' + ( DisplayMsg->tm.tm_mday % 10 ); /* cppcheck-suppress misra-c2012-10.4  ;Array to print date */
-    /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    date_string[ 7 ] += ( DisplayMsg->tm.tm_year / 1000u ) % 10; /* cppcheck-suppress misra-c2012-10.4  ;Array to print date */
-    /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    date_string[ 8 ] += ( DisplayMsg->tm.tm_year / 100u ) % 10; /* cppcheck-suppress misra-c2012-10.4  ;Array to print date */
-    /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    date_string[ 9 ] += ( DisplayMsg->tm.tm_year / 10u ) % 10; /* cppcheck-suppress misra-c2012-10.4  ;Array to print date */
-    /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    date_string[ 10 ] += DisplayMsg->tm.tm_year % 10; /* cppcheck-suppress misra-c2012-10.4  ;Array to print date */
-    date_string[ 12 ] = weekday_abbrev[ 0 ];
-    date_string[ 13 ] = weekday_abbrev[ 1 ];
-
-    (void)HEL_LCD_SetCursor( &hlcd, 0, 1 );
-    (void)HEL_LCD_String( &hlcd, date_string );
-}
