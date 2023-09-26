@@ -27,14 +27,14 @@
 /**
  * @defgroup Periodicity and Priority
  @{*/
-#define HEARTBEAT_PERIODICITY 300u                /*!< Periodicity of heart beat task */
-#define TIMER_HEART_ID        (void *)(uint32_t)2 /*!< ID for timer used to HEART BEAT */
-#define SERIAL_PERIODICITY    (void *)(int)10     /*!< Serial's task periodicity  */
-#define CLOCK_PERIODICITY     (void *)(int)50     /*!< Clock's task periodicity   */
-#define DISPLAY_PERIODICITY   (void *)(int)100    /*!< Display's task periodicity */
-#define SERIAL_PRIORITY       3u                  /*!< Serial's task priority     */
-#define CLOCK_PRIORITY        2u                  /*!< Clock's task priority      */
-#define DISPLAY_PRIORITY      1u                  /*!< Display's task priority    */
+#define HEARTBEAT_PERIODICITY 300u                  /*!< Periodicity of heart beat task */
+#define TIMER_HEART_ID        (void *)(uint32_t)2   /*!< ID for timer used to HEART BEAT */
+#define SERIAL_PERIODICITY    (void *)(uint32_t)10  /*!< Serial's task periodicity  */
+#define CLOCK_PERIODICITY     (void *)(uint32_t)50  /*!< Clock's task periodicity   */
+#define DISPLAY_PERIODICITY   (void *)(uint32_t)100 /*!< Display's task periodicity */
+#define SERIAL_PRIORITY       3u                    /*!< Serial's task priority     */
+#define CLOCK_PRIORITY        2u                    /*!< Clock's task priority      */
+#define DISPLAY_PRIORITY      1u                    /*!< Display's task priority    */
 /**@} */
 
 /**
@@ -123,8 +123,8 @@ int main( void )
  */
 static void Task_10ms( void *parameters )
 {
-    TickType_t xLastWakeTime  = xTaskGetTickCount( );
-    uint8_t serialPeriodicity = *( (uint8_t *)parameters ); /*cppcheck-suppress misra-c2012-11.5 ; Take the value of function parameter*/
+    TickType_t xLastWakeTime   = xTaskGetTickCount( );
+    uint32_t serialPeriodicity = (uint32_t)parameters; /*cppcheck-suppress misra-c2012-11.6 ; Take the value of function parameter*/
     Serial_Init( );
 
     for( ;; )
@@ -142,9 +142,8 @@ static void Task_10ms( void *parameters )
  */
 static void Task_50ms( void *parameters )
 {
-    TickType_t xLastWakeTime = xTaskGetTickCount( );
-    uint8_t clockPeriodicity = *( (uint8_t *)parameters ); /*cppcheck-suppress misra-c2012-11.5 ; Take the value of function parameter*/
-
+    TickType_t xLastWakeTime  = xTaskGetTickCount( );
+    uint32_t clockPeriodicity = (uint32_t)parameters; /*cppcheck-suppress misra-c2012-11.6 ; Take the value of function parameter*/
     Clock_Init( );
 
     for( ;; )
@@ -162,9 +161,8 @@ static void Task_50ms( void *parameters )
  */
 static void Task_100ms( void *parameters )
 {
-    TickType_t xLastWakeTime   = xTaskGetTickCount( );
-    uint8_t displayPeriodicity = *( (uint8_t *)parameters ); /*cppcheck-suppress misra-c2012-11.5 ; Take the value of function parameter*/
-
+    TickType_t xLastWakeTime    = xTaskGetTickCount( );
+    uint32_t displayPeriodicity = (uint32_t)parameters; /*cppcheck-suppress misra-c2012-11.6 ; Take the value of function parameter*/
     for( ;; )
     {
         vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS( displayPeriodicity ) );
