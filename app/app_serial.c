@@ -1,3 +1,13 @@
+/**
+ * @file    app_serial.c
+ * @brief   **Message processing implementation**
+ *
+ * Contains the functions to initialize the CAN port with the apropiate parameters,
+ * the callback to the CAN interruption, also the main state machine to message processing were
+ * the CAN frame will be evaluate to aprove it or not and to be assigned to the struct
+ * variable by the fuction in charge of it.
+ *
+ */
 #include "app_serial.h"
 #include "bsp.h"
 
@@ -14,6 +24,8 @@ static void SerialAlarmState( const NEW_MsgTypeDef *pmsg );
 static void SerialOkState( const NEW_MsgTypeDef *pmsg );
 static void SerialErrorState( const NEW_MsgTypeDef *pmsg );
 
+FDCAN_HandleTypeDef CANHandler;
+
 /**
  * @brief Struct with pointer to function
  */
@@ -22,24 +34,30 @@ typedef struct SerialStates
     void ( *ptr_funct )( const NEW_MsgTypeDef *pdata ); /*!< Pointer to function */
 } SerialStates;
 
-FDCAN_HandleTypeDef CANHandler;
-
+/**
+ * @brief  Structure type variable for CAN transmissin initialization
+ */
 static FDCAN_TxHeaderTypeDef CANTxHeader;
 
+/**
+ * @brief   **Initialize of CAN port**
+ *
+ * Is the function to initialize all the required to start working with the CAN port
+ * and the messages reception processing
+ *
+ * @note Declaration of the options to configure the FDCAN1 module to transmit to the CAN bus at 100Kbps
+ *       and sample point of 75%, the frequency with which the CAN module is powered is
+ *       fCAN = fHSI / CANHandler.Init.ClockDivider / CANHandler.Init.NominalPrescaler
+ *       fCAN = 32MHz / 1 / 8 = 4MHz
+ *       The number of time quantas required is
+ *       Ntq = fCAN / CANbaudrate
+ *       Ntq = 4MHz / 250Kbps = 16
+ *       The sample point percentage is
+ *       Sp = ( CANHandler.Init.NominalTimeSeg1 +  1 / Ntq ) * 100
+ *       Sp = ( ( 11 + 1 ) / 16 ) * 100 = 75%
+ */
 void Serial_Init( void )
 {
-    /* Declaration of the options to configure the FDCAN1 module to transmit to the CAN bus at 100Kbps
-       and sample point of 75%, the frequency with which the CAN module is powered is
-       fCAN = fHSI / CANHandler.Init.ClockDivider / CANHandler.Init.NominalPrescaler
-       fCAN = 32MHz / 1 / 8 = 4MHz
-       The number of time quantas required is
-       Ntq = fCAN / CANbaudrate
-       Ntq = 4MHz / 250Kbps = 16
-       The sample point percentage is
-       Sp = ( CANHandler.Init.NominalTimeSeg1 +  1 / Ntq ) * 100
-       Sp = ( ( 11 + 1 ) / 16 ) * 100 = 75%
-    */
-
     FDCAN_FilterTypeDef CANFilter;
 
     CANHandler.Instance                  = FDCAN1;
@@ -85,6 +103,16 @@ void Serial_Init( void )
     HAL_FDCAN_ActivateNotification( &CANHandler, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, VAL_BUFFERINDEXES );
 }
 
+/**
+ * @brief   **Reception of CAN messages**
+ *
+ * Callback to the CAN interrup, it is activated when a message
+ * is recieve then is store in the variable NewMessage
+ *
+ * @param   hfdcan      [in]  To handle CAN
+ * @param   RxFifo0ITs  [in]  void Valid_Time( uint8_t *data );
+ *
+ */
 /* cppcheck-suppress misra-c2012-8.4 ; this is a library function */
 void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs )
 {
@@ -101,6 +129,13 @@ void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs
     }
 }
 
+/**
+ * @brief   **Call of the serial state machine**
+ *
+ * This function calls the serial state machine every 10ms
+ * with the help of queues, therefore it won't be execute all the time
+ *
+ */
 void Serial_Task( void )
 {
     static NEW_MsgTypeDef RecieveMsg = { 0 };
@@ -118,6 +153,15 @@ void Serial_Task( void )
     }
 }
 
+/**
+ * @brief   **Main state machine**
+ *
+ * Is going to implement the state machine in charge of calling the function for the
+ * new message, after the interruption of CAN is trigger, depending if it is a message of time,
+ * date and alarm.
+ *
+ * @param   pdata  [in]  Pointer to data struct
+ */
 void Serial_StMachine( NEW_MsgTypeDef *pdata )
 {
     static SerialStates StMachine[ NUM_5 ] = {
@@ -133,6 +177,14 @@ void Serial_StMachine( NEW_MsgTypeDef *pdata )
     StMachine[ NextEvent.Data[ NUM_0 ] - NUM_1 ].ptr_funct( pdata );
 }
 
+/**
+ * @brief   **Serial time function**
+ *
+ * Is going to evaluate if the data for time is valid
+ * and send the message to the queue.
+ *
+ * @param   pmsg  [in]  Pointer to data struct
+ */
 void SerialTimeState( const NEW_MsgTypeDef *pmsg )
 {
     static NEW_MsgTypeDef SerialMsg;
@@ -154,6 +206,14 @@ void SerialTimeState( const NEW_MsgTypeDef *pmsg )
     }
 }
 
+/**
+ * @brief   **Serial date function**
+ *
+ * Is going to evaluate if the data for date is valid
+ * and send the message to the queue.
+ *
+ * @param   pmsg  [in]  Pointer to data struct
+ */
 void SerialDateState( const NEW_MsgTypeDef *pmsg )
 {
     static NEW_MsgTypeDef SerialMsg;
@@ -175,6 +235,14 @@ void SerialDateState( const NEW_MsgTypeDef *pmsg )
     }
 }
 
+/**
+ * @brief   **Serial alarm function**
+ *
+ * Is going to evaluate if the data for alarm is valid
+ * and send the message to the queue.
+ *
+ * @param   pmsg  [in]  Pointer to data struct
+ */
 void SerialAlarmState( const NEW_MsgTypeDef *pmsg )
 {
     static NEW_MsgTypeDef SerialMsg;
@@ -194,6 +262,15 @@ void SerialAlarmState( const NEW_MsgTypeDef *pmsg )
     }
 }
 
+/**
+ * @brief   **Serial ok function**
+ *
+ * Is going to assign the data to the variable clockMsg
+ * and send it to the queue of the clock, then it will transmit
+ * a message through CAN to indicate the data is valid.
+ *
+ * @param   pmsg  [in]  Pointer to data struct
+ */
 void SerialOkState( const NEW_MsgTypeDef *pmsg )
 {
     uint8_t msg_ok[ NUM_1 ] = { DATA_OK };
@@ -215,6 +292,13 @@ void SerialOkState( const NEW_MsgTypeDef *pmsg )
     xQueueSend( clockQueue, &clockMsg, 0 );
 }
 
+/**
+ * @brief   **Serial error function**
+ *
+ * Is going to transmit a message through CAN to indicate the data is not valid.
+ *
+ * @param   pmsg  [in]  Pointer to data struct
+ */
 void SerialErrorState( const NEW_MsgTypeDef *pmsg )
 {
     uint8_t msn_error[ NUM_1 ] = { DATA_ERROR };
@@ -222,6 +306,17 @@ void SerialErrorState( const NEW_MsgTypeDef *pmsg )
     CanTp_SingleFrameTx( &msn_error[ SINGLE_FRAME_ELEMENT ], pmsg->Data[ SINGLE_FRAME_ELEMENT ] );
 }
 
+/**
+ * @brief   **Validate time**
+ *
+ * This function validates if the time message is in range,
+ * from 0 to 23 for hours, from 0 to 59 for minutes and
+ * from 0 to 59 for seconds and returns the result.
+ *
+ * @param   data          [in]  Pointer to data
+ *
+ * @retval  The function returns 1 if time is correct and 0 if not
+ */
 static uint8_t Validate_Time( const uint8_t *data )
 {
     uint8_t ret_val = NUM_0;
@@ -236,6 +331,17 @@ static uint8_t Validate_Time( const uint8_t *data )
     return ret_val;
 }
 
+/**
+ * @brief   **Validate alarm**
+ *
+ * This function validates if the Alarm message is in range,
+ * from 0 to 23 for hours and from 0 to 59 to minutes,
+ * no seconds nedded, and then returns the result.
+ *
+ * @param   data          [in]  Pointer to data
+ *
+ * @retval  The function returns 1 if the alarm is correct and 0 if not
+ */
 static uint8_t Validate_Alarm( const uint8_t *data )
 {
     uint8_t ret_val = NUM_0;
@@ -249,6 +355,19 @@ static uint8_t Validate_Alarm( const uint8_t *data )
     return ret_val;
 }
 
+/**
+ * @brief   **Validate date**
+ *
+ * This function validates if the date message is in range,
+ * from 1 to 31 for days, from 1 to 12 for months and
+ * from 1901 to 2099 for years and returns the result.
+ * In addition it also vaidates if the date is in a leap-year
+ * and adjust the month of February to manage 29 days.
+ *
+ * @param   data          [in]  Pointer to data
+ *
+ * @retval  The function returns 1 if the date is correct and 0 if not
+ */
 static uint8_t Validate_Date( const uint8_t *data )
 {
     uint8_t ret_val;
@@ -308,6 +427,20 @@ static uint8_t Validate_Date( const uint8_t *data )
     return ret_val;
 }
 
+/**
+ * @brief   **Validate the day of the week**
+ *
+ * This function calculates the day of the week according to the date,
+ * to do this, we will use Zeller's congruence. Taking the day, month and year
+ * to calculate the year of the century and the century. In this algorithm
+ * January and February are counted as months 13 and 14 of the previous year.
+ * With this data we use the formula for the Gregorian calendar.
+ *
+ * @param   data          [in]  Pointer to data
+ *
+ * @retval  The function returns the values 0-Saturday, 1-Sunday, 2-Monday,
+ *          3-Tuesday, 4-Wednesday, 5-Thursday, 6-Friday
+ */
 uint32_t WeekDay( const uint8_t *data )
 {
     uint32_t dayofweek;
@@ -344,6 +477,16 @@ uint32_t WeekDay( const uint8_t *data )
     return dayofweek;
 }
 
+/**
+ * @brief   **Transmition in CAN-TP single frame format**
+ *
+ * This function transmit the ok or error messages through the terminal
+ * when the data is already procesed, will be send 0x55 if the data was in range
+ * and the 0xAA if the data was not in range with CAN-ID of 0x122
+ *
+ * @param   data [in] Pointer to data
+ * @param   size [in] Size of data
+ */
 static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size )
 {
     for( uint8_t i = NUM_0; i < size; i++ )
@@ -356,6 +499,18 @@ static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size )
     HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, data );
 }
 
+/**
+ * @brief   **CAN-TP single frame format**
+ *
+ * The function validate if the message received
+ * complies with CAN-TP single frame format.
+ *
+ * @param   data        [in]     Pointer to data
+ * @param   size        [in]     Size of data
+ *
+ * @retval  The function returns 1 when a certain number of bytes were received,
+ *          otherwise, no message was received
+ */
 static uint8_t CanTp_SingleFrameRx( const uint8_t *data, const uint8_t *size )
 {
     uint8_t msgRecieve = NUM_0;
