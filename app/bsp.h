@@ -66,7 +66,8 @@ typedef enum
     SERIAL_MSG_TIME,  /**< Received Time message type */
     CLOCK_MSG_PRINT,  /**< Print clock data message type */
     OK_STATE,         /**< Ok state of data    */
-    ERROR_STATE       /*!< Error state of data */
+    ERROR_STATE,      /*!< Error state of data */
+    DISPLAY_DATE
 } APP_Messages;
 
 /*Queue identifier to use*/
