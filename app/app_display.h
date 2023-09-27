@@ -7,7 +7,7 @@
 #ifndef APP_DISPLAY_H
 #define APP_DISPLAY_H
 
-#define DISPLAYS     2U    /*!< Total states in event machine */
+#define DISPLAYS     2U /*!< Total states in event machine */
 
 /**
  * @defgroup Declarations of counters
