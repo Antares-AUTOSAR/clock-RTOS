@@ -67,6 +67,7 @@ typedef enum
     CLOCK_MSG_PRINT,  /**< Print clock data message type */
     OK_STATE,         /**< Ok state of data    */
     ERROR_STATE,      /*!< Error state of data */
+    DISPLAY_TIME,
     DISPLAY_DATE
 } APP_Messages;
 

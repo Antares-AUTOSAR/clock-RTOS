@@ -18,24 +18,33 @@ typedef struct
 } DisplayNode;
 
 /**
- * @brief
+ * @brief Variable for LCD configuration
  */
 static LCD_HandleTypeDef hlcd;
 
-static void Time( APP_MsgTypeDef *DisplayMsg );
 static void Display_Machine( APP_MsgTypeDef *DisplayMsg );
+static void Time( APP_MsgTypeDef *DisplayMsg );
+static void Date( APP_MsgTypeDef *DisplayMsg );
 
+/**
+ * @brief   Get the abbreviation of the month
+ *
+ * This function returns the abbreviation of a month given its number
+ *
+ * @param month Month number (1-12)
+ * @return Pointer to the month abbreviation or NULL if the month number is invalid
+ */
 static char *get_month( uint8_t month )
 {
     char *range = NULL;
 
-    if( ( month >= 1u ) && ( month <= 12u ) )
+    if( ( month >= ONE ) && ( month <= TWELVE ) )
     {
         char *month_abbreviations[] =
         {
         "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
 
-        range = month_abbreviations[ month - 1u ];
+        range = month_abbreviations[ month - ONE ];
     }
     return range;
 }
@@ -49,16 +58,16 @@ static char *get_month( uint8_t month )
 void Display_Init( void )
 {
     static SPI_HandleTypeDef SpiHandle;
-    hlcd.SpiHandler = &SpiHandle;
 
-    hlcd.RstPort = GPIOD;
-    hlcd.RstPin  = GPIO_PIN_2;
-    hlcd.RsPort  = GPIOD;
-    hlcd.RsPin   = GPIO_PIN_4;
-    hlcd.CsPort  = GPIOD;
-    hlcd.CsPin   = GPIO_PIN_3;
-    hlcd.BklPort = GPIOB;
-    hlcd.BklPin  = GPIO_PIN_4;
+    hlcd.SpiHandler = &SpiHandle;
+    hlcd.RstPort    = GPIOD;
+    hlcd.RstPin     = GPIO_PIN_2;
+    hlcd.RsPort     = GPIOD;
+    hlcd.RsPin      = GPIO_PIN_4;
+    hlcd.CsPort     = GPIOD;
+    hlcd.CsPin      = GPIO_PIN_3;
+    hlcd.BklPort    = GPIOB;
+    hlcd.BklPin     = GPIO_PIN_4;
 
     SpiHandle.Instance               = SPI1;
     SpiHandle.Init.Mode              = SPI_MODE_MASTER;
@@ -74,7 +83,7 @@ void Display_Init( void )
     HAL_SPI_Init( &SpiHandle ); /* cppcheck-suppress misra-c2012-17.7 ;This function is defined in the library*/
 
     (void)HEL_LCD_Init( &hlcd );
-    (void)HEL_LCD_Backlight( &hlcd, 1 );
+    (void)HEL_LCD_Backlight( &hlcd, LCD_ON );
     (void)HEL_LCD_Contrast( &hlcd, 15 );
 }
 
@@ -97,8 +106,10 @@ void Display_Task( void )
 /**
  * @brief   Initializate the State machine of Display
  *
- * This function recive the flag of Clock.c and will display Date and Time. Afterwards
- * depending on the message recieved from alarm will be display different cases
+ * This function initializes the state machine for the Display module.
+ * It sets up an array of state functions and transitions to the initial state
+ *
+ * @param DisplayMsg: A pointer to the message structure containing state information
  */
 static void Display_Machine( APP_MsgTypeDef *DisplayMsg )
 {
@@ -108,28 +119,68 @@ static void Display_Machine( APP_MsgTypeDef *DisplayMsg )
     { Date },
     };
 
-    /*  Variable to handle the current state  */
-    static APP_Messages event;
+    static APP_Messages state;
 
-    event = DisplayMsg->msg;
-    stateMachine[ event ].stateFunc( DisplayMsg );
+    state = DisplayMsg->msg;
+    stateMachine[ state ].stateFunc( DisplayMsg );
 }
 
+/**
+ * @brief   Display the current time on the LCD
+ *
+ * This function rettrieves the curren time from the Clockmsg structure and
+ * formats it as a string in the format 00:00:00
+ *
+ * @param DisplayMsg: A pointer to the message structure containing state information
+ */
 static void Time( APP_MsgTypeDef *DisplayMsg )
 {
     char string[] = "00:00:00"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print time */
 
-    string[ 7 ] = '0' + ( DisplayMsg->tm.tm_sec % 10u );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ 6 ] = '0' + ( DisplayMsg->tm.tm_sec / 10u );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ 4 ] = '0' + ( DisplayMsg->tm.tm_min % 10u );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ 3 ] = '0' + ( DisplayMsg->tm.tm_min / 10u );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ 1 ] = '0' + ( DisplayMsg->tm.tm_hour % 10u ); /* cppcheck-suppress misra-c2012-10.2 ;Not moving due to changing functionality*/
-    string[ 0 ] = '0' + ( DisplayMsg->tm.tm_hour / 10u ); /* cppcheck-suppress misra-c2012-10.2 ;Not moving due to changing functionality */
+    string[ SEVEN ] = '0' + ( DisplayMsg->tm.tm_sec % TEN );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ SIX ]   = '0' + ( DisplayMsg->tm.tm_sec / TEN );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ FOUR ]  = '0' + ( DisplayMsg->tm.tm_min % TEN );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ THREE ] = '0' + ( DisplayMsg->tm.tm_min / TEN );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ ONE ]   = '0' + ( DisplayMsg->tm.tm_hour % TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ CERO ]  = '0' + ( DisplayMsg->tm.tm_hour / TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
 
     (void)HEL_LCD_SetCursor( &hlcd, 1, 3 );
     (void)HEL_LCD_String( &hlcd, string );
-    DisplayMsg->msg = DISPLAY_DATE;
-    xQueueSend( displayQueue, DisplayMsg, 0 );
+
+    DisplayMsg->msg = SERIAL_MSG_DATE;
+    xQueueSend( displayQueue, DisplayMsg, CERO );
 }
 
+/**
+ * @brief   Display the current Date on the LCD
+ *
+ * This function rettrieves the curren date from the Clockmsg structure and
+ * formats it as a string in the format 000,00 0000 00
+ *
+ * @param DisplayMsg:  A pointer to the message structure containing state information
+ */
+static void Date( APP_MsgTypeDef *DisplayMsg )
+{
+    char date_string[]       = "000,00 0000 00"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print date*/
+    const char *month_abbrev = get_month( DisplayMsg->tm.tm_mon );
 
+    const char *weekday_abbreviations[] =
+    {
+    "SU", "MO", "TU", "WE", "TH", "FR", "SA" };
+
+    const char *weekday_abbrev = weekday_abbreviations[ DisplayMsg->tm.tm_wday ];
+    date_string[ CERO ]        = month_abbrev[ CERO ];
+    date_string[ ONE ]         = month_abbrev[ ONE ];
+    date_string[ TWO ]         = month_abbrev[ TWO ];
+    date_string[ FOUR ]        = '0' + ( DisplayMsg->tm.tm_mday / TEN ) % TEN; /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    date_string[ FIVE ]        = '0' + ( DisplayMsg->tm.tm_mday % TEN );       /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    date_string[ SEVEN ] += ( DisplayMsg->tm.tm_year / ONE_THOUSAND ) % TEN;   /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    date_string[ EIGHT ] += ( DisplayMsg->tm.tm_year / ONE_HUNDRED ) % TEN;    /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    date_string[ NINE ] += ( DisplayMsg->tm.tm_year / TEN ) % TEN;             /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    date_string[ TEN ] += DisplayMsg->tm.tm_year % TEN;                        /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    date_string[ TWELVE ]   = weekday_abbrev[ CERO ];
+    date_string[ THIRTEEN ] = weekday_abbrev[ ONE ];
+
+    (void)HEL_LCD_SetCursor( &hlcd, 0, 1 );
+    (void)HEL_LCD_String( &hlcd, date_string );
+}

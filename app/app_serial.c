@@ -489,12 +489,13 @@ uint32_t WeekDay( const uint8_t *data )
  */
 static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size )
 {
-    for( uint8_t i = NUM_0; i < size; i++ )
-    {
-        data[ i + NUM_1 ] = data[ NUM_0 ];
-    }
+    static uint8_t TxData[ 8 ];
 
-    data[ NUM_0 ] = size;
+    TxData[ 0 ] = (uint8_t)( size & 0x0Fu );
+    for( uint8_t i = 0u; i < size; i++ )
+    {
+        TxData[ i + 1u ] = data[ i ];
+    }
 
     HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, data );
 }
