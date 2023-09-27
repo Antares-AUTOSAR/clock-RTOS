@@ -7,7 +7,7 @@
 #ifndef APP_DISPLAY_H
 #define APP_DISPLAY_H
 
-#define DISPLAYS     2U /*!< Total states in event machine */
+#define DISPLAYS     2U    /*!< Total states in event machine */
 
 /**
  * @defgroup Declarations of counters
@@ -30,16 +30,6 @@
 #define FIFTEEN      15u   /*!< Value for counter: 15 */
 #define ONE_HUNDRED  100U  /*!< Value for counter: 100 */
 #define ONE_THOUSAND 1000U /*!< Value for counter: 1000 */
-/**
- * @}
- */
-
-/**
- * @defgroup Declarations of counters
- * @{
- */
-#define LCD_ON       1u /*!< Value for counter: 0 */
-#define ONE          1u /*!< Value for counter: 1 */
 /**
  * @}
  */
