@@ -148,7 +148,7 @@ static void Time( APP_MsgTypeDef *DisplayMsg )
     (void)HEL_LCD_String( &hlcd, string );
 
     DisplayMsg->msg = SERIAL_MSG_DATE;
-    xQueueSend( displayQueue, DisplayMsg, CERO );
+    xQueueSend( displayQueue, DisplayMsg, 0 );
 }
 
 /**
