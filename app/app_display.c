@@ -113,7 +113,7 @@ void Display_Task( void )
  */
 static void Display_Machine( APP_MsgTypeDef *DisplayMsg )
 {
-    static DisplayNode stateMachine[ DISPLAYS ] =
+    static DisplayNode stateMachine[ DISPLAY_STATES ] =
     {
     { Time },
     { Date },
@@ -137,12 +137,12 @@ static void Time( APP_MsgTypeDef *DisplayMsg )
 {
     char string[] = "00:00:00"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print time */
 
-    string[ SEVEN ] = '0' + ( DisplayMsg->tm.tm_sec % TEN );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ SIX ]   = '0' + ( DisplayMsg->tm.tm_sec / TEN );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ FOUR ]  = '0' + ( DisplayMsg->tm.tm_min % TEN );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ THREE ] = '0' + ( DisplayMsg->tm.tm_min / TEN );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ ONE ]   = '0' + ( DisplayMsg->tm.tm_hour % TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ CERO ]  = '0' + ( DisplayMsg->tm.tm_hour / TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    string[ SECONDS_ONES ] = '0' + ( DisplayMsg->tm.tm_sec % TEN );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ SECONDS_TENS ] = '0' + ( DisplayMsg->tm.tm_sec / TEN );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ MINUTES_ONES ] = '0' + ( DisplayMsg->tm.tm_min % TEN );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ MINUTES_TENS ] = '0' + ( DisplayMsg->tm.tm_min / TEN );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ HOURS_ONES ]   = '0' + ( DisplayMsg->tm.tm_hour % TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ HOURS_TENS ]   = '0' + ( DisplayMsg->tm.tm_hour / TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
 
     (void)HEL_LCD_SetCursor( &hlcd, 1, 3 );
     (void)HEL_LCD_String( &hlcd, string );
@@ -168,18 +168,18 @@ static void Date( APP_MsgTypeDef *DisplayMsg )
     {
     "SU", "MO", "TU", "WE", "TH", "FR", "SA" };
 
-    const char *weekday_abbrev = weekday_abbreviations[ DisplayMsg->tm.tm_wday ];
-    date_string[ CERO ]        = month_abbrev[ CERO ];
-    date_string[ ONE ]         = month_abbrev[ ONE ];
-    date_string[ TWO ]         = month_abbrev[ TWO ];
-    date_string[ FOUR ]        = '0' + ( DisplayMsg->tm.tm_mday / TEN ) % TEN; /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    date_string[ FIVE ]        = '0' + ( DisplayMsg->tm.tm_mday % TEN );       /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    date_string[ SEVEN ] += ( DisplayMsg->tm.tm_year / ONE_THOUSAND ) % TEN;   /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    date_string[ EIGHT ] += ( DisplayMsg->tm.tm_year / ONE_HUNDRED ) % TEN;    /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    date_string[ NINE ] += ( DisplayMsg->tm.tm_year / TEN ) % TEN;             /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    date_string[ TEN ] += DisplayMsg->tm.tm_year % TEN;                        /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    date_string[ TWELVE ]   = weekday_abbrev[ CERO ];
-    date_string[ THIRTEEN ] = weekday_abbrev[ ONE ];
+    const char *weekday_abbrev            = weekday_abbreviations[ DisplayMsg->tm.tm_wday ];
+    date_string[ FIRST_CHARACTER_MONTH ]  = month_abbrev[ FIRST_CHARACTER_MONTH ];
+    date_string[ SECOND_CHARACTER_MONTH ] = month_abbrev[ SECOND_CHARACTER_MONTH ];
+    date_string[ THIRD_CHARACTER_MONTH ]  = month_abbrev[ THIRD_CHARACTER_MONTH ];
+    date_string[ TENS_DIGIT_DAY ]         = '0' + ( DisplayMsg->tm.tm_mday / TEN ) % TEN;   /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    date_string[ ONES_DIGIT_DAY ]         = '0' + ( DisplayMsg->tm.tm_mday % TEN );         /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    date_string[ THOUSANDS_DIGIT_YEAR ] += ( DisplayMsg->tm.tm_year / ONE_THOUSAND ) % TEN; /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    date_string[ HUNDREDS_DIGIT_YEAR ] += ( DisplayMsg->tm.tm_year / ONE_HUNDRED ) % TEN;   /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    date_string[ TENS_DIGIT_YEAR ] += ( DisplayMsg->tm.tm_year / TEN ) % TEN;               /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    date_string[ ONES_DIGIT_YEAR ] += DisplayMsg->tm.tm_year % TEN;                         /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    date_string[ FIRST_CHARACTER_WEEK ]  = weekday_abbrev[ CERO ];
+    date_string[ SECOND_CHARACTER_WEEK ] = weekday_abbrev[ ONE ];
 
     (void)HEL_LCD_SetCursor( &hlcd, 0, 1 );
     (void)HEL_LCD_String( &hlcd, date_string );
