@@ -51,6 +51,61 @@ static char *get_month( uint8_t month )
 }
 
 /**
+ * @brief  Function to convert time to a string representation
+ *
+ * This function takes time values for hours, minutes, seconds and formats
+ * them into a string
+ *
+ * @param string Pointer to a character buffer to store the formatted time
+ * @param hours Hours in 24-hour format (0-23)
+ * @param minutes Minutes (0-59)
+ * @param seconds Seconds (0-59)
+ */
+static void TimeString( char *string, uint8_t hours, uint8_t minutes, uint8_t seconds )
+{
+    string[ SECONDS_ONES ] = '0' + ( seconds % TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ SECONDS_TENS ] = '0' + ( seconds / TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ MINUTES_ONES ] = '0' + ( minutes % TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ MINUTES_TENS ] = '0' + ( minutes / TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ HOURS_ONES ]   = '0' + ( hours % TEN );   /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ HOURS_TENS ]   = '0' + ( hours / TEN );   /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+}
+
+/**
+ * @brief   Function to convert date to a string representation
+ *
+ * This function takes time values for year, month, day, weekday and formats
+ * them into a string
+ *
+ * @param string Pointer to a character buffer to store the formatted date
+ * @param month Month (1-12)
+ * @param day Day of the month (1-31)
+ * @param year Year
+ * @param weekday Weekday(0-6), where 0 is Sunday and 6 is Saturday
+ */
+static void DateString( char *string, uint8_t month, uint8_t day, uint16_t year, uint8_t weekday )
+{
+    const char *month_abbrev = get_month( month );
+
+    const char *weekday_abbreviations[] =
+    {
+    "SU", "MO", "TU", "WE", "TH", "FR", "SA" };
+
+    const char *weekday_abbrev       = weekday_abbreviations[ weekday ];
+    string[ FIRST_CHARACTER_MONTH ]  = month_abbrev[ FIRST_CHARACTER_MONTH ];
+    string[ SECOND_CHARACTER_MONTH ] = month_abbrev[ SECOND_CHARACTER_MONTH ];
+    string[ THIRD_CHARACTER_MONTH ]  = month_abbrev[ THIRD_CHARACTER_MONTH ];
+    string[ TENS_DIGIT_DAY ]         = '0' + ( day / TEN ) % TEN;    /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    string[ ONES_DIGIT_DAY ]         = '0' + ( day % TEN );          /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    string[ THOUSANDS_DIGIT_YEAR ] += ( year / ONE_THOUSAND ) % TEN; /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    string[ HUNDREDS_DIGIT_YEAR ] += ( year / ONE_HUNDRED ) % TEN;   /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    string[ TENS_DIGIT_YEAR ] += ( year / TEN ) % TEN;               /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    string[ ONES_DIGIT_YEAR ] += year % TEN;                         /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ FIRST_CHARACTER_WEEK ]  = weekday_abbrev[ CERO ];
+    string[ SECOND_CHARACTER_WEEK ] = weekday_abbrev[ ONE ];
+}
+
+/**
  * @brief   Initializate the LCD
  *
  * This function gives the format of spi and initializate the lcd
@@ -162,59 +217,4 @@ static void Date( APP_MsgTypeDef *DisplayMsg )
 
     (void)HEL_LCD_SetCursor( &hlcd, 0, 1 );
     (void)HEL_LCD_String( &hlcd, date_string );
-}
-
-/**
- * @brief  Function to convert time to a string representation
- *
- * This function takes time values for hours, minutes, seconds and formats
- * them into a string
- *
- * @param string Pointer to a character buffer to store the formatted time
- * @param hours Hours in 24-hour format (0-23)
- * @param minutes Minutes (0-59)
- * @param seconds Seconds (0-59)
- */
-static void TimeString( char *string, uint8_t hours, uint8_t minutes, uint8_t seconds )
-{
-    string[ SECONDS_ONES ] = '0' + ( seconds % TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ SECONDS_TENS ] = '0' + ( seconds / TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ MINUTES_ONES ] = '0' + ( minutes % TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ MINUTES_TENS ] = '0' + ( minutes / TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ HOURS_ONES ]   = '0' + ( hours % TEN );   /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ HOURS_TENS ]   = '0' + ( hours / TEN );   /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-}
-
-/**
- * @brief   Function to convert date to a string representation
- *
- * This function takes time values for year, month, day, weekday and formats
- * them into a string
- *
- * @param string Pointer to a character buffer to store the formatted date
- * @param month Month (1-12)
- * @param day Day of the month (1-31)
- * @param year Year
- * @param weekday Weekday(0-6), where 0 is Sunday and 6 is Saturday
- */
-static void DateString( char *string, uint8_t month, uint8_t day, uint16_t year, uint8_t weekday )
-{
-    const char *month_abbrev = get_month( month );
-
-    const char *weekday_abbreviations[] =
-    {
-    "SU", "MO", "TU", "WE", "TH", "FR", "SA" };
-
-    const char *weekday_abbrev       = weekday_abbreviations[ weekday ];
-    string[ FIRST_CHARACTER_MONTH ]  = month_abbrev[ FIRST_CHARACTER_MONTH ];
-    string[ SECOND_CHARACTER_MONTH ] = month_abbrev[ SECOND_CHARACTER_MONTH ];
-    string[ THIRD_CHARACTER_MONTH ]  = month_abbrev[ THIRD_CHARACTER_MONTH ];
-    string[ TENS_DIGIT_DAY ]         = '0' + ( day / TEN ) % TEN;    /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    string[ ONES_DIGIT_DAY ]         = '0' + ( day % TEN );          /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    string[ THOUSANDS_DIGIT_YEAR ] += ( year / ONE_THOUSAND ) % TEN; /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    string[ HUNDREDS_DIGIT_YEAR ] += ( year / ONE_HUNDRED ) % TEN;   /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    string[ TENS_DIGIT_YEAR ] += ( year / TEN ) % TEN;               /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    string[ ONES_DIGIT_YEAR ] += year % TEN;                         /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ FIRST_CHARACTER_WEEK ]  = weekday_abbrev[ CERO ];
-    string[ SECOND_CHARACTER_WEEK ] = weekday_abbrev[ ONE ];
 }
