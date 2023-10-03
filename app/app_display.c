@@ -25,7 +25,8 @@ static LCD_HandleTypeDef hlcd;
 static void Display_Machine( APP_MsgTypeDef *DisplayMsg );
 static void Time( APP_MsgTypeDef *DisplayMsg );
 static void Date( APP_MsgTypeDef *DisplayMsg );
-
+static void TimeString( char *string, uint8_t hours, uint8_t minutes, uint8_t seconds );
+static void DateString( char *string, uint8_t month, uint8_t day, uint16_t year, uint8_t weekday );
 /**
  * @brief   Get the abbreviation of the month
  *
@@ -57,7 +58,7 @@ static char *get_month( uint8_t month )
  */
 void Display_Init( void )
 {
-    static SPI_HandleTypeDef SpiHandle;
+    static SPI_HandleTypeDef SpiHandle = { 0 };
 
     hlcd.SpiHandler = &SpiHandle;
     hlcd.RstPort    = GPIOD;
@@ -80,7 +81,7 @@ void Display_Init( void )
     SpiHandle.Init.NSS               = SPI_NSS_SOFT;
     SpiHandle.Init.CRCCalculation    = SPI_CRCCALCULATION_DISABLED;
     SpiHandle.Init.TIMode            = SPI_TIMODE_DISABLED;
-    HAL_SPI_Init( &SpiHandle ); /* cppcheck-suppress misra-c2012-17.7 ;This function is defined in the library*/
+    HAL_SPI_Init( &SpiHandle );
 
     (void)HEL_LCD_Init( &hlcd );
     (void)HEL_LCD_Backlight( &hlcd, LCD_ON );
@@ -137,12 +138,7 @@ static void Time( APP_MsgTypeDef *DisplayMsg )
 {
     char string[] = "00:00:00"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print time */
 
-    string[ SECONDS_ONES ] = '0' + ( DisplayMsg->tm.tm_sec % TEN );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ SECONDS_TENS ] = '0' + ( DisplayMsg->tm.tm_sec / TEN );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ MINUTES_ONES ] = '0' + ( DisplayMsg->tm.tm_min % TEN );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ MINUTES_TENS ] = '0' + ( DisplayMsg->tm.tm_min / TEN );  /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ HOURS_ONES ]   = '0' + ( DisplayMsg->tm.tm_hour % TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    string[ HOURS_TENS ]   = '0' + ( DisplayMsg->tm.tm_hour / TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    TimeString( string, DisplayMsg->tm.tm_hour, DisplayMsg->tm.tm_min, DisplayMsg->tm.tm_sec );
 
     (void)HEL_LCD_SetCursor( &hlcd, 1, 3 );
     (void)HEL_LCD_String( &hlcd, string );
@@ -161,26 +157,64 @@ static void Time( APP_MsgTypeDef *DisplayMsg )
  */
 static void Date( APP_MsgTypeDef *DisplayMsg )
 {
-    char date_string[]       = "000,00 0000 00"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print date*/
-    const char *month_abbrev = get_month( DisplayMsg->tm.tm_mon );
+    char date_string[] = "000,00 0000 00"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print date*/
+    DateString( date_string, DisplayMsg->tm.tm_mon, DisplayMsg->tm.tm_mday, DisplayMsg->tm.tm_year, DisplayMsg->tm.tm_wday );
+
+    (void)HEL_LCD_SetCursor( &hlcd, 0, 1 );
+    (void)HEL_LCD_String( &hlcd, date_string );
+}
+
+/**
+ * @brief  Function to convert time to a string representation
+ *
+ * This function takes time values for hours, minutes, seconds and formats
+ * them into a string
+ *
+ * @param string Pointer to a character buffer to store the formatted time
+ * @param hours Hours in 24-hour format (0-23)
+ * @param minutes Minutes (0-59)
+ * @param seconds Seconds (0-59)
+ */
+static void TimeString( char *string, uint8_t hours, uint8_t minutes, uint8_t seconds )
+{
+    string[ SECONDS_ONES ] = '0' + ( seconds % TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ SECONDS_TENS ] = '0' + ( seconds / TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ MINUTES_ONES ] = '0' + ( minutes % TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ MINUTES_TENS ] = '0' + ( minutes / TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ HOURS_ONES ]   = '0' + ( hours % TEN );   /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ HOURS_TENS ]   = '0' + ( hours / TEN );   /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+}
+
+/**
+ * @brief   Function to convert date to a string representation
+ *
+ * This function takes time values for year, month, day, weekday and formats
+ * them into a string
+ *
+ * @param string Pointer to a character buffer to store the formatted date
+ * @param month Month (1-12)
+ * @param day Day of the month (1-31)
+ * @param year Year
+ * @param weekday Weekday(0-6), where 0 is Sunday and 6 is Saturday
+ */
+static void DateString( char *string, uint8_t month, uint8_t day, uint16_t year, uint8_t weekday )
+{
+    const char *month_abbrev = get_month( month );
 
     const char *weekday_abbreviations[] =
     {
     "SU", "MO", "TU", "WE", "TH", "FR", "SA" };
 
-    const char *weekday_abbrev            = weekday_abbreviations[ DisplayMsg->tm.tm_wday ];
-    date_string[ FIRST_CHARACTER_MONTH ]  = month_abbrev[ FIRST_CHARACTER_MONTH ];
-    date_string[ SECOND_CHARACTER_MONTH ] = month_abbrev[ SECOND_CHARACTER_MONTH ];
-    date_string[ THIRD_CHARACTER_MONTH ]  = month_abbrev[ THIRD_CHARACTER_MONTH ];
-    date_string[ TENS_DIGIT_DAY ]         = '0' + ( DisplayMsg->tm.tm_mday / TEN ) % TEN;   /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    date_string[ ONES_DIGIT_DAY ]         = '0' + ( DisplayMsg->tm.tm_mday % TEN );         /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    date_string[ THOUSANDS_DIGIT_YEAR ] += ( DisplayMsg->tm.tm_year / ONE_THOUSAND ) % TEN; /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    date_string[ HUNDREDS_DIGIT_YEAR ] += ( DisplayMsg->tm.tm_year / ONE_HUNDRED ) % TEN;   /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    date_string[ TENS_DIGIT_YEAR ] += ( DisplayMsg->tm.tm_year / TEN ) % TEN;               /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
-    date_string[ ONES_DIGIT_YEAR ] += DisplayMsg->tm.tm_year % TEN;                         /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
-    date_string[ FIRST_CHARACTER_WEEK ]  = weekday_abbrev[ CERO ];
-    date_string[ SECOND_CHARACTER_WEEK ] = weekday_abbrev[ ONE ];
-
-    (void)HEL_LCD_SetCursor( &hlcd, 0, 1 );
-    (void)HEL_LCD_String( &hlcd, date_string );
+    const char *weekday_abbrev       = weekday_abbreviations[ weekday ];
+    string[ FIRST_CHARACTER_MONTH ]  = month_abbrev[ FIRST_CHARACTER_MONTH ];
+    string[ SECOND_CHARACTER_MONTH ] = month_abbrev[ SECOND_CHARACTER_MONTH ];
+    string[ THIRD_CHARACTER_MONTH ]  = month_abbrev[ THIRD_CHARACTER_MONTH ];
+    string[ TENS_DIGIT_DAY ]         = '0' + ( day / TEN ) % TEN;    /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    string[ ONES_DIGIT_DAY ]         = '0' + ( day % TEN );          /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    string[ THOUSANDS_DIGIT_YEAR ] += ( year / ONE_THOUSAND ) % TEN; /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    string[ HUNDREDS_DIGIT_YEAR ] += ( year / ONE_HUNDRED ) % TEN;   /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    string[ TENS_DIGIT_YEAR ] += ( year / TEN ) % TEN;               /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality */
+    string[ ONES_DIGIT_YEAR ] += year % TEN;                         /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
+    string[ FIRST_CHARACTER_WEEK ]  = weekday_abbrev[ CERO ];
+    string[ SECOND_CHARACTER_WEEK ] = weekday_abbrev[ ONE ];
 }
