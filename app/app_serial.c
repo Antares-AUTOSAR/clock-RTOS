@@ -12,8 +12,8 @@
 #include "bsp.h"
 
 static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size );
-static uint8_t CanTp_SingleFrameRx( const uint8_t *data, const uint8_t *size );
-static uint8_t Validate_Time( const uint8_t *data );
+static uint8_t CanTp_SingleFrameRx( uint8_t *data, uint8_t *size );
+static uint8_t Validate_Time( uint8_t hour, uint8_t minutes, uint8_t seconds );
 static uint8_t Validate_Alarm( const uint8_t *data );
 static uint8_t Validate_Date( const uint8_t *data );
 static uint32_t WeekDay( const uint8_t *data );
@@ -23,6 +23,7 @@ static void SerialDateState( const NEW_MsgTypeDef *pmsg );
 static void SerialAlarmState( const NEW_MsgTypeDef *pmsg );
 static void SerialOkState( const NEW_MsgTypeDef *pmsg );
 static void SerialErrorState( const NEW_MsgTypeDef *pmsg );
+static uint8_t BCD_conver( uint8_t data );
 
 FDCAN_HandleTypeDef CANHandler;
 
@@ -140,13 +141,9 @@ void Serial_Task( void )
 {
     static NEW_MsgTypeDef RecieveMsg = { 0 };
 
-    while( xQueueReceive( serialQueue, &RecieveMsg.Data[ SINGLE_FRAME_ELEMENT ], 0 ) == pdTRUE )
+    while( xQueueReceive( serialQueue, &RecieveMsg.Data, 0 ) == pdTRUE )
     {
-        if( CanTp_SingleFrameRx( &RecieveMsg.Data[ TIME_DATA_ELEMENT ], &RecieveMsg.Data[ SINGLE_FRAME_ELEMENT ] ) == NUM_1 )
-        {
-            Serial_StMachine( &RecieveMsg );
-        }
-        else
+        if( CanTp_SingleFrameRx( (uint8_t *)RecieveMsg.Data, &RecieveMsg.Data[ SINGLE_FRAME_ELEMENT ] ) == NUM_1 )
         {
             Serial_StMachine( &RecieveMsg );
         }
@@ -172,7 +169,7 @@ void Serial_StMachine( NEW_MsgTypeDef *pdata )
     { SerialErrorState } };
 
     static NEW_MsgTypeDef NextEvent;
-    NextEvent.Data[ NUM_0 ] = pdata->Data[ NUM_1 ];
+    NextEvent.Data[ NUM_0 ] = pdata->Data[ NUM_0 ];
 
     StMachine[ NextEvent.Data[ NUM_0 ] - NUM_1 ].ptr_funct( pdata );
 }
@@ -188,22 +185,23 @@ void Serial_StMachine( NEW_MsgTypeDef *pdata )
 void SerialTimeState( const NEW_MsgTypeDef *pmsg )
 {
     static NEW_MsgTypeDef SerialMsg;
+    static APP_MsgTypeDef messageStruc = { 0 };
 
-    if( Validate_Time( &pmsg->Data[ SINGLE_FRAME_ELEMENT ] ) == NUM_1 )
-    {
-        SerialMsg.Data[ SINGLE_FRAME_ELEMENT ] = pmsg->Data[ SINGLE_FRAME_ELEMENT ];
-        SerialMsg.Data[ TIME_DATA_ELEMENT ]    = OK_STATE;
-        SerialMsg.Data[ TIME_HOUR_ELEMENT ]    = pmsg->Data[ TIME_HOUR_ELEMENT ];
-        SerialMsg.Data[ TIME_MIN_ELEMENT ]     = pmsg->Data[ TIME_MIN_ELEMENT ];
-        SerialMsg.Data[ TIME_SEC_ELEMENT ]     = pmsg->Data[ TIME_SEC_ELEMENT ];
+    SerialMsg.Data[ NUM_1 ] = ERROR_STATE;
+    messageStruc.tm.tm_hour = BCD_conver( pmsg->Data[ TIME_HOUR_ELEMENT ] );
+    messageStruc.tm.tm_min  = BCD_conver( pmsg->Data[ TIME_MIN_ELEMENT ] );
+    messageStruc.tm.tm_sec  = BCD_conver( pmsg->Data[ TIME_SEC_ELEMENT ] );
 
-        xQueueSend( serialQueue, &SerialMsg, 0 );
-    }
-    else
+    if( Validate_Time( messageStruc.tm.tm_hour, messageStruc.tm.tm_min, messageStruc.tm.tm_sec ) == NUM_1 )
     {
-        SerialMsg.Data[ TIME_DATA_ELEMENT ] = ERROR_STATE;
-        xQueueSend( serialQueue, &SerialMsg, 0 );
+
+        messageStruc.msg = SERIAL_MSG_TIME;
+        xQueueSend( clockQueue, &messageStruc, 0 );
+        SerialMsg.Data[ NUM_1 ] = OK_STATE;
     }
+
+    /*Send a message to the same queue to trasition to another state*/
+    xQueueSend( serialQueue, &SerialMsg, 0 );
 }
 
 /**
@@ -273,23 +271,10 @@ void SerialAlarmState( const NEW_MsgTypeDef *pmsg )
  */
 void SerialOkState( const NEW_MsgTypeDef *pmsg )
 {
-    uint8_t msg_ok[ NUM_1 ] = { DATA_OK };
-    static APP_MsgTypeDef clockMsg;
+    uint8_t msg_ok[ 8 ] = { 0 };
 
-    clockMsg.msg        = pmsg->Data[ TIME_DATA_ELEMENT ];
-    clockMsg.tm.tm_hour = pmsg->Data[ TIME_HOUR_ELEMENT ];
-    clockMsg.tm.tm_min  = pmsg->Data[ TIME_MIN_ELEMENT ];
-    clockMsg.tm.tm_sec  = pmsg->Data[ TIME_SEC_ELEMENT ];
-    clockMsg.tm.tm_wday = WeekDay( &pmsg->Data[ SINGLE_FRAME_ELEMENT ] );
-    clockMsg.tm.tm_mday = pmsg->Data[ DATE_DAY_ELEMENT ];
-    clockMsg.tm.tm_mon  = pmsg->Data[ DATE_MON_ELEMENT ];
-    clockMsg.tm.tm_year = pmsg->Data[ DATE_MSB_YEAR_ELEMENT ] << NUM_8;
-    clockMsg.tm.tm_year += pmsg->Data[ DATE_LSB_YEAR_ELEMENT ];
-    clockMsg.tm.tm_hour_alarm = pmsg->Data[ ALARM_HOUR_ELEMENT ];
-    clockMsg.tm.tm_min_alarm  = pmsg->Data[ ALARM_MIN_ELEMENT ];
-
-    CanTp_SingleFrameTx( &msg_ok[ NUM_0 ], pmsg->Data[ SINGLE_FRAME_ELEMENT ] );
-    xQueueSend( clockQueue, &clockMsg, 0 );
+    msg_ok[ NUM_0 ] = DATA_OK;
+    CanTp_SingleFrameTx( msg_ok, pmsg->Data[ SINGLE_FRAME_ELEMENT ] );
 }
 
 /**
@@ -301,9 +286,26 @@ void SerialOkState( const NEW_MsgTypeDef *pmsg )
  */
 void SerialErrorState( const NEW_MsgTypeDef *pmsg )
 {
-    uint8_t msn_error[ NUM_1 ] = { DATA_ERROR };
+    uint8_t msn_error[ 8 ] = { 0 };
 
-    CanTp_SingleFrameTx( &msn_error[ SINGLE_FRAME_ELEMENT ], pmsg->Data[ SINGLE_FRAME_ELEMENT ] );
+    msn_error[ NUM_0 ] = DATA_ERROR;
+    CanTp_SingleFrameTx( msn_error, pmsg->Data[ SINGLE_FRAME_ELEMENT ] );
+}
+
+/**
+ * @brief BCD converter
+ * Function to unpacked from CAN-TP single frame format to BCD
+ *
+ * @param   data  [in]  value to convert
+ *
+ * @retval 	Returns an unsigned integer
+ */
+static uint8_t BCD_conver( uint8_t data )
+{
+    uint8_t BCDdata = 0u;
+
+    BCDdata = ( ( ( data >> 4 ) * (uint8_t)10 ) + ( data & (uint8_t)0x0F ) );
+    return BCDdata;
 }
 
 /**
@@ -313,21 +315,22 @@ void SerialErrorState( const NEW_MsgTypeDef *pmsg )
  * from 0 to 23 for hours, from 0 to 59 for minutes and
  * from 0 to 59 for seconds and returns the result.
  *
- * @param   data          [in]  Pointer to data
+ * @param   hour          [in]  Hour value
+ * @param   minutes       [in]  Minutes value
+ * @param   seconds       [in]  Seconds value
  *
  * @retval  The function returns 1 if time is correct and 0 if not
  */
-static uint8_t Validate_Time( const uint8_t *data )
+static uint8_t Validate_Time( uint8_t hour, uint8_t minutes, uint8_t seconds )
 {
     uint8_t ret_val = NUM_0;
 
-    if( ( data[ TIME_HOUR_ELEMENT ] <= MAX_HOUR_HEX ) &&
-        ( data[ TIME_MIN_ELEMENT ] <= MAX_MIN_HEX ) &&
-        ( data[ TIME_SEC_ELEMENT ] <= MAX_SEC_HEX ) )
+    if( ( hour <= MAX_HOUR_HEX ) &&
+        ( minutes <= MAX_MIN_HEX ) &&
+        ( seconds <= MAX_SEC_HEX ) )
     {
         ret_val = NUM_1;
     }
-
     return ret_val;
 }
 
@@ -489,14 +492,16 @@ uint32_t WeekDay( const uint8_t *data )
  */
 static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size )
 {
-    for( uint8_t i = NUM_0; i < size; i++ )
+
+    if( ( size > (uint8_t)0 ) && ( size < (uint8_t)8 ) )
     {
-        data[ i + NUM_1 ] = data[ NUM_0 ];
+        for( uint8_t i = 7; i >= (uint8_t)1; i-- )
+        {
+            data[ i ] = data[ i - 1u ];
+        }
+        data[ 0 ] = size;
+        HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, data );
     }
-
-    data[ NUM_0 ] = size;
-
-    HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, data );
 }
 
 /**
@@ -511,16 +516,23 @@ static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size )
  * @retval  The function returns 1 when a certain number of bytes were received,
  *          otherwise, no message was received
  */
-static uint8_t CanTp_SingleFrameRx( const uint8_t *data, const uint8_t *size )
+static uint8_t CanTp_SingleFrameRx( uint8_t *data, uint8_t *size )
 {
-    uint8_t msgRecieve = NUM_0;
+    uint8_t flagB0 = 0u;
 
-    if( ( ( *data == TIME_DATA_ELEMENT ) && ( *size == NUM_4 ) ) ||
-        ( ( *data == DATE_DATA_ELEMENT ) && ( *size == NUM_5 ) ) ||
-        ( ( *data == ALARM_DATA_ELEMENT ) && ( *size == NUM_3 ) ) )
+    if( ( ( data[ 0 ] >> 4 ) == (uint8_t)0 ) && ( data[ 0 ] < (uint8_t)8 ) )
     {
-        msgRecieve = NUM_1;
+        *size = data[ 0 ] & (uint8_t)0x0F;
+        for( uint8_t i = 0; i < (uint8_t)7; i++ )
+        {
+            data[ i ] = ( data[ i + 1u ] );
+        }
+        flagB0 = 1;
+    }
+    else
+    {
+        flagB0 = 0;
     }
 
-    return msgRecieve;
+    return flagB0;
 }
