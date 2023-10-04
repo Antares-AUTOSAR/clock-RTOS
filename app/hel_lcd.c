@@ -214,7 +214,8 @@ uint8_t HEL_LCD_Data( LCD_HandleTypeDef *hlcd, uint8_t data )
 uint8_t HEL_LCD_String( LCD_HandleTypeDef *hlcd, char *str )
 {
 
-    uint8_t value = HAL_OK;
+    uint8_t value      = HAL_ERROR;
+    uint8_t flag_error = 0;
 
     char *str_back = str;
 
@@ -222,7 +223,21 @@ uint8_t HEL_LCD_String( LCD_HandleTypeDef *hlcd, char *str )
     {
 
         value = HEL_LCD_Data( hlcd, (uint8_t)*str_back );
+
+
+        if( value == HAL_ERROR )
+        {
+
+            flag_error = HAL_ERROR;
+        }
+
         str_back++;
+    }
+
+    if( flag_error == HAL_ERROR )
+    {
+
+        value = HAL_ERROR;
     }
 
     return value;
@@ -244,25 +259,15 @@ uint8_t HEL_LCD_SetCursor( LCD_HandleTypeDef *hlcd, uint8_t row, uint8_t col )
     if( ( row < 2u ) && ( col < 16u ) )
     {
 
-        uint8_t address_offset = 0;
+        uint8_t address_offset[ 2 ] = { 0x00, 0x40 };
 
-        if( row == 0u )
-        {
+        address_offset[ row ] = col + address_offset[ row ];
 
-            address_offset = col;
-        }
-        else
-        {
-
-            address_offset = (uint8_t)0x40 + col;
-        }
-
-        value = HEL_LCD_Command( hlcd, (uint8_t)0x80 | address_offset );
+        value = HEL_LCD_Command( hlcd, (uint8_t)0x80 | address_offset[ row ] );
     }
 
     return value;
 }
-
 /**
  * @brief   Function to control the LCD backlight.
  *
