@@ -7,6 +7,7 @@
  */
 
 #include "bsp.h"
+#include "hel_lcd.h"
 
 /**
  * @brief   Initialize MSP
@@ -152,4 +153,23 @@ void HAL_SPI_MspInit( SPI_HandleTypeDef *hspi )
     GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF1_SPI1;
     HAL_GPIO_Init( GPIOD, &GPIO_InitStruct );
+}
+
+void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )
+{
+    __GPIOD_CLK_ENABLE( );
+    __GPIOB_CLK_ENABLE( );
+
+    GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitStruct.Pin   = hlcd->RstPin | hlcd->CsPin | hlcd->RsPin;
+    GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull  = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init( hlcd->RstPort, &GPIO_InitStruct );
+
+    GPIO_InitStruct.Pin = hlcd->BklPin;
+    HAL_GPIO_Init( hlcd->BklPort, &GPIO_InitStruct );
+
+    HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, SET );
+    HAL_GPIO_WritePin( hlcd->BklPort, hlcd->BklPin, SET );
 }
