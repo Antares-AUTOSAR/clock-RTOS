@@ -49,10 +49,9 @@
   @{ */
 #define SINGLE_FRAME_ELEMENT          0u /*!< Single frame element recieved */
 
-#define TIME_DATA_ELEMENT             1u /*!< Time data element recieved */
-#define TIME_HOUR_ELEMENT             2u /*!< Time hour element recieved */
-#define TIME_MIN_ELEMENT              3u /*!< Time min element recieved  */
-#define TIME_SEC_ELEMENT              4u /*!< Time sec element recieved  */
+#define TIME_HOUR_ELEMENT             1u /*!< Time hour element recieved */
+#define TIME_MIN_ELEMENT              2u /*!< Time min element recieved  */
+#define TIME_SEC_ELEMENT              3u /*!< Time sec element recieved  */
 
 #define DATE_DATA_ELEMENT             1u /*!< Date data element recieved     */
 #define DATE_DAY_ELEMENT              2u /*!< Date day element recieved      */
@@ -79,9 +78,9 @@
 /**
   * @defgroup Max and min values of data in hexa
   @{ */
-#define MAX_HOUR_HEX                  0x23u   /*!< Max hour 23 in hexa                         */
-#define MAX_MIN_HEX                   0x59u   /*!< Max minutes 59 in hexa                      */
-#define MAX_SEC_HEX                   0x59u   /*!< Max seconds 59 in hexa                      */
+#define MAX_HOUR_HEX                  23u     /*!< Max hour 23 in hexa                         */
+#define MAX_MIN_HEX                   59u     /*!< Max minutes 59 in hexa                      */
+#define MAX_SEC_HEX                   59u     /*!< Max seconds 59 in hexa                      */
 #define DAYS_IN_FERUARY_HEX           0x28u   /*!< Days in february, 28 in hexa                */
 #define DAYS_IN_LEAP_YEAR_FERUARY_HEX 0x29u   /*!< Days in leap year in february, 29 in hexa   */
 #define MIN_DAY_HEX                   0x01u   /*!< Min day, 1 in hexa                          */
