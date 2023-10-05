@@ -14,20 +14,20 @@
  */
 typedef struct
 {
-    void ( *stateFunc )( APP_MsgTypeDef *receivedMessage ); /*!< Pointer to function which perform state statements */
+    MACHINE_State ( *stateFunc )( APP_MsgTypeDef *receivedMessage ); /*!< Pointer to function which perform state statements */
 } StateNode;
 
 /* Function prototypes for each state action procedure */
-STATIC void state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage );
-STATIC void state_serialMsgDate( APP_MsgTypeDef *receivedMessage );
-STATIC void state_serialMsgTime( APP_MsgTypeDef *receivedMessage );
-STATIC void state_clockMsgPrint( APP_MsgTypeDef *receivedMessage );
+static MACHINE_State state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage );
+static MACHINE_State state_serialMsgDate( APP_MsgTypeDef *receivedMessage );
+static MACHINE_State state_serialMsgTime( APP_MsgTypeDef *receivedMessage );
+static MACHINE_State state_clockMsgPrint( APP_MsgTypeDef *receivedMessage );
 
-/* Function prototype to send an update message every second*/
-static void Clock_Update_DateAndTime( TimerHandle_t pxTimer );
+/* Define prototype as private function (static) if is not testing, otherwise skip it*/
+CLOCK_EVENT_MACHINE_PROTOTYPE
 
-/* Function prototype to trigger the event machine */
-static void Clock_EventMachine( APP_MsgTypeDef *receivedMessage );
+/* Define prototype as private function (static) if is not testing, otherwise skip it*/
+CLOCK_UPDATE_DATEANDTIME_PROTOTYPE
 
 
 /**
@@ -46,9 +46,6 @@ static uint8_t dateYearH;
  * @brief  Struct for handling Software timer
  */
 TimerHandle_t xTimerDisplay;
-
-CLOCK_QUEUE_TESTING
-DISPLAY_QUEUE_TESTING
 
 /**
  * @brief   Use once to Initialize the clock
@@ -102,7 +99,7 @@ void Clock_Task( void )
 
     while( xQueueReceive( clockQueue, &messageStruct, 0 ) != errQUEUE_EMPTY )
     {
-        Clock_EventMachine( &messageStruct );
+        (void)Clock_EventMachine( &messageStruct );
     }
 }
 
@@ -110,6 +107,7 @@ void Clock_Task( void )
 /**
  * @brief   Process message according to its type
  * @param   receivedMessage Message readed from clockQueue which allows to move between states inside machine
+ * @retval  Returns the next state that will be executed
  *
  * The state machine is builded with pointers to functions stored inside a struct (StateNode)
  * which represent a state of the machine
@@ -120,7 +118,7 @@ void Clock_Task( void )
  * Every time this function is executed, it  calls a process according to the received
  * message's type
  */
-void Clock_EventMachine( APP_MsgTypeDef *receivedMessage )
+MACHINE_State Clock_EventMachine( APP_MsgTypeDef *receivedMessage )
 {
     /*  Define lookup table  */
     static StateNode stateMachine[ TOTAL_CLOCK_STATES ] = {
@@ -129,25 +127,29 @@ void Clock_EventMachine( APP_MsgTypeDef *receivedMessage )
     { state_serialMsgTime },
     { state_clockMsgPrint } };
 
+    static MACHINE_State nextEvent;
 
     /*  Variable to handle the current state  */
     static APP_Messages event;
 
-    event = receivedMessage->msg;
-    stateMachine[ event ].stateFunc( receivedMessage );
+    event     = receivedMessage->msg;
+    nextEvent = stateMachine[ event ].stateFunc( receivedMessage );
+
+    return nextEvent;
 }
 
 
 /**
  * @brief   (State) Function executed when Serial Alarm message has been received
  * @param   receivedMessage Message received from clockQueue
+ * @retval  Returns the next state that will be executed
  *
  * Due to event machine implementation, the parameter must be passed but specified
  * as UNUSED until alarm feature is integrated to project
  *
  * Sends message to clockQueue everytime a type alarm message has been received
  */
-void state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage )
+MACHINE_State state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage )
 {
     static APP_MsgTypeDef clockMessage = { 0 };
 
@@ -155,17 +157,20 @@ void state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage )
 
     clockMessage.msg = CLOCK_MSG_PRINT; // Message to indicate to LCD update displayed data
     xQueueSend( clockQueue, &clockMessage, 0 );
+
+    return CLOCK_STATE_PRINT; // Next state
 }
 
 
 /**
  * @brief   (State) Function executed when Serial Date message has been received
  * @param   receivedMessage Message received from clockQueue
+ * @retval  Returns the next state that will be executed
  *
  * Sets the RTC with received date
  * Sends message to clockQueue everytime a type date message has been received
  */
-void state_serialMsgDate( APP_MsgTypeDef *receivedMessage )
+MACHINE_State state_serialMsgDate( APP_MsgTypeDef *receivedMessage )
 {
     static APP_MsgTypeDef clockMessage = { 0 };
 
@@ -180,17 +185,20 @@ void state_serialMsgDate( APP_MsgTypeDef *receivedMessage )
 
     clockMessage.msg = CLOCK_MSG_PRINT;
     xQueueSend( clockQueue, &clockMessage, 0 );
+
+    return CLOCK_STATE_PRINT; // Next state
 }
 
 
 /**
  * @brief   (State) Function executed when Serial Time message has been received
  * @param   receivedMessage Message received from clockQueue
+ * @retval  Returns the next state that will be executed
  *
  * Sets the RTC with received time
  * Sends message to clockQueue everytime a time date message has been received
  */
-void state_serialMsgTime( APP_MsgTypeDef *receivedMessage )
+MACHINE_State state_serialMsgTime( APP_MsgTypeDef *receivedMessage )
 {
     static APP_MsgTypeDef clockMessage = { 0 };
 
@@ -203,18 +211,21 @@ void state_serialMsgTime( APP_MsgTypeDef *receivedMessage )
 
     clockMessage.msg = CLOCK_MSG_PRINT;
     xQueueSend( clockQueue, &clockMessage, 0 );
+
+    return CLOCK_STATE_PRINT; // Next state
 }
 
 
 /**
  * @brief   (State) Function executed when Clock Date message has been received
- * @param   receivedMessage Message received from clockQueue.
+ * @param   receivedMessage Message received from clockQueue
+ * @retval  Returns the next state that will be executed
  *
  * Sends a message to display queue indicating data must be printed in LCD
  * Due to event machine implementation, the parameter must be passed but specified
  * as UNUSED
  */
-void state_clockMsgPrint( APP_MsgTypeDef *receivedMessage )
+MACHINE_State state_clockMsgPrint( APP_MsgTypeDef *receivedMessage )
 {
     static APP_MsgTypeDef clockMessage = { 0 };
 
@@ -235,6 +246,8 @@ void state_clockMsgPrint( APP_MsgTypeDef *receivedMessage )
     clockMessage.tm.tm_mon  = sDate.Month;
 
     xQueueSend( displayQueue, &clockMessage, 0 );
+
+    return CLOCK_STATE_IDLE; // Next state
 }
 
 
