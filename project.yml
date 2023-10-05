@@ -72,6 +72,7 @@
   :plugins:
     - :ignore                 # Generate <function>_Ignore and <function>_IgnoreAndReturn
     - :ignore_arg             # Generate <function>_IgnoreArg_<param_name>
+    - :expect
     - :expect_any_args        # Generate <function>_func_ExpectAnyArgs and <function>_func_ExpectAnyArgsAndReturn
     - :array                  # Generate <function>_ExpectWithArray and <function>_ExpectWithArrayAndReturn
     - :callback               # Generate <function>_ 
