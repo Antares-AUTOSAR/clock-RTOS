@@ -14,9 +14,9 @@
 static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size );
 static uint8_t CanTp_SingleFrameRx( uint8_t *data, uint8_t *size );
 static uint8_t Validate_Time( uint8_t hour, uint8_t minutes, uint8_t seconds );
-static uint8_t Validate_Alarm( const uint8_t *data );
-static uint8_t Validate_Date( const uint8_t *data );
-static uint32_t WeekDay( const uint8_t *data );
+static uint8_t Validate_Alarm( uint8_t hour, uint8_t minutes );
+static uint8_t Validate_Date( uint8_t days, uint8_t month, uint16_t year );
+static uint32_t WeekDay( uint8_t days, uint8_t month, uint16_t year );
 static void Serial_StMachine( NEW_MsgTypeDef *pdata );
 static void SerialTimeState( const NEW_MsgTypeDef *pmsg );
 static void SerialDateState( const NEW_MsgTypeDef *pmsg );
@@ -185,18 +185,18 @@ void Serial_StMachine( NEW_MsgTypeDef *pdata )
 void SerialTimeState( const NEW_MsgTypeDef *pmsg )
 {
     static NEW_MsgTypeDef SerialMsg;
-    static APP_MsgTypeDef messageStruc = { 0 };
+    static APP_MsgTypeDef messageStruct = { 0 };
 
-    SerialMsg.Data[ NUM_1 ] = ERROR_STATE;
-    messageStruc.tm.tm_hour = BCD_conver( pmsg->Data[ TIME_HOUR_ELEMENT ] );
-    messageStruc.tm.tm_min  = BCD_conver( pmsg->Data[ TIME_MIN_ELEMENT ] );
-    messageStruc.tm.tm_sec  = BCD_conver( pmsg->Data[ TIME_SEC_ELEMENT ] );
+    SerialMsg.Data[ NUM_1 ]  = ERROR_STATE;
+    messageStruct.tm.tm_hour = BCD_conver( pmsg->Data[ TIME_HOUR_ELEMENT ] );
+    messageStruct.tm.tm_min  = BCD_conver( pmsg->Data[ TIME_MIN_ELEMENT ] );
+    messageStruct.tm.tm_sec  = BCD_conver( pmsg->Data[ TIME_SEC_ELEMENT ] );
 
-    if( Validate_Time( messageStruc.tm.tm_hour, messageStruc.tm.tm_min, messageStruc.tm.tm_sec ) == NUM_1 )
+    if( Validate_Time( messageStruct.tm.tm_hour, messageStruct.tm.tm_min, messageStruct.tm.tm_sec ) == NUM_1 )
     {
 
-        messageStruc.msg = SERIAL_MSG_TIME;
-        xQueueSend( clockQueue, &messageStruc, 0 );
+        messageStruct.msg = SERIAL_MSG_TIME;
+        xQueueSend( clockQueue, &messageStruct, 0 );
         SerialMsg.Data[ NUM_1 ] = OK_STATE;
     }
 
@@ -215,22 +215,24 @@ void SerialTimeState( const NEW_MsgTypeDef *pmsg )
 void SerialDateState( const NEW_MsgTypeDef *pmsg )
 {
     static NEW_MsgTypeDef SerialMsg;
+    static APP_MsgTypeDef messageStruct = { 0 };
 
-    if( Validate_Date( &pmsg->Data[ SINGLE_FRAME_ELEMENT ] ) == NUM_1 )
+    SerialMsg.Data[ NUM_1 ]  = ERROR_STATE;
+    messageStruct.tm.tm_mday = BCD_conver( pmsg->Data[ DATE_DAY_ELEMENT ] );
+    messageStruct.tm.tm_mon  = BCD_conver( pmsg->Data[ DATE_MON_ELEMENT ] );
+    messageStruct.tm.tm_year = ( ( BCD_conver( pmsg->Data[ DATE_MSB_YEAR_ELEMENT ] ) * NUM_100 ) + BCD_conver( pmsg->Data[ DATE_LSB_YEAR_ELEMENT ] ) );
+
+    if( Validate_Date( messageStruct.tm.tm_mday, messageStruct.tm.tm_mon, messageStruct.tm.tm_year ) == NUM_1 )
     {
-        SerialMsg.Data[ SINGLE_FRAME_ELEMENT ]  = pmsg->Data[ SINGLE_FRAME_ELEMENT ];
-        SerialMsg.Data[ DATE_DATA_ELEMENT ]     = OK_STATE;
-        SerialMsg.Data[ DATE_DAY_ELEMENT ]      = pmsg->Data[ DATE_DAY_ELEMENT ];
-        SerialMsg.Data[ DATE_MON_ELEMENT ]      = pmsg->Data[ DATE_MON_ELEMENT ];
-        SerialMsg.Data[ DATE_MSB_YEAR_ELEMENT ] = pmsg->Data[ DATE_MSB_YEAR_ELEMENT ];
-        SerialMsg.Data[ DATE_LSB_YEAR_ELEMENT ] = pmsg->Data[ DATE_LSB_YEAR_ELEMENT ];
-        xQueueSend( serialQueue, &SerialMsg, 0 );
+        messageStruct.msg        = SERIAL_MSG_DATE;
+        messageStruct.tm.tm_wday = WeekDay( messageStruct.tm.tm_mday, messageStruct.tm.tm_mon, messageStruct.tm.tm_year );
+
+        xQueueSend( clockQueue, &messageStruct, 0 ); /*Send the data*/
+        SerialMsg.Data[ NUM_1 ] = OK_STATE;
     }
-    else
-    {
-        SerialMsg.Data[ DATE_DATA_ELEMENT ] = ERROR_STATE;
-        xQueueSend( serialQueue, &SerialMsg, 0 );
-    }
+
+    /*Send a message to the same queue to trasition to another state*/
+    xQueueSend( serialQueue, &SerialMsg, 0 );
 }
 
 /**
@@ -244,20 +246,22 @@ void SerialDateState( const NEW_MsgTypeDef *pmsg )
 void SerialAlarmState( const NEW_MsgTypeDef *pmsg )
 {
     static NEW_MsgTypeDef SerialMsg;
+    static APP_MsgTypeDef messageStruct = { 0 };
 
-    if( Validate_Alarm( &pmsg->Data[ SINGLE_FRAME_ELEMENT ] ) == NUM_1 )
+    SerialMsg.Data[ NUM_1 ]        = ERROR_STATE;
+    messageStruct.tm.tm_hour_alarm = BCD_conver( pmsg->Data[ ALARM_HOUR_ELEMENT ] );
+    messageStruct.tm.tm_min_alarm  = BCD_conver( pmsg->Data[ ALARM_MIN_ELEMENT ] );
+
+    if( Validate_Alarm( messageStruct.tm.tm_hour_alarm, messageStruct.tm.tm_min_alarm ) == NUM_1 )
     {
-        SerialMsg.Data[ SINGLE_FRAME_ELEMENT ] = pmsg->Data[ SINGLE_FRAME_ELEMENT ];
-        SerialMsg.Data[ ALARM_DATA_ELEMENT ]   = OK_STATE;
-        SerialMsg.Data[ ALARM_HOUR_ELEMENT ]   = pmsg->Data[ ALARM_HOUR_ELEMENT ];
-        SerialMsg.Data[ ALARM_MIN_ELEMENT ]    = pmsg->Data[ ALARM_MIN_ELEMENT ];
-        xQueueSend( serialQueue, &SerialMsg, 0 );
+        messageStruct.msg = SERIAL_MSG_ALARM;
+
+        xQueueSend( clockQueue, &messageStruct, 0 );
+        SerialMsg.Data[ NUM_1 ] = OK_STATE;
     }
-    else
-    {
-        SerialMsg.Data[ ALARM_DATA_ELEMENT ] = ERROR_STATE;
-        xQueueSend( serialQueue, &SerialMsg, 0 );
-    }
+
+    /*Send a message to the same queue to trasition to another state*/
+    xQueueSend( serialQueue, &SerialMsg, 0 );
 }
 
 /**
@@ -341,16 +345,17 @@ static uint8_t Validate_Time( uint8_t hour, uint8_t minutes, uint8_t seconds )
  * from 0 to 23 for hours and from 0 to 59 to minutes,
  * no seconds nedded, and then returns the result.
  *
- * @param   data          [in]  Pointer to data
+ * @param   hour          [in]  Hour value
+ * @param   minutes       [in]  Minutes value
  *
  * @retval  The function returns 1 if the alarm is correct and 0 if not
  */
-static uint8_t Validate_Alarm( const uint8_t *data )
+static uint8_t Validate_Alarm( uint8_t hour, uint8_t minutes )
 {
     uint8_t ret_val = NUM_0;
 
-    if( ( data[ ALARM_HOUR_ELEMENT ] <= MAX_MIN_HEX ) &&
-        ( data[ ALARM_MIN_ELEMENT ] <= MAX_SEC_HEX ) )
+    if( ( hour <= MAX_HOUR_HEX ) &&
+        ( minutes <= MAX_SEC_HEX ) )
     {
         ret_val = NUM_1;
     }
@@ -367,25 +372,24 @@ static uint8_t Validate_Alarm( const uint8_t *data )
  * In addition it also vaidates if the date is in a leap-year
  * and adjust the month of February to manage 29 days.
  *
- * @param   data          [in]  Pointer to data
+ * @param   days          [in]  Day value
+ * @param   month         [in]  Month value
+ * @param   year          [in]  Year value
  *
  * @retval  The function returns 1 if the date is correct and 0 if not
  */
-static uint8_t Validate_Date( const uint8_t *data )
+static uint8_t Validate_Date( uint8_t days, uint8_t month, uint16_t year )
 {
     uint8_t ret_val;
-    uint16_t year;
-    year = data[ DATE_MSB_YEAR_ELEMENT ] << NUM_8;
-    year += data[ DATE_LSB_YEAR_ELEMENT ];
 
-    if( ( ( data[ DATE_DAY_ELEMENT ] >= MIN_DAY_HEX ) && ( data[ DATE_DAY_ELEMENT ] <= MAX_DAYS_HEX_31 ) ) &&
-        ( ( data[ DATE_MON_ELEMENT ] >= JANUARY ) && ( data[ DATE_MON_ELEMENT ] <= DECEMBER ) ) &&
+    if( ( ( days >= MIN_DAY_HEX ) && ( days <= MAX_DAYS_HEX_31 ) ) &&
+        ( ( month >= JANUARY ) && ( month <= DECEMBER ) ) &&
         ( ( year >= MIN_YEAR_HEX ) && ( year <= MAX_YEAR_HEX ) ) )
     {
-        if( ( year % NUM_4 ) == NUM_0 ) // Check leap year and february
+        if( ( year % NUM_4 ) == NUM_0 ) /* Check leap year and february*/
         {
-            if( ( data[ DATE_MON_ELEMENT ] == FEBRUARY ) &&
-                ( data[ DATE_DAY_ELEMENT ] <= DAYS_IN_LEAP_YEAR_FERUARY_HEX ) )
+            if( ( month == FEBRUARY ) &&
+                ( days <= DAYS_IN_LEAP_YEAR_FERUARY_HEX ) )
             {
                 ret_val = NUM_1;
             }
@@ -394,26 +398,26 @@ static uint8_t Validate_Date( const uint8_t *data )
                 ret_val = NUM_0;
             }
         }
-        else if( ( data[ DATE_MON_ELEMENT ] == FEBRUARY ) &&
-                 ( data[ DATE_DAY_ELEMENT ] <= DAYS_IN_FERUARY_HEX ) ) // Check for february
+        else if( ( month == FEBRUARY ) &&
+                 ( days <= DAYS_IN_FERUARY_HEX ) ) /* Check for february*/
         {
             ret_val = NUM_1;
         }
-        else if( ( ( data[ DATE_MON_ELEMENT ] == APRIL ) ||
-                   ( data[ DATE_MON_ELEMENT ] == JUNE ) ||
-                   ( data[ DATE_MON_ELEMENT ] == SEPTEMBER ) ||
-                   ( data[ DATE_MON_ELEMENT ] == NOVEMBER ) ) &&
-                 ( data[ DATE_DAY_ELEMENT ] <= MAX_DAYS_HEX_30 ) ) // Check for months with 30 days
+        else if( ( ( month == APRIL ) ||
+                   ( month == JUNE ) ||
+                   ( month == SEPTEMBER ) ||
+                   ( month == NOVEMBER ) ) &&
+                 ( days <= MAX_DAYS_HEX_30 ) ) /* Check for months with 30 days*/
         {
             ret_val = NUM_1;
         }
-        else if( ( data[ DATE_MON_ELEMENT ] == JANUARY ) ||
-                 ( data[ DATE_MON_ELEMENT ] == MARCH ) ||
-                 ( data[ DATE_MON_ELEMENT ] == MAY ) ||
-                 ( data[ DATE_MON_ELEMENT ] == JULY ) ||
-                 ( data[ DATE_MON_ELEMENT ] == AUGUST ) ||
-                 ( data[ DATE_MON_ELEMENT ] == OCTOBER ) ||
-                 ( data[ DATE_MON_ELEMENT ] == DECEMBER ) ) // Otherwise, the month has 31 days
+        else if( ( month == JANUARY ) ||
+                 ( month == MARCH ) ||
+                 ( month == MAY ) ||
+                 ( month == JULY ) ||
+                 ( month == AUGUST ) ||
+                 ( month == OCTOBER ) ||
+                 ( month == DECEMBER ) ) /* Otherwise, the month has 31 days*/
         {
             ret_val = NUM_1;
         }
@@ -439,45 +443,24 @@ static uint8_t Validate_Date( const uint8_t *data )
  * January and February are counted as months 13 and 14 of the previous year.
  * With this data we use the formula for the Gregorian calendar.
  *
- * @param   data          [in]  Pointer to data
+ * @param   days          [in]  Day value
+ * @param   month         [in]  Month value
+ * @param   year          [in]  Year value
  *
  * @retval  The function returns the values 0-Saturday, 1-Sunday, 2-Monday,
  *          3-Tuesday, 4-Wednesday, 5-Thursday, 6-Friday
  */
-uint32_t WeekDay( const uint8_t *data )
+uint32_t WeekDay( uint8_t days, uint8_t month, uint16_t year )
 {
-    uint32_t dayofweek;
-    uint32_t days;
-    uint32_t month;
-    uint32_t MSyear;
-    uint32_t LSyear;
-    uint32_t year;
-    uint32_t century;
-    uint32_t yearcentury;
+    /*Zeller algorithm*/
+    uint16_t aux         = ( 14u - (uint16_t)month ) / 12u;
+    uint16_t yearZeller  = year - aux;
+    uint16_t monthZeller = month + ( 12u * aux ) - 2u;
+    uint16_t diaSemana   = 0;
 
-    days   = ( data[ DATE_DAY_ELEMENT ] >> NUM_4 ) & HEX_0F;
-    days   = ( days * NUM_10 ) + ( data[ DATE_DAY_ELEMENT ] & HEX_0F );
-    month  = ( data[ DATE_MON_ELEMENT ] >> NUM_4 ) & HEX_0F;
-    month  = ( month * NUM_10 ) + ( data[ DATE_MON_ELEMENT ] & HEX_0F );
-    MSyear = ( data[ DATE_MSB_YEAR_ELEMENT ] >> NUM_4 ) & HEX_0F;
-    MSyear = ( MSyear * NUM_10 ) + ( data[ DATE_MSB_YEAR_ELEMENT ] & HEX_0F );
-    LSyear = ( data[ DATE_LSB_YEAR_ELEMENT ] >> NUM_4 ) & HEX_0F;
-    LSyear = ( LSyear * NUM_10 ) + ( data[ DATE_LSB_YEAR_ELEMENT ] & HEX_0F );
+    diaSemana = ( ( days + yearZeller + ( yearZeller / 4u ) - ( yearZeller / 100u ) + ( yearZeller / 400u ) + ( 31u * monthZeller ) / 12u ) % 7u );
 
-    year = ( MSyear * NUM_100 ) + LSyear;
-
-    if( month < NUM_3 )
-    {
-        month += NUM_12;
-        year--;
-    }
-
-    century     = year / NUM_100;
-    yearcentury = year % NUM_100;
-
-    dayofweek = ( days + ( ( NUM_13 * ( month + NUM_1 ) ) / NUM_5 ) + yearcentury + ( yearcentury / NUM_4 ) + ( century / NUM_4 ) + ( NUM_5 * century ) ) % NUM_7;
-
-    return dayofweek;
+    return (uint8_t)diaSemana;
 }
 
 /**
