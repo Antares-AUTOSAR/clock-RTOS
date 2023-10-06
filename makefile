@@ -29,6 +29,7 @@ SRCS += app_clock.c
 SRCS += stm32g0xx_hal_spi.c stm32g0xx_hal_spi_ex.c hel_lcd.c
 SRCS += app_serial.c
 SRCS += app_display.c
+SRCS += can_tp.c
 # linker file
 LINKER = linker.ld
 # Global symbols (#defines)

@@ -61,6 +61,7 @@
     - app/app_clock.c         # Do not test app_clock interfaces
     - app/app_serial.c        # Do not test extra initlization functions
     - app/app_display.c       # Do not test extra initlization functions
+    - app/can_tp.c        # Do not test extra initlization functions
 
 
 # Configure the mock generator
