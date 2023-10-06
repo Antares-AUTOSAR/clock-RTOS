@@ -155,6 +155,7 @@ void HAL_SPI_MspInit( SPI_HandleTypeDef *hspi )
     HAL_GPIO_Init( GPIOD, &GPIO_InitStruct );
 }
 
+/* cppcheck-suppress misra-c2012-8.6 ; its external linkage is declared at HAL library */
 void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )
 {
     __GPIOD_CLK_ENABLE( );
