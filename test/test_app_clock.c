@@ -29,7 +29,7 @@ QueueHandle_t clockQueue;
     Ignore timer creation assuming that will return a valid timer handler allocated
     Ignore other two functions related with timer start which return 1u value and pdPASS
 */
-void test__Clock_Init_callFunction( void )
+void test__Clock_Init__callFunction( void )
 {
     TimerHandle_t testTimer = { 0 };
 
@@ -49,7 +49,7 @@ void test__Clock_Init_callFunction( void )
     Ignore sending message to queue assuming that will return pdPASS value
     THIS TEST 1/2 BRANCHES OF THIS FUNCTION
 */
-void test__Clock_Task_emptyQueue( void )
+void test__Clock_Task__emptyQueue( void )
 {
     xQueueReceive_IgnoreAndReturn( errQUEUE_EMPTY );
     xQueueGenericSend_IgnoreAndReturn( pdPASS );
@@ -63,7 +63,7 @@ void test__Clock_Task_emptyQueue( void )
     After reading the message from queue assume that is empty and returns errQUEUE_EMPTY value
     THIS TEST 2/2 BRANCHES OF THIS FUNCTION
 */
-void test__Clock_Task_oneMessageinQueue( void )
+void test__Clock_Task__oneMessageinQueue( void )
 {
     xQueueReceive_IgnoreAndReturn( pdPASS );
     xQueueReceive_IgnoreAndReturn( errQUEUE_EMPTY );
@@ -77,7 +77,7 @@ void test__Clock_Task_oneMessageinQueue( void )
     Invoke the function Clock_EventMachine with a message of type SERIAL_MSG_ALARM
     The tested function will return the next state that will be executed, in this case must be CLOCK_STATE_PRINT
 */
-void test__Clock_EventMachine_sendAlarmMessage( void )
+void test__Clock_EventMachine__sendAlarmMessage( void )
 {
     APP_MsgTypeDef message = { 0 };
     MACHINE_State state;
@@ -96,7 +96,7 @@ void test__Clock_EventMachine_sendAlarmMessage( void )
     Invoke the function Clock_EventMachine with a message of type SERIAL_MSG_DATE
     The tested function will return the next state that will be executed, in this case must be CLOCK_STATE_PRINT
 */
-void test__Clock_EventMachine_sendDateMessage( void )
+void test__Clock_EventMachine__sendDateMessage( void )
 {
     APP_MsgTypeDef message = { 0 };
     MACHINE_State state;
@@ -116,7 +116,7 @@ void test__Clock_EventMachine_sendDateMessage( void )
     Invoke the function Clock_EventMachine with a message of type SERIAL_MSG_TIME
     The tested function will return the next state that will be executed, in this case must be CLOCK_STATE_PRINT
 */
-void test__Clock_EventMachine_sendTimeMessage( void )
+void test__Clock_EventMachine__sendTimeMessage( void )
 {
     APP_MsgTypeDef message = { 0 };
     MACHINE_State state;
@@ -136,7 +136,7 @@ void test__Clock_EventMachine_sendTimeMessage( void )
     Invoke the function Clock_EventMachine with a message of type CLOCK_MSG_PRINT
     The tested function will return the next state that will be executed, in this case must be CLOCK_STATE_IDLE
 */
-void test__Clock_EventMachine_sendPrintMessage( void )
+void test__Clock_EventMachine__sendPrintMessage( void )
 {
     APP_MsgTypeDef message = { 0 };
     MACHINE_State state;
@@ -156,7 +156,7 @@ void test__Clock_EventMachine_sendPrintMessage( void )
     Ignore sending message to queue assuming that will return pdPASS value
     JUST TEST THAT ALL THE LINES ARE EXECUTED FOR REACH 100% COVERAGE
 */
-void test__Clock_Update_DateAndTime( void )
+void test__Clock_Update__DateAndTime( void )
 {
     TimerHandle_t testTimer = { 0 };
     xQueueGenericSend_IgnoreAndReturn( pdPASS );
