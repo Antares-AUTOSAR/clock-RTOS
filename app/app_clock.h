@@ -19,6 +19,7 @@
 #define CLOCK_UPDATE_DATEANDTIME_PROTOTYPE_TESTING void Clock_Update_DateAndTime( TimerHandle_t pxTimer );              /*!< Define Clock_Update_DateAndTime as public function              */
 #define CLOCK_EVENT_MACHINE_PROTOTYPE                                                                                   /*!< Dont consider Clock_EventMachine PROTOTYPE in app_clock.c       */
 #define CLOCK_UPDATE_DATEANDTIME_PROTOTYPE                                                                              /*!< Dont consider Clock_Update_DateAndTime PROTOTYPE in app_clock.c */
+#include "bsp.h"
 #else
 #define CLOCK_EVENT_MACHINE_PROTOTYPE              static MACHINE_State Clock_EventMachine( APP_MsgTypeDef *receivedMessage ); /*!< Define Clock_EventMachine as private function                   */
 #define CLOCK_UPDATE_DATEANDTIME_PROTOTYPE         static void Clock_Update_DateAndTime( TimerHandle_t pxTimer );              /*!< Define Clock_Update_DateAndTime as private function             */
@@ -26,8 +27,6 @@
 #define CLOCK_UPDATE_DATEANDTIME_PROTOTYPE_TESTING                                                                             /*!< Dont consider Clock_Update_DateAndTime PROTOTYPE in app_clock.h */
 #endif
 /**@} */
-
-#include "bsp.h"
 
 #define TOTAL_CLOCK_STATES 4U /*!< Total states in event machine */
 
