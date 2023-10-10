@@ -56,15 +56,15 @@ typedef struct _CAN_TP_Header
 
 } CAN_TP_Header;
 
-extern void CAN_TP_Init( CAN_TP_Header *header );
-extern void CAN_TP_Task( CAN_TP_Header *header );
-extern void CAN_TP_Tick( void );
-extern void CAN_TP_RxMessageBufferSet( CAN_TP_Header *header, uint8_t *buffer, uint32_t bufferSize );
-extern void CAN_TP_RxSeparationTimeSet( CAN_TP_Header *header, uint8_t separationTime );
-extern void CAN_TP_RxBlockSizeSet( CAN_TP_Header *header, uint8_t blockSize );
-extern void CAN_TP_MessageSend( CAN_TP_Header *header, const uint8_t *data, uint32_t length );
-extern uint8_t CAN_TP_IsMessageReady( const CAN_TP_Header *header );
-extern void CAN_TP_MessageGet( CAN_TP_Header *header, uint8_t *data, uint8_t data_length );
-extern void CAN_TP_NewMessage( CAN_TP_Header *header, void *buffer );
+void CAN_TP_Init( CAN_TP_Header *header );
+void CAN_TP_Task( CAN_TP_Header *header );
+void CAN_TP_Tick( void );
+void CAN_TP_RxMessageBufferSet( CAN_TP_Header *header, uint8_t *buffer, uint32_t bufferSize );
+void CAN_TP_RxSeparationTimeSet( CAN_TP_Header *header, uint8_t separationTime );
+void CAN_TP_RxBlockSizeSet( CAN_TP_Header *header, uint8_t blockSize );
+void CAN_TP_MessageSend( CAN_TP_Header *header, const uint8_t *data, uint32_t length );
+uint8_t CAN_TP_IsMessageReady( const CAN_TP_Header *header );
+void CAN_TP_MessageGet( CAN_TP_Header *header, uint8_t *data, uint8_t data_length );
+void CAN_TP_NewMessage( CAN_TP_Header *header, void *buffer );
 
 #endif

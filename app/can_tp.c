@@ -65,7 +65,6 @@ static uint8_t flag_can_tp_flowcontrol_status[ 3 ] = { CTS_OFF, WAIT_OFF, OVERFL
 void CAN_TP_Init( CAN_TP_Header *header )
 {
     header->flag_transmitted = FLAG_CAN_TP_OFF;
-    (void)header;
 }
 
 /**
@@ -117,7 +116,6 @@ static void CAN_TP_RxReceived( CAN_TP_Header *header )
             case CONTINUE_TO_SEND:
 
                 flag_can_tp_flowcontrol_status[ CONTINUE_TO_SEND ] = CTS_ON;
-                SEGGER_RTT_printf( 0, "FlowControlFrame_CONTINUE_TO_SEND_Received\n" );
                 break;
             case WAIT:
 
@@ -186,8 +184,6 @@ static void CAN_TP_RxReceived( CAN_TP_Header *header )
 
                 division = header->data_length / 7u;
 
-                SEGGER_RTT_printf( 0, "Division: %u \n", division );
-
                 if( division == 0u )
                 {
 
@@ -200,8 +196,6 @@ static void CAN_TP_RxReceived( CAN_TP_Header *header )
                     offset_counter_sequence = 0;
                     header->flag_ready      = 1u;
                 }
-                SEGGER_RTT_printf( 0, "Data length: %d \n", header->data_length );
-                SEGGER_RTT_printf( 0, "Flag_ready: %d \n", header->flag_ready );
 
                 break;
 
@@ -259,8 +253,6 @@ static void CAN_TP_TxTransmitted( CAN_TP_Header *header )
 
             HAL_FDCAN_AddMessageToTxFifoQ( header->CANHandler, header->CANTxHeader, message_f );
 
-            SEGGER_RTT_printf( 0, "FirstFrame\n" );
-
             state = FLOW_CONTROL_FRAME_TYPE;
 
             break;
@@ -282,7 +274,6 @@ static void CAN_TP_TxTransmitted( CAN_TP_Header *header )
 
 
                 HAL_FDCAN_AddMessageToTxFifoQ( header->CANHandler, header->CANTxHeader, message_c );
-                SEGGER_RTT_printf( 0, "ConsecutiveFrame %d\n", count_sequencenumber );
 
                 count_sequencenumber++;
                 state = CONSECUTIVE_FRAME_TYPE;
@@ -316,7 +307,7 @@ static void CAN_TP_TxTransmitted( CAN_TP_Header *header )
                 }
 
                 HAL_FDCAN_AddMessageToTxFifoQ( header->CANHandler, header->CANTxHeader, message_c );
-                SEGGER_RTT_printf( 0, "ConsecutiveFrame %d\n", count_sequencenumber );
+
 
                 count_sequencenumber++;
                 state = CONSECUTIVE_FRAME_TYPE;
@@ -345,8 +336,6 @@ static void CAN_TP_TxTransmitted( CAN_TP_Header *header )
                     HAL_FDCAN_AddMessageToTxFifoQ( header->CANHandler, header->CANTxHeader, message_c );
 
                     header->CANTxHeader->DataLength = FDCAN_DLC_BYTES_8;
-
-                    SEGGER_RTT_printf( 0, "ConsecutiveFrame rest counter bytes: %d\n", header->rest_counter );
                 }
 
                 state = FIRST_FRAME_TYPE;
@@ -372,27 +361,16 @@ static void CAN_TP_TxTransmitted( CAN_TP_Header *header )
             if( flag_can_tp_flowcontrol_status[ CONTINUE_TO_SEND ] == CTS_ON )
             {
 
-                SEGGER_RTT_printf( 0, "FlowControlFrame_CONTINUE_TO_SEND_Transmited\n" );
 
                 state = CONSECUTIVE_FRAME_TYPE;
             }
 
             if( flag_can_tp_flowcontrol_status[ WAIT ] == WAIT_ON )
             {
-
-                SEGGER_RTT_printf( 0, "FlowControlFrame_WAIT\n" );
-
-                // PENDIENTE = WAIT;
-                // xQueueSend(xQueue_CAN_SERIA, PENDIENTE , 0);
             }
 
             if( flag_can_tp_flowcontrol_status[ OVERFLOW_ABORT ] == OVERFLOW_ABORT_ON )
             {
-
-                SEGGER_RTT_printf( 0, "FlowControlFrame_WAIT\n" );
-
-                // PENDIENTE = OVERFLOW_ABORT;
-                // xQueueSend(xQueue_CAN_SERIA, PENDIENTE , 0);
             }
 
             break;
