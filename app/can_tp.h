@@ -8,49 +8,51 @@
 #ifndef CAN_TP_H_
 #define CAN_TP_H_
 
-#define MAX_ARRAY_SIZE 25 // Tamaño máximo permitido del arreglo
-
 #include <stdint.h>
 #include "bsp.h"
 
+#define MAX_ARRAY_SIZE 25 /*!<  Maximum allowed size for the array */
+
 /**
- * @brief   struct store the elemnt saved the messages of the module FDCAN.
+ * @brief   struct store the element saved the messages of the module FDCAN for CAN Message Elements.
  */
 typedef struct _CAN_MsgTypeDef
 {
 
     uint8_t Messagetype; /*!< It represent the type de message, it can be TIME, DATE and ALARM*/
-    uint8_t Data[ 7 ];
+    uint8_t Data[ 7 ];   /*!< Data payload of the message. */
 
 } CAN_MsgTypeDef;
 
 /**
- * @brief   struct store the elemnt saved the messages of the module FDCAN.
+ * @brief   struct store the element saved the messages of the module FDCAN for CAN_TP Header information.
  */
 typedef struct _CAN_TP_Header
 {
 
-    FDCAN_HandleTypeDef *CANHandler;
-    FDCAN_TxHeaderTypeDef *CANTxHeader;
+    FDCAN_HandleTypeDef *CANHandler;    /*!< Pointer to FDCAN handler. */
+    FDCAN_TxHeaderTypeDef *CANTxHeader; /*!< Pointer to FDCAN Tx Header. */
 
     // Struct for Received
-    uint32_t bufferSize;
-    uint16_t data_length;
-    uint8_t separationTime;
-    uint8_t blockSize;
+    uint32_t bufferSize;    /*!< Size of the message buffer. */
+    uint16_t data_length;   /*!< Length of the data in the received message. */
+    uint8_t separationTime; /*!< Separation time for CAN_TP communication. */
+    uint8_t blockSize;      /*!< Block size for CAN_TP communication. */
 
-    CAN_MsgTypeDef *buffer_received;
+    CAN_MsgTypeDef *buffer_received; /*!< Pointer to the received message buffer. */
 
-    // Struct for Transmited
-    uint32_t length;
-    uint32_t number_counter;
-    uint32_t multiplier_counter;
-    uint32_t rest_counter;
-    uint8_t flag_ready;
-    uint8_t *buffer_transmited;
+    // Struct for Transmitted
+    uint32_t length;             /*!< Length of the transmitted message. */
+    uint32_t number_counter;     /*!< Counter for transmitted message numbers. */
+    uint32_t multiplier_counter; /*!< Counter for transmitted message multipliers. */
+    uint32_t rest_counter;       /*!< Counter for remaining bytes in transmitted message. */
+    uint8_t flag_ready;          /*!< Flag indicating if message is ready for transmission. */
+    uint8_t *buffer_transmited;  /*!< Pointer to the transmitted message buffer. */
+    uint8_t flag_transmitted;    /*!< Flag indicating if the message has been transmitted. */
 
-    uint32_t counter_newmessage;
-    uint8_t message[ MAX_ARRAY_SIZE ];
+    uint32_t counter_newmessage;       /*!< Counter for new received messages. */
+    uint8_t message[ MAX_ARRAY_SIZE ]; /*!< Array to store the received message. */
+
 
 } CAN_TP_Header;
 

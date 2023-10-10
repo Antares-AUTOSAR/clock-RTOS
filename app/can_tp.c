@@ -9,26 +9,26 @@
 #include "can_tp.h"
 #include <string.h>
 
-#define SINGLE_FRAME_TYPE       0u /*!< MessageType */
-#define FIRST_FRAME_TYPE        1u /*!< MessageType */
-#define CONSECUTIVE_FRAME_TYPE  2u /*!< MessageType */
-#define FLOW_CONTROL_FRAME_TYPE 3u /*!< MessageType */
+#define SINGLE_FRAME_TYPE       0u /*!< Frame type to mark a single frame */
+#define FIRST_FRAME_TYPE        1u /*!< Frame type to mark the first frame */
+#define CONSECUTIVE_FRAME_TYPE  2u /*!< Frame type to mark consecutive frame */
+#define FLOW_CONTROL_FRAME_TYPE 3u /*!< Frame type to mark the flow control frame */
 
-#define CONTINUE_TO_SEND        0u /*!< MessageType */
-#define WAIT                    1u /*!< MessageType */
-#define OVERFLOW_ABORT          2u /*!< MessageType */
+#define CONTINUE_TO_SEND        0u /*!< Indicate the flow control flag 0 */
+#define WAIT                    1u /*!< Indicate the flow control flag 1 */
+#define OVERFLOW_ABORT          2u /*!< Indicate the flow control flag 2 */
 
-#define FLAG_CAN_TP_ON          1u /*!< MessageType */
-#define FLAG_CAN_TP_OFF         0u /*!< MessageType */
+#define FLAG_CAN_TP_ON          1u /*!< The flag indicates when CAN TP is ready to transmit a message */
+#define FLAG_CAN_TP_OFF         0u /*!< The flag indicates when CAN TP is not ready to transmit a message */
 
-#define CTS_ON                  1u /*!< MessageType */
-#define CTS_OFF                 0u /*!< MessageType */
-#define WAIT_ON                 1u /*!< MessageType */
-#define WAIT_OFF                0u /*!< MessageType */
-#define OVERFLOW_ABORT_ON       1u /*!< MessageType */
-#define OVERFLOW_ABORT_OFF      0u /*!< MessageType */
+#define CTS_ON                  1u /*!< Indicate the number when the flow control flag 0 is ready */
+#define CTS_OFF                 0u /*!< Indicate the number when the flow control flag 0 is not ready */
+#define WAIT_ON                 1u /*!< Indicate the number when the flow control flag 1 is ready */
+#define WAIT_OFF                0u /*!< Indicate the number when the flow control flag 1 is not ready */
+#define OVERFLOW_ABORT_ON       1u /*!< Indicate the number when the flow control flag 2 is ready */
+#define OVERFLOW_ABORT_OFF      0u /*!< Indicate the number when the flow control flag 2 is not ready */
 
-#define OFFSET_FIRST_FRAME      6u /*!< MessageType */
+#define OFFSET_FIRST_FRAME      6u /*!< Offset data of the first frame because it transmitted 6 bytes of data */
 
 void CAN_TP_Tick( void );
 void CAN_TP_RxMessageBufferSet( CAN_TP_Header *header, uint8_t *buffer, uint32_t bufferSize );
@@ -44,21 +44,36 @@ static void CAN_TP_RxReceived( CAN_TP_Header *header );
 uint8_t CAN_TP_IsMessageReady( const CAN_TP_Header *header );
 void CAN_TP_MessageGet( CAN_TP_Header *header, uint8_t *data, uint8_t data_length );
 
-static uint8_t flag_can_tp_transmitted             = FLAG_CAN_TP_OFF;
+/**
+ * @brief Array to store CAN_TP flow control status flags.
+ *
+ * This array holds the status flags indicating the flow control conditions
+ * for CAN_TP transmission. Index 0 represents 'Continue to Send' (CTS),
+ * index 1 represents 'Wait', and index 2 represents 'Overflow Abort'.
+ * Initial values are set to indicate OFF states for all conditions.
+ */
 static uint8_t flag_can_tp_flowcontrol_status[ 3 ] = { CTS_OFF, WAIT_OFF, OVERFLOW_ABORT_OFF };
 
+
 /**
- * @brief   Function initialize the setting FDCAN for the process Serial
+ * @brief Initializes the CAN_TP configuration for the CAN_TP_TASK
+ *
+ * Function necessary for work with normality
+ *
+ * @param header CAN_TP header data structure.
  */
 void CAN_TP_Init( CAN_TP_Header *header )
 {
-
+    header->flag_transmitted = FLAG_CAN_TP_OFF;
     (void)header;
 }
 
 /**
- * @brief   Function have a state machine for the process Serial of CASIO CAN can set its values
+ * @brief Task process for CAN_TP.
  *
+ * Function switches the CAN TP periodically if  it transmits or receives.
+ *
+ * @param header CAN_TP header data structure.
  */
 void CAN_TP_Task( CAN_TP_Header *header )
 {
@@ -70,12 +85,20 @@ void CAN_TP_Task( CAN_TP_Header *header )
         header->counter_newmessage--;
     }
 
-    if( flag_can_tp_transmitted == FLAG_CAN_TP_ON )
+    if( header->flag_transmitted == FLAG_CAN_TP_ON )
     {
         CAN_TP_TxTransmitted( header );
     }
 }
 
+/**
+ * @brief Handles the received CAN_TP messages.
+ *
+ * This function processes the received CAN_TP messages, including flow control frames,
+ * first frames, and consecutive frames. It updates the transmission state accordingly.
+ *
+ * @param header CAN_TP header data structure.
+ */
 static void CAN_TP_RxReceived( CAN_TP_Header *header )
 {
 
@@ -190,6 +213,15 @@ static void CAN_TP_RxReceived( CAN_TP_Header *header )
 }
 
 
+/**
+ * @brief Transmits CAN_TP messages based on the current state.
+ *
+ * This function manages the transmission of CAN_TP messages, including first frames
+ * and consecutive frames. It handles the flow control logic and updates the state
+ * for transmission.
+ *
+ * @param header CAN_TP header data structure.
+ */
 static void CAN_TP_TxTransmitted( CAN_TP_Header *header )
 {
 
@@ -319,7 +351,7 @@ static void CAN_TP_TxTransmitted( CAN_TP_Header *header )
 
                 state = FIRST_FRAME_TYPE;
 
-                flag_can_tp_transmitted = FLAG_CAN_TP_OFF;
+                header->flag_transmitted = FLAG_CAN_TP_OFF;
 
                 count_sequencenumber = 1;
 
@@ -370,22 +402,50 @@ static void CAN_TP_TxTransmitted( CAN_TP_Header *header )
     }
 }
 
+/**
+ * @brief Sets the received message buffer and its size.
+ *
+ * @param header CAN_TP header data structure.
+ * @param buffer Received message buffer.
+ * @param bufferSize Size of the message buffer.
+ *
+ */
 void CAN_TP_RxMessageBufferSet( CAN_TP_Header *header, uint8_t *buffer, uint32_t bufferSize )
 {
     header->buffer_received = buffer;
     header->bufferSize      = bufferSize;
 }
 
+
+/**
+ * @brief Sets the separation time between received messages.
+ *
+ * @param header CAN_TP header data structure.
+ * @param separationTime Separation time between messages.
+ */
 void CAN_TP_RxSeparationTimeSet( CAN_TP_Header *header, uint8_t separationTime )
 {
     header->separationTime = separationTime;
 }
 
+/**
+ * @brief Sets the block size for received messages.
+ *
+ * @param header CAN_TP header data structure.
+ * @param blockSize Block size.
+ */
 void CAN_TP_RxBlockSizeSet( CAN_TP_Header *header, uint8_t blockSize )
 {
     header->blockSize = blockSize;
 }
 
+/**
+ * @brief Initiates the transmission of a CAN_TP_Transmited message.
+ *
+ * @param header CAN_TP header data structure.
+ * @param data Pointer to the message data.
+ * @param length Length of the message.
+ */
 void CAN_TP_MessageSend( CAN_TP_Header *header, const uint8_t *data, uint32_t length )
 {
 
@@ -424,15 +484,24 @@ void CAN_TP_MessageSend( CAN_TP_Header *header, const uint8_t *data, uint32_t le
 
     header->length = length;
 
-    flag_can_tp_transmitted = FLAG_CAN_TP_ON;
+    header->flag_transmitted = FLAG_CAN_TP_ON;
 }
 
+/**
+ * @brief Timing function for CAN_TP.
+ */
 void CAN_TP_Tick( void )
 {
     static uint32_t count_tick = 0;
     count_tick++;
 }
 
+/**
+ * @brief Handles a new message received by CAN_TP.
+ *
+ * @param header CAN_TP header data structure.
+ * @param data Pointer to the received message data.
+ */
 void CAN_TP_NewMessage( CAN_TP_Header *header, void *data )
 {
 
@@ -440,13 +509,25 @@ void CAN_TP_NewMessage( CAN_TP_Header *header, void *data )
     header->counter_newmessage++;
 }
 
-
+/**
+ * @brief Checks if the message is ready to be processed.
+ *
+ * @param header CAN_TP header data structure.
+ * @return 1 if the message is ready, 0 otherwise.
+ */
 uint8_t CAN_TP_IsMessageReady( const CAN_TP_Header *header )
 {
 
     return header->flag_ready;
 }
 
+/**
+ * @brief Gets the processed message.
+ *
+ * @param header CAN_TP header data structure.
+ * @param data Pointer to the message data.
+ * @param data_length Length of the data to retrieve.
+ */
 void CAN_TP_MessageGet( CAN_TP_Header *header, uint8_t *data, uint8_t data_length )
 {
 
