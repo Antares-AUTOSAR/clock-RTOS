@@ -203,7 +203,7 @@ Display_M Time( APP_MsgTypeDef *DisplayMsg )
     (void)HEL_LCD_SetCursor( &hlcd, 1, 3 );
     (void)HEL_LCD_String( &hlcd, string );
 
-    DisplayMsg->msg = DISPLAY_MSG_DATE;
+    DisplayMsg->msg = SERIAL_MSG_DATE;
     xQueueSend( displayQueue, DisplayMsg, 0 );
 
     return DISPLAY_MSG_DATE;

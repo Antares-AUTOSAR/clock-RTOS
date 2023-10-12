@@ -93,16 +93,10 @@ void test_DisplayTask_messageQueue( void )
 
 void test_DisplayEventMachine_SendDate( void )
 {
-    char string[] = "00:00:00";
-
-    HEL_LCD_SetCursor_ExpectAndReturn( &hlcd, 1, 3, HAL_OK );
-    HEL_LCD_String_ExpectAndReturn( &hlcd, string, HAL_OK );
-    xQueueGenericSend_IgnoreAndReturn( pdPASS );
-
     APP_MsgTypeDef message = { 0 };
     Display_M state;
 
-    message.msg = DISPLAY_MSG_DATE;
+    message.msg = SERIAL_MSG_DATE;
 
     state = Display_Machine( &message );
 

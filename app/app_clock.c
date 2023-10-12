@@ -232,6 +232,7 @@ static void state_clockMsgPrint( APP_MsgTypeDef *receivedMessage )
     clockMessage.tm.tm_wday = sDate.WeekDay;
     clockMessage.tm.tm_mon  = sDate.Month;
 
+    clockMessage.msg = DISPLAY_MSG_TIME;
     xQueueSend( displayQueue, &clockMessage, 0 );
 }
 
