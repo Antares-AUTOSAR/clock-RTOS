@@ -15,16 +15,9 @@
  * @defgroup ClockTestingMacros Macros used for unit testing
  @{*/
 #ifdef UTEST
-#define CLOCK_EVENT_MACHINE_PROTOTYPE_TESTING      MACHINE_State Clock_EventMachine( APP_MsgTypeDef *receivedMessage ); /*!< Define Clock_EventMachine as public function                    */
-#define CLOCK_UPDATE_DATEANDTIME_PROTOTYPE_TESTING void Clock_Update_DateAndTime( TimerHandle_t pxTimer );              /*!< Define Clock_Update_DateAndTime as public function              */
-#define CLOCK_EVENT_MACHINE_PROTOTYPE                                                                                   /*!< Dont consider Clock_EventMachine PROTOTYPE in app_clock.c       */
-#define CLOCK_UPDATE_DATEANDTIME_PROTOTYPE                                                                              /*!< Dont consider Clock_Update_DateAndTime PROTOTYPE in app_clock.c */
-#include "bsp.h"
+#define STATIC /*!< Macro defined for testing purposes. Use in private members*/
 #else
-#define CLOCK_EVENT_MACHINE_PROTOTYPE              static MACHINE_State Clock_EventMachine( APP_MsgTypeDef *receivedMessage ); /*!< Define Clock_EventMachine as private function                   */
-#define CLOCK_UPDATE_DATEANDTIME_PROTOTYPE         static void Clock_Update_DateAndTime( TimerHandle_t pxTimer );              /*!< Define Clock_Update_DateAndTime as private function             */
-#define CLOCK_EVENT_MACHINE_PROTOTYPE_TESTING                                                                                  /*!< Dont consider Clock_EventMachine PROTOTYPE in app_clock.h       */
-#define CLOCK_UPDATE_DATEANDTIME_PROTOTYPE_TESTING                                                                             /*!< Dont consider Clock_Update_DateAndTime PROTOTYPE in app_clock.h */
+#define STATIC static /*!< Macro defined for testing purposes. Use in private members*/
 #endif
 /**@} */
 
@@ -48,9 +41,6 @@
 
 void Clock_Init( void );
 void Clock_Task( void );
-
-CLOCK_EVENT_MACHINE_PROTOTYPE_TESTING
-CLOCK_UPDATE_DATEANDTIME_PROTOTYPE_TESTING
 
 
 #endif
