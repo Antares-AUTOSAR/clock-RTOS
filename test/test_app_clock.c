@@ -10,6 +10,9 @@
 
 #include "bsp.h"
 
+STATIC MACHINE_State Clock_EventMachine( APP_MsgTypeDef *receivedMessage );
+STATIC void Clock_Update_DateAndTime( TimerHandle_t pxTimer );
+
 void setUp( void )
 {
 }
