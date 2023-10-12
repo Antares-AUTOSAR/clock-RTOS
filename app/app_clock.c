@@ -23,12 +23,8 @@ static MACHINE_State state_serialMsgDate( APP_MsgTypeDef *receivedMessage );
 static MACHINE_State state_serialMsgTime( APP_MsgTypeDef *receivedMessage );
 static MACHINE_State state_clockMsgPrint( APP_MsgTypeDef *receivedMessage );
 
-/* Define prototype as private function (static) if is not testing, otherwise skip it*/
-CLOCK_EVENT_MACHINE_PROTOTYPE
-
-/* Define prototype as private function (static) if is not testing, otherwise skip it*/
-CLOCK_UPDATE_DATEANDTIME_PROTOTYPE
-
+STATIC MACHINE_State Clock_EventMachine( APP_MsgTypeDef *receivedMessage );
+STATIC void Clock_Update_DateAndTime( TimerHandle_t pxTimer );
 
 /**
  * @brief  Struct for handling RTC peripheral Declared in bsp
