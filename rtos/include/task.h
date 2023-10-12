@@ -30,6 +30,8 @@
 #ifndef INC_TASK_H
 #define INC_TASK_H
 
+#include "FreeRTOS.h"
+
 #ifndef INC_FREERTOS_H
     #error "include FreeRTOS.h must appear in source files before include task.h"
 #endif

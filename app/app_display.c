@@ -9,24 +9,28 @@
 #include "app_display.h"
 #include "hel_lcd.h"
 
+SPI_HandleTypeDef SpiHandle;
+
 /**
  * @brief   Struct for store function for each state of event machine
  */
 typedef struct
 {
-    void ( *stateFunc )( APP_MsgTypeDef *DisplayMsg ); /*!< Pointer to function which perform state statements */
+    Display_M ( *stateFunc )( APP_MsgTypeDef *DisplayMsg ); /*!< Pointer to function which perform state statements */
 } DisplayNode;
 
 /**
  * @brief Variable for LCD configuration
  */
-static LCD_HandleTypeDef hlcd;
+LCD_HandleTypeDef hlcd;
 
-static void Display_Machine( APP_MsgTypeDef *DisplayMsg );
-static void Time( APP_MsgTypeDef *DisplayMsg );
-static void Date( APP_MsgTypeDef *DisplayMsg );
-static void TimeString( char *string, uint8_t hours, uint8_t minutes, uint8_t seconds );
-static void DateString( char *string, uint8_t month, uint8_t day, uint16_t year, uint8_t weekday );
+STATIC Display_M Display_Machine( APP_MsgTypeDef *DisplayMsg );
+STATIC Display_M Time( APP_MsgTypeDef *DisplayMsg );
+STATIC Display_M Date( APP_MsgTypeDef *DisplayMsg );
+STATIC void TimeString( char *string, uint8_t hours, uint8_t minutes, uint8_t seconds );
+STATIC void DateString( char *string, uint8_t month, uint8_t day, uint16_t year, uint8_t weekday );
+STATIC char *get_month( uint8_t month );
+
 /**
  * @brief   Get the abbreviation of the month
  *
@@ -35,7 +39,7 @@ static void DateString( char *string, uint8_t month, uint8_t day, uint16_t year,
  * @param month Month number (1-12)
  * @return Pointer to the month abbreviation or NULL if the month number is invalid
  */
-static char *get_month( uint8_t month )
+STATIC char *get_month( uint8_t month )
 {
     char *range = NULL;
 
@@ -61,7 +65,7 @@ static char *get_month( uint8_t month )
  * @param minutes Minutes (0-59)
  * @param seconds Seconds (0-59)
  */
-static void TimeString( char *string, uint8_t hours, uint8_t minutes, uint8_t seconds )
+STATIC void TimeString( char *string, uint8_t hours, uint8_t minutes, uint8_t seconds )
 {
     string[ SECONDS_ONES ] = '0' + ( seconds % TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
     string[ SECONDS_TENS ] = '0' + ( seconds / TEN ); /* cppcheck-suppress misra-c2012-10.2  ;Not moving due to changing functionality*/
@@ -83,7 +87,7 @@ static void TimeString( char *string, uint8_t hours, uint8_t minutes, uint8_t se
  * @param year Year
  * @param weekday Weekday(0-6), where 0 is Sunday and 6 is Saturday
  */
-static void DateString( char *string, uint8_t month, uint8_t day, uint16_t year, uint8_t weekday )
+STATIC void DateString( char *string, uint8_t month, uint8_t day, uint16_t year, uint8_t weekday )
 {
     const char *month_abbrev = get_month( month );
 
@@ -113,8 +117,6 @@ static void DateString( char *string, uint8_t month, uint8_t day, uint16_t year,
  */
 void Display_Init( void )
 {
-    static SPI_HandleTypeDef SpiHandle = { 0 };
-
     hlcd.SpiHandler = &SpiHandle;
     hlcd.RstPort    = GPIOD;
     hlcd.RstPin     = GPIO_PIN_2;
@@ -155,7 +157,7 @@ void Display_Task( void )
 
     while( xQueueReceive( displayQueue, &DisplayMsg, 0 ) == pdPASS )
     {
-        Display_Machine( &DisplayMsg );
+        (void)Display_Machine( &DisplayMsg );
     }
 }
 
@@ -167,7 +169,7 @@ void Display_Task( void )
  *
  * @param DisplayMsg: A pointer to the message structure containing state information
  */
-static void Display_Machine( APP_MsgTypeDef *DisplayMsg )
+Display_M Display_Machine( APP_MsgTypeDef *DisplayMsg )
 {
     static DisplayNode stateMachine[ DISPLAY_STATES ] =
     {
@@ -175,10 +177,13 @@ static void Display_Machine( APP_MsgTypeDef *DisplayMsg )
     { Date },
     };
 
+    static Display_M new_event;
     static APP_Messages state;
 
-    state = DisplayMsg->msg;
-    stateMachine[ state ].stateFunc( DisplayMsg );
+    state     = DisplayMsg->msg;
+    new_event = stateMachine[ state ].stateFunc( DisplayMsg );
+
+    return new_event;
 }
 
 /**
@@ -189,7 +194,7 @@ static void Display_Machine( APP_MsgTypeDef *DisplayMsg )
  *
  * @param DisplayMsg: A pointer to the message structure containing state information
  */
-static void Time( APP_MsgTypeDef *DisplayMsg )
+Display_M Time( APP_MsgTypeDef *DisplayMsg )
 {
     char string[] = "00:00:00"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print time */
 
@@ -198,8 +203,10 @@ static void Time( APP_MsgTypeDef *DisplayMsg )
     (void)HEL_LCD_SetCursor( &hlcd, 1, 3 );
     (void)HEL_LCD_String( &hlcd, string );
 
-    DisplayMsg->msg = SERIAL_MSG_DATE;
+    DisplayMsg->msg = DISPLAY_MSG_DATE;
     xQueueSend( displayQueue, DisplayMsg, 0 );
+
+    return DISPLAY_MSG_DATE;
 }
 
 /**
@@ -210,11 +217,13 @@ static void Time( APP_MsgTypeDef *DisplayMsg )
  *
  * @param DisplayMsg:  A pointer to the message structure containing state information
  */
-static void Date( APP_MsgTypeDef *DisplayMsg )
+Display_M Date( APP_MsgTypeDef *DisplayMsg )
 {
     char date_string[] = "000,00 0000 00"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print date*/
     DateString( date_string, DisplayMsg->tm.tm_mon, DisplayMsg->tm.tm_mday, DisplayMsg->tm.tm_year, DisplayMsg->tm.tm_wday );
 
     (void)HEL_LCD_SetCursor( &hlcd, 0, 1 );
     (void)HEL_LCD_String( &hlcd, date_string );
+
+    return DISPLAY_IDLE_STATE;
 }

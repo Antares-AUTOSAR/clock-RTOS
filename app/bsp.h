@@ -69,6 +69,13 @@ typedef enum
     ERROR_STATE       /*!< Error state of data */
 } APP_Messages;
 
+typedef enum
+{
+    DISPLAY_MSG_DATE, /**< Received Date message type */
+    DISPLAY_IDLE_STATE
+} Display_M;
+
+
 /*Queue identifier to use*/
 extern QueueHandle_t serialQueue;  /* Serial Queue identifier to use in the serial machine. */
 extern QueueHandle_t clockQueue;   /* Serial Queue identifier to use in the clock machine   */
