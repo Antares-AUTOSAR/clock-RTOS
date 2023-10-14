@@ -10,12 +10,12 @@
 QueueHandle_t displayQueue;
 
 extern SPI_HandleTypeDef SpiHandle;
-
 extern LCD_HandleTypeDef hlcd;
 
 STATIC char *get_month( uint8_t month );
+STATIC void TimeString( char *string, uint8_t hours, uint8_t minutes, uint8_t seconds );
+STATIC void DateString( char *string, uint8_t month, uint8_t day, uint16_t year, uint8_t weekday );
 STATIC Display_M Display_Machine( APP_MsgTypeDef *DisplayMsg );
-STATIC Display_M Date( APP_MsgTypeDef *DisplayMsg );
 STATIC Display_M Time( APP_MsgTypeDef *DisplayMsg );
 
 void setUp( void )
@@ -63,6 +63,24 @@ void test_Weekday_Abbreviation( void )
     TEST_ASSERT_EQUAL_STRING( "SA", abbreviations[ 6 ] );
 }
 
+void test_time_string( void )
+{
+    char string[] = "00:00:00";
+
+    TimeString( string, 12, 33, 22 );
+
+    TEST_ASSERT_EQUAL_STRING( "12:33:22", string );
+}
+
+void test_date_string( void )
+{
+    char date_string[] = "000,00 0000 00"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print date*/
+
+    DateString( date_string, 04, 12, 2010, 01 );
+
+    TEST_ASSERT_EQUAL_STRING( "APR,12 2010 MO", date_string );
+}
+
 void test_Display_Init( void )
 {
     HAL_SPI_Init_ExpectAndReturn( &SpiHandle, HAL_OK );
@@ -73,36 +91,54 @@ void test_Display_Init( void )
     Display_Init( );
 }
 
-void test_Display_Task_emptyQueue( void )
+void test_Display_Task_QueueEmpty( void )
 {
-    xQueueReceive_IgnoreAndReturn( errQUEUE_EMPTY );
+    xQueueReceive_IgnoreAndReturn( pdFAIL );
     Display_Task( );
 }
 
-void test_DisplayTask_messageQueue( void )
+void test_Display_Task_ms( void )
 {
-    char string[] = "00:00:00";
+    APP_MsgTypeDef DisplayMsg = {DISPLAY_MSG_TIME};
 
-    xQueueReceive_IgnoreAndReturn( pdPASS );
-    xQueueReceive_IgnoreAndReturn( errQUEUE_EMPTY );
+    xQueueReceive_ExpectAndReturn(displayQueue,&DisplayMsg,0,pdFAIL);
+
+    Display_Task( );
+}
+
+void test_display_machine(void)
+{
+
+}
+
+
+void test_Time( void )
+{
+    char string[]      = "12:33:22";
+    char date_string[] = "APR,12 2010 MO";
+
     HEL_LCD_SetCursor_ExpectAndReturn( &hlcd, 1, 3, HAL_OK );
     HEL_LCD_String_ExpectAndReturn( &hlcd, string, HAL_OK );
-    xQueueGenericSend_IgnoreAndReturn( pdPASS );
-    Display_Task( );
-}
 
-void test_DisplayEventMachine_SendDate( void )
-{
-    APP_MsgTypeDef message = { 0 };
-    Display_M state;
+    HEL_LCD_SetCursor_ExpectAndReturn( &hlcd, 0, 1, HAL_OK );
+    HEL_LCD_String_ExpectAndReturn( &hlcd, date_string, HAL_OK );
+    // Crea una estructura de mensaje simulada con datos de tiempo
+    APP_MsgTypeDef DisplayMsg = {
+    .msg = DISPLAY_MSG_TIME,
+    .tm  = {
+     .tm_hour = 12,
+     .tm_min  = 33,
+     .tm_sec  = 22,
+     .tm_mon  = 4,
+     .tm_mday = 12,
+     .tm_year = 2010,
+     .tm_wday = 1 } };
 
-    message.msg = SERIAL_MSG_DATE;
 
-    state = Display_Machine( &message );
+    // Ejecuta la función Time
+    Display_M result = Time( &DisplayMsg );
 
-    TEST_ASSERT_EQUAL_MESSAGE( DISPLAY_MSG_DATE, state, "Execution of a DISPLAY_TIME must return a DISPLAY_MSG_DATE(0)" );
-}
 
-void test_DisplayEventMachine_Idle( void )
-{
+    // Verifica el resultado y otros aspectos si es necesario
+    TEST_ASSERT_EQUAL_MESSAGE( DISPLAY_IDLE_STATE, result, "Execution of a DISPLAY_MSG_TIME must return a DISPLAY_IDLE_STATE (0)" );
 }
