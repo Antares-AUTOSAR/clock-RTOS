@@ -143,7 +143,7 @@ void Serial_Task( void )
 
     while( xQueueReceive( serialQueue, &RecieveMsg.Data, 0 ) == pdTRUE )
     {
-        if( CanTp_SingleFrameRx( (uint8_t *)RecieveMsg.Data, &RecieveMsg.Data[ SINGLE_FRAME_ELEMENT ] ) == NUM_1 )
+        if( CanTp_SingleFrameRx( (uint8_t *)RecieveMsg.Data, &RecieveMsg.Data[ SINGLE_FRAME_ELEMENT ] ) == TRUE )
         {
             Serial_StMachine( &RecieveMsg );
         }
@@ -187,21 +187,21 @@ void SerialTimeState( const NEW_MsgTypeDef *pmsg )
     static NEW_MsgTypeDef SerialMsg;
     static APP_MsgTypeDef messageStruct = { 0 };
 
-    SerialMsg.Data[ NUM_1 ]  = ERROR_STATE;
+    SerialMsg.Data[ MESSAGE ]  = ERROR_STATE;
     messageStruct.tm.tm_hour = BCD_conver( pmsg->Data[ TIME_HOUR_ELEMENT ] );
     messageStruct.tm.tm_min  = BCD_conver( pmsg->Data[ TIME_MIN_ELEMENT ] );
     messageStruct.tm.tm_sec  = BCD_conver( pmsg->Data[ TIME_SEC_ELEMENT ] );
 
-    if( Validate_Time( messageStruct.tm.tm_hour, messageStruct.tm.tm_min, messageStruct.tm.tm_sec ) == NUM_1 )
+    if( Validate_Time( messageStruct.tm.tm_hour, messageStruct.tm.tm_min, messageStruct.tm.tm_sec ) == TRUE )
     {
 
         messageStruct.msg = SERIAL_MSG_TIME;
-        xQueueSend( clockQueue, &messageStruct, 0 );
-        SerialMsg.Data[ NUM_1 ] = OK_STATE;
+        xQueueSend( clockQueue, &messageStruct, TICKS );
+        SerialMsg.Data[ MESSAGE ] = OK_STATE;
     }
 
     /*Send a message to the same queue to trasition to another state*/
-    xQueueSend( serialQueue, &SerialMsg, 0 );
+    xQueueSend( serialQueue, &SerialMsg, TICKS );
 }
 
 /**
@@ -217,22 +217,22 @@ void SerialDateState( const NEW_MsgTypeDef *pmsg )
     static NEW_MsgTypeDef SerialMsg;
     static APP_MsgTypeDef messageStruct = { 0 };
 
-    SerialMsg.Data[ NUM_1 ]  = ERROR_STATE;
+    SerialMsg.Data[ MESSAGE ]  = ERROR_STATE;
     messageStruct.tm.tm_mday = BCD_conver( pmsg->Data[ DATE_DAY_ELEMENT ] );
     messageStruct.tm.tm_mon  = BCD_conver( pmsg->Data[ DATE_MON_ELEMENT ] );
     messageStruct.tm.tm_year = ( ( BCD_conver( pmsg->Data[ DATE_MSB_YEAR_ELEMENT ] ) * NUM_100 ) + BCD_conver( pmsg->Data[ DATE_LSB_YEAR_ELEMENT ] ) );
 
-    if( Validate_Date( messageStruct.tm.tm_mday, messageStruct.tm.tm_mon, messageStruct.tm.tm_year ) == NUM_1 )
+    if( Validate_Date( messageStruct.tm.tm_mday, messageStruct.tm.tm_mon, messageStruct.tm.tm_year ) == TRUE )
     {
         messageStruct.msg        = SERIAL_MSG_DATE;
         messageStruct.tm.tm_wday = WeekDay( messageStruct.tm.tm_mday, messageStruct.tm.tm_mon, messageStruct.tm.tm_year );
 
-        xQueueSend( clockQueue, &messageStruct, 0 ); /*Send the data*/
-        SerialMsg.Data[ NUM_1 ] = OK_STATE;
+        xQueueSend( clockQueue, &messageStruct, TICKS ); /*Send the data*/
+        SerialMsg.Data[ MESSAGE ] = OK_STATE;
     }
 
     /*Send a message to the same queue to trasition to another state*/
-    xQueueSend( serialQueue, &SerialMsg, 0 );
+    xQueueSend( serialQueue, &SerialMsg, TICKS );
 }
 
 /**
@@ -248,20 +248,20 @@ void SerialAlarmState( const NEW_MsgTypeDef *pmsg )
     static NEW_MsgTypeDef SerialMsg;
     static APP_MsgTypeDef messageStruct = { 0 };
 
-    SerialMsg.Data[ NUM_1 ]        = ERROR_STATE;
+    SerialMsg.Data[ MESSAGE ]        = ERROR_STATE;
     messageStruct.tm.tm_hour_alarm = BCD_conver( pmsg->Data[ ALARM_HOUR_ELEMENT ] );
     messageStruct.tm.tm_min_alarm  = BCD_conver( pmsg->Data[ ALARM_MIN_ELEMENT ] );
 
-    if( Validate_Alarm( messageStruct.tm.tm_hour_alarm, messageStruct.tm.tm_min_alarm ) == NUM_1 )
+    if( Validate_Alarm( messageStruct.tm.tm_hour_alarm, messageStruct.tm.tm_min_alarm ) == TRUE )
     {
         messageStruct.msg = SERIAL_MSG_ALARM;
 
-        xQueueSend( clockQueue, &messageStruct, 0 );
-        SerialMsg.Data[ NUM_1 ] = OK_STATE;
+        xQueueSend( clockQueue, &messageStruct, TICKS );
+        SerialMsg.Data[ MESSAGE ] = OK_STATE;
     }
 
     /*Send a message to the same queue to trasition to another state*/
-    xQueueSend( serialQueue, &SerialMsg, 0 );
+    xQueueSend( serialQueue, &SerialMsg, TICKS );
 }
 
 /**
