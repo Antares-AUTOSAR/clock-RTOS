@@ -73,6 +73,9 @@
 #define MAX_DAYS_HEX_31               31u   /*!< Max days 31 in hexa                         */
 #define MIN_YEAR_HEX                  1901u /*!< Min year, 1901 in hexa                      */
 #define MAX_YEAR_HEX                  2099u /*!< Max year, 2099 in hexa                      */
+#define TRUE                          1u    /*!< True in a comparison                        */
+#define MESSAGE                       1u    /*!< Message location                            */
+#define TICKS                         0u    /*!< The maximum amount of time                  */
 /**
   @} */
 
