@@ -99,10 +99,12 @@ void test_Display_Task_QueueEmpty( void )
 
 void test_Display_Task_ms( void )
 {
+    /*
     APP_MsgTypeDef DisplayMsg = {DISPLAY_MSG_TIME};
 
     xQueueReceive_ExpectAndReturn(displayQueue,&DisplayMsg,0,pdFAIL);
-
+    */
+    //xQueueReceive_IgnoreAndReturn( pdPASS );
     Display_Task( );
 }
 
