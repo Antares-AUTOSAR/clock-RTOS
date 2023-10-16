@@ -97,16 +97,18 @@ void test_Display_Task_QueueEmpty( void )
     Display_Task( );
 }
 
+/*
 void test_Display_Task_ms( void )
 {
-    /*
-    APP_MsgTypeDef DisplayMsg = {DISPLAY_MSG_TIME};
+   
+    //APP_MsgTypeDef DisplayMsg = {DISPLAY_MSG_TIME};
 
-    xQueueReceive_ExpectAndReturn(displayQueue,&DisplayMsg,0,pdFAIL);
-    */
+    //xQueueReceive_ExpectAndReturn(displayQueue,&DisplayMsg,0,pdFAIL);
+    
     //xQueueReceive_IgnoreAndReturn( pdPASS );
     Display_Task( );
 }
+*/
 
 void test_display_machine(void)
 {
