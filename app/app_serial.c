@@ -456,11 +456,11 @@ uint32_t WeekDay( uint8_t days, uint8_t month, uint16_t year )
     uint16_t aux         = ( 14u - (uint16_t)month ) / 12u;
     uint16_t yearZeller  = year - aux;
     uint16_t monthZeller = month + ( 12u * aux ) - 2u;
-    uint16_t diaSemana   = 0;
+    uint16_t weekday     = 0;
 
-    diaSemana = ( ( days + yearZeller + ( yearZeller / 4u ) - ( yearZeller / 100u ) + ( yearZeller / 400u ) + ( 31u * monthZeller ) / 12u ) % 7u );
+    weekday = ( ( days + yearZeller + ( yearZeller / 4u ) - ( yearZeller / 100u ) + ( yearZeller / 400u ) + ( 31u * monthZeller ) / 12u ) % 7u );
 
-    return (uint8_t)diaSemana;
+    return (uint8_t)weekday;
 }
 
 /**
