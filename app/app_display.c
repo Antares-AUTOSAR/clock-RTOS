@@ -22,8 +22,9 @@ SPI_HandleTypeDef SpiHandle; /* cppcheck-suppress misra-c2012-8.4  ;Not moving d
  * @brief Variable for LCD configuration
  */
 LCD_HandleTypeDef hlcd; /* cppcheck-suppress misra-c2012-8.4  ;Not moving due to unit testing*/
-STATIC void Display_Machine( APP_MsgTypeDef *DisplayMsg );
+static void Display_Machine( APP_MsgTypeDef *DisplayMsg );
 STATIC Display_M Time( APP_MsgTypeDef *DisplayMsg );
+STATIC Display_M Date( APP_MsgTypeDef *DisplayMsg );
 STATIC void TimeString( char *string, uint8_t hours, uint8_t minutes, uint8_t seconds );
 STATIC void DateString( char *string, uint8_t month, uint8_t day, uint16_t year, uint8_t weekday );
 STATIC char *get_month( uint8_t month );

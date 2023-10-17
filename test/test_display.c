@@ -76,7 +76,7 @@ void test_time_string( void )
 
 /**
  * @brief Test for validating DateString function
- * 
+ *
  * This function test the behavior of the DataString function by setting a string to "000,00 0000 00"
  * and then using the function to update the string with date values
  *
@@ -90,7 +90,7 @@ void test_date_string( void )
 
 /**
  * @brief Test for initialization of display
- * 
+ *
  * This function test the initialization of the displays and sets expectations for varios display-related functions
  * It checks if this functions are called as expected
  *
@@ -106,7 +106,7 @@ void test_Display_Init( void )
 
 /**
  * @brief Test for the display task when queue is empty
- * 
+ *
  * This function test the simulation scenario where the display queue is empty
  *
  */
@@ -119,7 +119,7 @@ void test_Display_Task_QueueEmpty( void )
 
 /**
  * @brief Test for the display task when a message is available
- * 
+ *
  * This functions test the scenario where a message is available in the display
  * Taking into account that a message from the queue has to be called, to be aware that the stateMachine is working
  *
@@ -146,7 +146,7 @@ void test_Display_Task_Message( void )
 
 /**
  * @brief Test for the DisplayEventMachine function (Time)
- * 
+ *
  * This function test the behavior of the event machine when receives a DISPLAY_MSG_TIME message
  */
 void test_DisplayEventMachine_MessageTime( void )
