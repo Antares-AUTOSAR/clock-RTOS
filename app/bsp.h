@@ -69,12 +69,14 @@ typedef enum
     ERROR_STATE       /*!< Error state of data */
 } APP_Messages;
 
+/**
+ * @brief   Enum with message types used as events for unit testing
+ */
 typedef enum
 {
-    DISPLAY_MSG_TIME, /**< Received Time message type */
-    DISPLAY_IDLE_STATE
+    DISPLAY_MSG_TIME,  /**< Received Time message type */
+    DISPLAY_IDLE_STATE /**< Received Date message type */
 } Display_M;
-
 
 /*Queue identifier to use*/
 extern QueueHandle_t serialQueue;  /* Serial Queue identifier to use in the serial machine. */
