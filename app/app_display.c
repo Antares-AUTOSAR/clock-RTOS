@@ -22,7 +22,7 @@ SPI_HandleTypeDef SpiHandle; /* cppcheck-suppress misra-c2012-8.4  ;Not moving d
  * @brief Variable for LCD configuration
  */
 LCD_HandleTypeDef hlcd; /* cppcheck-suppress misra-c2012-8.4  ;Not moving due to unit testing*/
-STATIC Display_M Display_Machine( APP_MsgTypeDef *DisplayMsg );
+STATIC void Display_Machine( APP_MsgTypeDef *DisplayMsg );
 STATIC Display_M Time( APP_MsgTypeDef *DisplayMsg );
 STATIC void TimeString( char *string, uint8_t hours, uint8_t minutes, uint8_t seconds );
 STATIC void DateString( char *string, uint8_t month, uint8_t day, uint16_t year, uint8_t weekday );
@@ -166,17 +166,18 @@ void Display_Task( void )
  *
  * @param DisplayMsg: A pointer to the message structure containing state information
  */
-Display_M Display_Machine( APP_MsgTypeDef *DisplayMsg )
+static void Display_Machine( APP_MsgTypeDef *DisplayMsg )
 {
     static DisplayNode stateMachine[ DISPLAY_STATES ] =
     {
     { Time },
+    { Date },
     };
 
-    APP_Messages state  = DisplayMsg->msg;
-    Display_M new_event = stateMachine[ state ].stateFunc( DisplayMsg );
+    static APP_Messages state;
 
-    return new_event;
+    state = DisplayMsg->msg;
+    stateMachine[ state ].stateFunc( DisplayMsg );
 }
 
 /**
@@ -186,17 +187,35 @@ Display_M Display_Machine( APP_MsgTypeDef *DisplayMsg )
  * formats it as a string in the format 00:00:00
  *
  * @param DisplayMsg: A pointer to the message structure containing state information
+ * @return DISPLAY_MSG_TIME: State for testing and knowing a message have been sent
  */
-Display_M Time( APP_MsgTypeDef *DisplayMsg )
+STATIC Display_M Time( APP_MsgTypeDef *DisplayMsg )
 {
-    char string[]      = "00:00:00";       /* cppcheck-suppress misra-c2012-7.4  ;Array to print time */
-    char date_string[] = "000,00 0000 00"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print date*/
+    char string[] = "00:00:00"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print time */
 
     TimeString( string, DisplayMsg->tm.tm_hour, DisplayMsg->tm.tm_min, DisplayMsg->tm.tm_sec );
-    DateString( date_string, DisplayMsg->tm.tm_mon, DisplayMsg->tm.tm_mday, DisplayMsg->tm.tm_year, DisplayMsg->tm.tm_wday );
 
     (void)HEL_LCD_SetCursor( &hlcd, 1, 3 );
     (void)HEL_LCD_String( &hlcd, string );
+
+    DisplayMsg->msg = SERIAL_MSG_DATE;
+    xQueueSend( displayQueue, DisplayMsg, 0 );
+    return DISPLAY_MSG_TIME;
+}
+
+/**
+ * @brief   Display the current Date on the LCD
+ *
+ * This function rettrieves the curren date from the Clockmsg structure and
+ * formats it as a string in the format 000,00 0000 00
+ *
+ * @param DisplayMsg:  A pointer to the message structure containing state information
+ * @return DISPLAY_IDLE_STATE: State for testing, even though it doesnt make the transition of another state it must return to IDLE
+ */
+STATIC Display_M Date( APP_MsgTypeDef *DisplayMsg )
+{
+    char date_string[] = "000,00 0000 00"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print date*/
+    DateString( date_string, DisplayMsg->tm.tm_mon, DisplayMsg->tm.tm_mday, DisplayMsg->tm.tm_year, DisplayMsg->tm.tm_wday );
 
     (void)HEL_LCD_SetCursor( &hlcd, 0, 1 );
     (void)HEL_LCD_String( &hlcd, date_string );
