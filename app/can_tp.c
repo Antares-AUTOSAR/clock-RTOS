@@ -36,10 +36,10 @@ void CAN_TP_RxSeparationTimeSet( CAN_TP_Header *header, uint8_t separationTime )
 void CAN_TP_RxBlockSizeSet( CAN_TP_Header *header, uint8_t blockSize );
 
 void CAN_TP_NewMessage( CAN_TP_Header *header, void *data );
-void CAN_TP_MessageSend( CAN_TP_Header *header, const uint8_t *data, uint32_t length );
+void CAN_TP_TransmitMessage( CAN_TP_Header *header, const uint8_t *data, uint32_t length );
 
-static void CAN_TP_TxTransmitted( CAN_TP_Header *header );
-static void CAN_TP_RxReceived( CAN_TP_Header *header );
+static void CAN_TP_TxTransmit_Period_Task( CAN_TP_Header *header );
+static void CAN_TP_RxReceive_Period_Task( CAN_TP_Header *header );
 
 uint8_t CAN_TP_IsMessageReady( const CAN_TP_Header *header );
 void CAN_TP_MessageGet( CAN_TP_Header *header, uint8_t *data, uint8_t data_length );
@@ -56,7 +56,7 @@ static uint8_t flag_can_tp_flowcontrol_status[ 3 ] = { CTS_OFF, WAIT_OFF, OVERFL
 
 
 /**
- * @brief Initializes the CAN_TP configuration for the CAN_TP_TASK
+ * @brief Initializes the CAN_TP configuration for the  CAN_TP_Periodic_Task
  *
  * Function necessary for work with normality
  *
@@ -74,19 +74,21 @@ void CAN_TP_Init( CAN_TP_Header *header )
  *
  * @param header CAN_TP header data structure.
  */
-void CAN_TP_Task( CAN_TP_Header *header )
+void CAN_TP_Periodic_Task( CAN_TP_Header *header )
 {
 
     while( header->counter_newmessage != 0u )
     {
-
-        CAN_TP_RxReceived( header );
+        // Si el buffer Rx esta HAL_FDCAN_GetRxFifoFillLevel(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo);
+        // Enviar un WAIT y en el transmisor debera de transmitir otra vez el ultimo packete de data
+        // Si el buffer no recibe en el tiempo estimado los mensages, es overflow/abort
+        CAN_TP_RxReceive_Period_Task( header );
         header->counter_newmessage--;
     }
 
     if( header->flag_transmitted == FLAG_CAN_TP_ON )
     {
-        CAN_TP_TxTransmitted( header );
+        CAN_TP_TxTransmit_Period_Task( header );
     }
 }
 
@@ -95,10 +97,11 @@ void CAN_TP_Task( CAN_TP_Header *header )
  *
  * This function processes the received CAN_TP messages, including flow control frames,
  * first frames, and consecutive frames. It updates the transmission state accordingly.
+ * Also save the decoded message from the reception.
  *
  * @param header CAN_TP header data structure.
  */
-static void CAN_TP_RxReceived( CAN_TP_Header *header )
+static void CAN_TP_RxReceive_Period_Task( CAN_TP_Header *header )
 {
 
     uint8_t message_type = header->buffer_received->Messagetype >> 4;
@@ -141,28 +144,43 @@ static void CAN_TP_RxReceived( CAN_TP_Header *header )
 
             case SINGLE_FRAME_TYPE:
 
+                while( counter_dlc < 7u )
+                {
+
+                    header->message[ counter_dlc ] = header->buffer_received->Data[ counter_dlc ];
+                    counter_dlc++;
+                }
+
+                header->flag_ready = 1u;
+
                 break;
 
             case FIRST_FRAME_TYPE:
 
-                uint8_t message_flowcontrol[ 3 ] = { 0x30, 0x00, 0x00 };
+                uint32_t value_buffer_tx = HAL_FDCAN_GetTxFifoFreeLevel( header->CANHandler );
 
-                header->data_length = header->buffer_received->Messagetype << 12;
-                header->data_length = ( header->data_length >> 4 ) | header->buffer_received->Data[ 1 ];
-
-                while( counter_dlc < 6u )
+                if( value_buffer_tx > 0u )
                 {
+                    uint8_t message_flowcontrol[ 3 ] = { 0x30, 0x00, 0x00 };
 
-                    header->message[ counter_dlc ] = header->buffer_received->Data[ counter_dlc + 1u ];
-                    counter_dlc++;
+                    header->data_length = header->buffer_received->Messagetype << 12;
+                    header->data_length = ( header->data_length >> 4 ) | header->buffer_received->Data[ 1 ];
+
+                    while( counter_dlc < 6u )
+                    {
+
+                        header->message[ counter_dlc ] = header->buffer_received->Data[ counter_dlc + 1u ];
+                        counter_dlc++;
+                    }
+
+                    header->data_length = header->data_length - 6u;
+
+                    header->CANTxHeader->DataLength = FDCAN_DLC_BYTES_3;
+
+                    HAL_FDCAN_AddMessageToTxFifoQ( header->CANHandler, header->CANTxHeader, message_flowcontrol );
+
+                    header->CANTxHeader->DataLength = FDCAN_DLC_BYTES_8;
                 }
-
-                header->data_length = header->data_length - 6u;
-
-                header->CANTxHeader->DataLength = FDCAN_DLC_BYTES_3;
-                HAL_FDCAN_AddMessageToTxFifoQ( header->CANHandler, header->CANTxHeader, message_flowcontrol );
-                header->CANTxHeader->DataLength = FDCAN_DLC_BYTES_8;
-
 
                 break;
             case CONSECUTIVE_FRAME_TYPE:
@@ -213,146 +231,190 @@ static void CAN_TP_RxReceived( CAN_TP_Header *header )
  * This function manages the transmission of CAN_TP messages, including first frames
  * and consecutive frames. It handles the flow control logic and updates the state
  * for transmission.
+ * To make the transmissions, right shifts are made depending on the type of frame for
+ * the general data bytes of the frame and in the data bytes a while is used to extract
+ * the message sent by the user and encode it in the corresponding variable.
  *
  * @param header CAN_TP header data structure.
  */
-static void CAN_TP_TxTransmitted( CAN_TP_Header *header )
+static void CAN_TP_TxTransmit_Period_Task( CAN_TP_Header *header )
 {
 
     static uint8_t state                   = FIRST_FRAME_TYPE;
     static uint8_t count_sequencenumber    = 1;
     static uint8_t count_multiplier_offset = 0;
     uint8_t counter_dlc                    = 0;
+
+    uint32_t value_buffer_tx = HAL_FDCAN_GetTxFifoFreeLevel( header->CANHandler );
+
+    if( header->length < 8u )
+    {
+        state = SINGLE_FRAME_TYPE;
+    }
+
     switch( state )
     {
 
-        case FIRST_FRAME_TYPE:
+        case SINGLE_FRAME_TYPE:
 
-            counter_dlc            = 0;
-            uint8_t message_f[ 8 ] = { 0 };
-
-            if( header->length > 0xFFu )
+            if( value_buffer_tx > 0u )
             {
-
-                message_f[ 0 ] = ( 0x10u ) | ( header->length >> 8u );
-                message_f[ 1 ] = header->length;
-            }
-            else
-            {
-
-                message_f[ 0 ] = 0x10;
-                message_f[ 1 ] = header->length;
-            }
-
-            while( counter_dlc < 6u )
-            {
-
-                message_f[ counter_dlc + 2u ] = header->buffer_transmited[ counter_dlc ];
-                counter_dlc++;
-            }
-
-            HAL_FDCAN_AddMessageToTxFifoQ( header->CANHandler, header->CANTxHeader, message_f );
-
-            state = FLOW_CONTROL_FRAME_TYPE;
-
-            break;
-        case CONSECUTIVE_FRAME_TYPE:
-
-            uint8_t message_c[ 8 ] = { 0 };
-
-            if( ( count_sequencenumber < 17u ) && ( header->multiplier_counter > 0u ) )
-            {
-                counter_dlc    = 0;
-                message_c[ 0 ] = 0x20u | count_sequencenumber;
+                counter_dlc                       = 0; // data length code (DLC)
+                uint8_t message_single_frame[ 8 ] = { 0 };
+                message_single_frame[ 0 ]         = header->length;
 
                 while( counter_dlc < 7u )
                 {
-
-                    message_c[ counter_dlc + 1u ] = header->buffer_transmited[ counter_dlc + OFFSET_FIRST_FRAME + ( ( count_sequencenumber - 1u ) * 7u ) + ( count_multiplier_offset * 16u * 7u ) ];
+                    message_single_frame[ counter_dlc + 1u ] = header->buffer_transmited[ counter_dlc ];
                     counter_dlc++;
                 }
 
-
-                HAL_FDCAN_AddMessageToTxFifoQ( header->CANHandler, header->CANTxHeader, message_c );
-
-                count_sequencenumber++;
-                state = CONSECUTIVE_FRAME_TYPE;
-            }
-
-            if( ( count_sequencenumber == 17u ) && ( header->multiplier_counter != 0u ) )
-            {
-
-                count_sequencenumber = 1;
-                header->multiplier_counter--;
-                count_multiplier_offset++;
-            }
-
-            if( ( header->multiplier_counter == 0u ) && ( header->number_counter > 0u ) )
-            {
-
-                counter_dlc    = 0;
-                message_c[ 0 ] = 0x20u | count_sequencenumber;
-
-                while( counter_dlc < 7u )
-                {
-
-                    message_c[ counter_dlc + 1u ] = header->buffer_transmited[ counter_dlc + OFFSET_FIRST_FRAME + ( ( count_sequencenumber - 1u ) * 7u ) + ( count_multiplier_offset * 16u * 7u ) ];
-                    counter_dlc++;
-                }
-
-                if( ( header->number_counter == count_sequencenumber ) )
-                {
-
-                    header->number_counter = 0;
-                }
-
-                HAL_FDCAN_AddMessageToTxFifoQ( header->CANHandler, header->CANTxHeader, message_c );
-
-
-                count_sequencenumber++;
-                state = CONSECUTIVE_FRAME_TYPE;
-            }
-
-            if( ( header->multiplier_counter == 0u ) && ( header->number_counter == 0u ) )
-            {
-
-                if( header->rest_counter != 0u )
-                {
-
-                    uint32_t const defines_dlc[ 6 ] = { FDCAN_DLC_BYTES_2, FDCAN_DLC_BYTES_3, FDCAN_DLC_BYTES_4, FDCAN_DLC_BYTES_5, FDCAN_DLC_BYTES_6, FDCAN_DLC_BYTES_7 };
-                    counter_dlc                     = 0;
-
-                    message_c[ 0 ] = 0x20u | count_sequencenumber;
-
-                    while( counter_dlc < header->rest_counter )
-                    {
-
-                        message_c[ counter_dlc + 1u ] = header->buffer_transmited[ counter_dlc + OFFSET_FIRST_FRAME + ( ( count_sequencenumber - 1u ) * 7u ) + ( count_multiplier_offset * 16u * 7u ) ];
-                        counter_dlc++;
-                    }
-
-                    header->CANTxHeader->DataLength = defines_dlc[ header->rest_counter - 1u ];
-
-                    HAL_FDCAN_AddMessageToTxFifoQ( header->CANHandler, header->CANTxHeader, message_c );
-
-                    header->CANTxHeader->DataLength = FDCAN_DLC_BYTES_8;
-                }
+                HAL_FDCAN_AddMessageToTxFifoQ( header->CANHandler, header->CANTxHeader, message_single_frame );
 
                 state = FIRST_FRAME_TYPE;
 
                 header->flag_transmitted = FLAG_CAN_TP_OFF;
+            }
 
-                count_sequencenumber = 1;
+            break;
 
-                count_multiplier_offset = 0;
+        case FIRST_FRAME_TYPE:
 
-                header->number_counter = 0;
+            if( value_buffer_tx > 0u )
+            {
+                counter_dlc                      = 0; // data length code (DLC)
+                uint8_t message_first_frame[ 8 ] = { 0 };
 
-                for( uint8_t i = 0; i < header->length; i++ )
+                if( header->length > 0xFFu ) // Case when the length is bigger that 255 so it need to use 12 bits.
                 {
 
-                    header->buffer_transmited[ i ] = 0;
+                    message_first_frame[ 0 ] = ( 0x10u ) | ( header->length >> 8u ); // The 12 bits in the byte 0 only save 4 bits.
+                    message_first_frame[ 1 ] = header->length;                       // The 8 bits rest save in the byte 1.
                 }
+                else
+                {
+
+                    message_first_frame[ 0 ] = 0x10;
+                    message_first_frame[ 1 ] = header->length;
+                }
+
+                while( counter_dlc < 6u )
+                {
+
+                    message_first_frame[ counter_dlc + 2u ] = header->buffer_transmited[ counter_dlc ];
+                    counter_dlc++;
+                }
+
+                HAL_FDCAN_AddMessageToTxFifoQ( header->CANHandler, header->CANTxHeader, message_first_frame );
+
+                state = FLOW_CONTROL_FRAME_TYPE;
+            }
+
+            break;
+        case CONSECUTIVE_FRAME_TYPE:
+
+            uint8_t counter_i = 0;
+
+            while( counter_i < value_buffer_tx )
+            {
+                uint8_t message_consecutive_frame[ 8 ] = { 0 };
+
+                if( ( count_sequencenumber < 17u ) && ( header->sequencenumber_index_counter > 0u ) )
+                {
+                    counter_dlc                    = 0;
+                    message_consecutive_frame[ 0 ] = 0x20u | count_sequencenumber;
+
+                    while( counter_dlc < 7u )
+                    {
+
+                        message_consecutive_frame[ counter_dlc + 1u ] = header->buffer_transmited[ counter_dlc + OFFSET_FIRST_FRAME + ( ( count_sequencenumber - 1u ) * 7u ) + ( count_multiplier_offset * 16u * 7u ) ];
+                        counter_dlc++;
+                    }
+
+
+                    HAL_FDCAN_AddMessageToTxFifoQ( header->CANHandler, header->CANTxHeader, message_consecutive_frame );
+
+                    count_sequencenumber++;
+                    state = CONSECUTIVE_FRAME_TYPE;
+                }
+
+                if( ( count_sequencenumber == 17u ) && ( header->sequencenumber_index_counter != 0u ) )
+                {
+
+                    count_sequencenumber = 1;
+                    header->sequencenumber_index_counter--;
+                    count_multiplier_offset++;
+                }
+
+                if( ( header->sequencenumber_index_counter == 0u ) && ( header->sequencenumber_index > 0u ) )
+                {
+
+                    counter_dlc                    = 0;
+                    message_consecutive_frame[ 0 ] = 0x20u | count_sequencenumber;
+
+                    while( counter_dlc < 7u )
+                    {
+
+                        message_consecutive_frame[ counter_dlc + 1u ] = header->buffer_transmited[ counter_dlc + OFFSET_FIRST_FRAME + ( ( count_sequencenumber - 1u ) * 7u ) + ( count_multiplier_offset * 16u * 7u ) ];
+                        counter_dlc++;
+                    }
+
+                    if( ( header->sequencenumber_index == count_sequencenumber ) )
+                    {
+
+                        header->sequencenumber_index = 0;
+                    }
+
+                    HAL_FDCAN_AddMessageToTxFifoQ( header->CANHandler, header->CANTxHeader, message_consecutive_frame );
+
+
+                    count_sequencenumber++;
+                    state = CONSECUTIVE_FRAME_TYPE;
+                }
+
+                if( ( header->sequencenumber_index_counter == 0u ) && ( header->sequencenumber_index == 0u ) )
+                {
+
+                    if( header->last_sequencenumber_short_bytes != 0u )
+                    {
+
+                        uint32_t const defines_dlc[ 6 ] = { FDCAN_DLC_BYTES_2, FDCAN_DLC_BYTES_3, FDCAN_DLC_BYTES_4, FDCAN_DLC_BYTES_5, FDCAN_DLC_BYTES_6, FDCAN_DLC_BYTES_7 };
+                        counter_dlc                     = 0;
+
+                        message_consecutive_frame[ 0 ] = 0x20u | count_sequencenumber;
+
+                        while( counter_dlc < header->last_sequencenumber_short_bytes )
+                        {
+
+                            message_consecutive_frame[ counter_dlc + 1u ] = header->buffer_transmited[ counter_dlc + OFFSET_FIRST_FRAME + ( ( count_sequencenumber - 1u ) * 7u ) + ( count_multiplier_offset * 16u * 7u ) ];
+                            counter_dlc++;
+                        }
+
+                        header->CANTxHeader->DataLength = defines_dlc[ header->last_sequencenumber_short_bytes - 1u ];
+
+                        HAL_FDCAN_AddMessageToTxFifoQ( header->CANHandler, header->CANTxHeader, message_consecutive_frame );
+
+                        header->CANTxHeader->DataLength = FDCAN_DLC_BYTES_8;
+                    }
+
+                    state = FIRST_FRAME_TYPE;
+
+                    header->flag_transmitted = FLAG_CAN_TP_OFF;
+
+                    count_sequencenumber = 1;
+
+                    count_multiplier_offset = 0;
+
+                    header->sequencenumber_index = 0;
+
+                    for( uint8_t i = 0; i < header->length; i++ )
+                    {
+
+                        header->buffer_transmited[ i ] = 0;
+                    }
+                }
+
+                counter_i++;
             }
 
             break;
@@ -383,6 +445,9 @@ static void CAN_TP_TxTransmitted( CAN_TP_Header *header )
 /**
  * @brief Sets the received message buffer and its size.
  *
+ * Function to indicate the size and memory space of the Rx
+ * buffer where the messages received from the data transmission will be saved.
+ *
  * @param header CAN_TP header data structure.
  * @param buffer Received message buffer.
  * @param bufferSize Size of the message buffer.
@@ -398,6 +463,10 @@ void CAN_TP_RxMessageBufferSet( CAN_TP_Header *header, uint8_t *buffer, uint32_t
 /**
  * @brief Sets the separation time between received messages.
  *
+ * Function to indicate the separation time of message transmission
+ * for the Rx buffer. If kept at 0, no waiting limits will apply between
+ * received messages.
+ *
  * @param header CAN_TP header data structure.
  * @param separationTime Separation time between messages.
  */
@@ -408,6 +477,10 @@ void CAN_TP_RxSeparationTimeSet( CAN_TP_Header *header, uint8_t separationTime )
 
 /**
  * @brief Sets the block size for received messages.
+ *
+ * Function to indicate the blocks that will be received in the
+ * transmission of messages. If kept at 0, message limits will not
+ * be taken into account for transmission.
  *
  * @param header CAN_TP header data structure.
  * @param blockSize Block size.
@@ -420,53 +493,69 @@ void CAN_TP_RxBlockSizeSet( CAN_TP_Header *header, uint8_t blockSize )
 /**
  * @brief Initiates the transmission of a CAN_TP_Transmited message.
  *
+ * The function analyzes whether to send a single frame or multiple consecutive frames
+ * depending on the length of the data. In the case of multiple consecutive frames, the
+ * number of consecutive frames that will be sent is calculated.
+ *
  * @param header CAN_TP header data structure.
  * @param data Pointer to the message data.
  * @param length Length of the message.
  */
-void CAN_TP_MessageSend( CAN_TP_Header *header, const uint8_t *data, uint32_t length )
+void CAN_TP_TransmitMessage( CAN_TP_Header *header, const uint8_t *data, uint32_t length )
 {
 
-    header->multiplier_counter = ( length - OFFSET_FIRST_FRAME ) / 512u; // 16
-    if( header->multiplier_counter == 0u )
+    if( header->flag_transmitted != FLAG_CAN_TP_ON )
     {
-
-        header->number_counter = ( length - OFFSET_FIRST_FRAME ) / 7u;
-
-        if( header->number_counter > 0u )
+        if( length > 7u )
         {
 
-            header->rest_counter = ( length - OFFSET_FIRST_FRAME ) - ( 7u * header->number_counter );
-        }
-        else
-        {
+            header->sequencenumber_index_counter = ( length - OFFSET_FIRST_FRAME ) / 512u; // 16
 
-            header->rest_counter = length - OFFSET_FIRST_FRAME;
+            if( header->sequencenumber_index_counter == 0u )
+            {
+
+                header->sequencenumber_index = ( length - OFFSET_FIRST_FRAME ) / 7u;
+
+                if( header->sequencenumber_index > 0u )
+                {
+
+                    header->last_sequencenumber_short_bytes = ( length - OFFSET_FIRST_FRAME ) - ( 7u * header->sequencenumber_index );
+                }
+                else
+                {
+
+                    header->last_sequencenumber_short_bytes = length - OFFSET_FIRST_FRAME;
+                }
+            }
+            else
+            {
+
+                header->last_sequencenumber_short_bytes = ( length - OFFSET_FIRST_FRAME ) - ( 16u * 7u * header->sequencenumber_index_counter );
+
+                header->sequencenumber_index = header->last_sequencenumber_short_bytes / 7u;
+
+                if( header->sequencenumber_index > 0u )
+                {
+
+                    header->last_sequencenumber_short_bytes = header->last_sequencenumber_short_bytes - ( 7u * header->sequencenumber_index );
+                }
+            }
         }
+
+        header->buffer_transmited = data;
+
+        header->length = length;
+
+        header->flag_transmitted = FLAG_CAN_TP_ON;
     }
-    else
-    {
-
-        header->rest_counter = ( length - OFFSET_FIRST_FRAME ) - ( 16u * 7u * header->multiplier_counter );
-
-        header->number_counter = header->rest_counter / 7u;
-
-        if( header->number_counter > 0u )
-        {
-
-            header->rest_counter = header->rest_counter - ( 7u * header->number_counter );
-        }
-    }
-
-    header->buffer_transmited = data;
-
-    header->length = length;
-
-    header->flag_transmitted = FLAG_CAN_TP_ON;
 }
 
 /**
  * @brief Timing function for CAN_TP.
+ *
+ * Function that counts CAN TP ticks to ensure separation time and
+ * sending of a wait, overflow/abort.
+ *
  */
 void CAN_TP_Tick( void )
 {
@@ -476,6 +565,9 @@ void CAN_TP_Tick( void )
 
 /**
  * @brief Handles a new message received by CAN_TP.
+ *
+ * Function to implement in HAL_FDCAN_RxFifo0Callback. This function
+ * tells us when to enter CAN_TP_RxReceive_Period_Task
  *
  * @param header CAN_TP header data structure.
  * @param data Pointer to the received message data.
@@ -490,6 +582,8 @@ void CAN_TP_NewMessage( CAN_TP_Header *header, void *data )
 /**
  * @brief Checks if the message is ready to be processed.
  *
+ * Function that tells us if we can read the complete message received through CAN_TP
+ *
  * @param header CAN_TP header data structure.
  * @return 1 if the message is ready, 0 otherwise.
  */
@@ -501,6 +595,10 @@ uint8_t CAN_TP_IsMessageReady( const CAN_TP_Header *header )
 
 /**
  * @brief Gets the processed message.
+ *
+ * Function to extract all the message received by CAN TP into
+ * a variable and then delete all the message received in the
+ * Rx buffer.
  *
  * @param header CAN_TP header data structure.
  * @param data Pointer to the message data.
