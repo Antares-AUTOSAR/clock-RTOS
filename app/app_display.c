@@ -17,11 +17,16 @@ typedef struct
     Display_M ( *stateFunc )( APP_MsgTypeDef *DisplayMsg ); /*!< Pointer to function which perform state statements */
 } DisplayNode;
 
-SPI_HandleTypeDef SpiHandle; /* cppcheck-suppress misra-c2012-8.4  ;Not moving due to unit testing*/
 /**
  * @brief Variable for LCD configuration
  */
 LCD_HandleTypeDef hlcd; /* cppcheck-suppress misra-c2012-8.4  ;Not moving due to unit testing*/
+
+/**
+ * @brief Variable for SPI configuration
+ */
+SPI_HandleTypeDef SpiHandle; /* cppcheck-suppress misra-c2012-8.4  ;Not moving due to unit testing*/
+
 static void Display_Machine( APP_MsgTypeDef *DisplayMsg );
 STATIC Display_M Time( APP_MsgTypeDef *DisplayMsg );
 STATIC Display_M Date( APP_MsgTypeDef *DisplayMsg );
