@@ -137,9 +137,9 @@ void test_Display_Task_Message( void )
     HEL_LCD_SetCursor_ExpectAndReturn( &hlcd, 1, 3, HAL_OK );
     HEL_LCD_String_ExpectAndReturn( &hlcd, string, HAL_OK );
     xQueueGenericSend_IgnoreAndReturn( pdPASS );
-    HEL_LCD_SetCursor_IgnoreAndReturn( pdPASS );
-    HEL_LCD_String_IgnoreAndReturn( pdPASS );
-    xQueueReceive_IgnoreAndReturn( pdFAIL );
+    HEL_LCD_SetCursor_IgnoreAndReturn( HAL_OK );
+    HEL_LCD_String_IgnoreAndReturn( HAL_OK );
+    xQueueReceive_IgnoreAndReturn( errQUEUE_EMPTY );
 
     Display_Task( );
 }
