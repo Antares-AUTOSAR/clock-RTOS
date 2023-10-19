@@ -53,7 +53,6 @@
     - app/ints.c              # Do not test interrupt vectors
     - app/msps.c              # Do not test extra initlization functions
     - app/app_clock.c         # Do not test app_clock interfaces
-    - app/hel_lcd.c           # Do not test extra initlization functions
     - app/app_serial.c        # Do not test extra initlization functions
     - app/app_display.c       # Do not test extra initlization functions
 
