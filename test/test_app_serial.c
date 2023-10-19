@@ -6,9 +6,8 @@
 #include "mock_stm32g0xx_hal_fdcan.h"
 #include "mock_queue.h"
 
-//#include "bsp.h"
+#include "bsp.h"
 
-//void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs);
 
 void setUp( void )
 {
@@ -32,7 +31,7 @@ void test__Serial_Init__testInit( void )
     HAL_FDCAN_Start_IgnoreAndReturn( HAL_OK );
     HAL_FDCAN_ActivateNotification_IgnoreAndReturn( HAL_OK );
 
-    Serial_Init();
+    Serial_Init( );
 }
 
 /*void test__HAL_FDCAN__RxFifo0Callback(void)

@@ -68,6 +68,7 @@
   :strippables:              # Add here all fucntions you do not want to be mocked
     - '(?:HAL_GPIO_EXTI_Rising_Callback\s*\(+.*?\)+)'     # For instance the callback functions
     - '(?:HAL_GPIO_EXTI_Falling_Callback\s*\(+.*?\)+)'    # For instance the callback functions
+    - '(?:HAL_FDCAN_RxFifo0Callback\s*\(+.*?\)+)'         # For instance the callback functions
   :plugins:
     - :ignore                 # Generate <function>_Ignore and <function>_IgnoreAndReturn
     - :ignore_arg             # Generate <function>_IgnoreArg_<param_name>
