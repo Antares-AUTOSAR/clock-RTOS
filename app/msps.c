@@ -178,6 +178,14 @@ void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )
     HAL_GPIO_WritePin( hlcd->BklPort, hlcd->BklPin, SET );
 }
 
+/**
+ * @brief   Initialize PWM
+ *
+ * This function initializes the TIM peripheral and associated GPIO pins for operation
+ * It enables the ports for using the pwm with the buzzer
+ *
+ * @param htim: pointer to htmi handle structure
+ */
 /* cppcheck-suppress misra-c2012-8.4 ; its external linkage is declared at HAL library */
 void HAL_TIM_PWM_MspInit( TIM_HandleTypeDef *htim )
 {

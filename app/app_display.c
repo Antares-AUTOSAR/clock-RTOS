@@ -273,9 +273,9 @@ static void Date( APP_MsgTypeDef *DisplayMsg )
 }
 
 /**
- * @brief   Prints the letter A 
+ * @brief   Prints the letter A
  *
- * This function prints the letter A when the alarm has been triggered 
+ * This function prints the letter A when the alarm has been triggered
  * @param DisplayMsg:  A pointer to the message structure containing state information
  */
 static void Alarm_A( APP_MsgTypeDef *DisplayMsg )
@@ -308,7 +308,7 @@ static void Alarm( APP_MsgTypeDef *DisplayMsg )
 }
 
 /**
- * @brief  Clean Alarm 
+ * @brief  Clean Alarm
  *
  * This function prints stop and turn off before the one-minute lapse expire by receiving a new date, time, or alarm through the CAN bus
  * @param DisplayMsg:  A pointer to the message structure containing state information
