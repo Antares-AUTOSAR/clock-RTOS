@@ -83,19 +83,8 @@ void Clock_Init( void )
     dateYearH     = RTC_INITIAL_YEARH; // Initial date JAN1 2000
     HAL_RTC_SetDate( &RtcHandler, &sDate, RTC_FORMAT_BCD );
 
-    GPIO_InitTypeDef GPIO_InitStruct;  
-
-    __HAL_RCC_GPIOB_CLK_ENABLE();
-
-    GPIO_InitStruct.Pin = GPIO_PIN_7;                  
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;     
-    GPIO_InitStruct.Pull = GPIO_NOPULL;          
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;    
-
-    HAL_GPIO_Init( GPIOB, &GPIO_InitStruct );
-        
-    HAL_NVIC_SetPriority(EXTI4_15_IRQn,2,0);
-    HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
+    HAL_NVIC_SetPriority( EXTI4_15_IRQn, 2, 0 );
+    HAL_NVIC_EnableIRQ( EXTI4_15_IRQn );
 
     xTimerDisplay = xTimerCreate( "D_Timer", 1000, pdTRUE, TIMER_DISPLAY_ID, Clock_Update_DateAndTime );
     xTimerStart( xTimerDisplay, 0 );
@@ -163,21 +152,21 @@ static void state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage )
 {
     static APP_MsgTypeDef clockMessage = { 0 };
 
-    RTC_AlarmTypeDef sAlarm = {0};
+    RTC_AlarmTypeDef sAlarm = { 0 };
 
-    sAlarm.AlarmTime.Hours   = receivedMessage->tm.tm_hour;
-    sAlarm.AlarmTime.Minutes = receivedMessage->tm.tm_min;
-    sAlarm.Alarm = RTC_ALARM_A;
-    sAlarm.AlarmDateWeekDay = 1;
-    sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
-    sAlarm.AlarmMask = RTC_ALARMMASK_SECONDS | RTC_ALARMMASK_DATEWEEKDAY;
-    sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
+    sAlarm.AlarmTime.Hours          = receivedMessage->tm.tm_hour_alarm;
+    sAlarm.AlarmTime.Minutes        = receivedMessage->tm.tm_min_alarm;
+    sAlarm.Alarm                    = RTC_ALARM_A;
+    sAlarm.AlarmDateWeekDay         = 1;
+    sAlarm.AlarmDateWeekDaySel      = RTC_ALARMDATEWEEKDAYSEL_DATE;
+    sAlarm.AlarmMask                = RTC_ALARMMASK_SECONDS | RTC_ALARMMASK_DATEWEEKDAY;
+    sAlarm.AlarmSubSecondMask       = RTC_ALARMSUBSECONDMASK_ALL;
     sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
     sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
-    
-    HAL_RTC_SetAlarm_IT( &RtcHandler, &sAlarm, RTC_FORMAT_BIN);
 
-    clockMessage.msg = DISPLAY_MSG_ALARM_A; // Message to indicate to LCD update displayed data
+    HAL_RTC_SetAlarm_IT( &RtcHandler, &sAlarm, RTC_FORMAT_BIN );
+
+    clockMessage.msg = SERIAL_MSG_TIME; // Message to indicate to LCD update displayed data
     xQueueSend( displayQueue, &clockMessage, 0 );
 }
 
@@ -282,17 +271,16 @@ void Clock_Update_DateAndTime( TimerHandle_t pxTimer )
 /**
  * @brief  Callback interruption of the ALARM
  *
- * This interruption activates it when the alarm has been setted, when it happens it will desactivated the alarm 
- * and will send us to the case of displaying the ALARM. Also, the timer for displaying each second will stop 
+ * This interruption activates it when the alarm has been setted, when it happens it will desactivated the alarm
+ * and will send us to the case of displaying the ALARM. Also, the timer for displaying each second will stop
  */
-void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
+/* cppcheck-suppress misra-c2012-8.4 ; its external linkage is declared at HAL library */
+void HAL_RTC_AlarmAEventCallback( RTC_HandleTypeDef *hrtc )
 {
-    static APP_MsgTypeDef DisplayMsg = {0};
+    static APP_MsgTypeDef DisplayMsg = { 0 };
+    xTimerStop( xTimerDisplay, 0 );
 
-    HAL_RTC_DeactivateAlarm(hrtc,RTC_ALARM_A);
-
-    xTimerStop(xTimerDisplay,0);
-
-    DisplayMsg.msg = DISPLAY_ALARM;
+    DisplayMsg.msg = CLOCK_MSG_PRINT;
+    HAL_RTC_DeactivateAlarm( hrtc, RTC_ALARM_A );
     xQueueSend( displayQueue, &DisplayMsg, 0 );
 }

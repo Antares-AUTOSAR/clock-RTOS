@@ -96,8 +96,8 @@ void HAL_RTC_MspInit( RTC_HandleTypeDef *hrtc )
     __HAL_RCC_RTC_ENABLE( );
     __HAL_RCC_RTCAPB_CLK_ENABLE( );
 
-    HAL_NVIC_SetPriority(RTC_TAMP_IRQn,2,0);
-    HAL_NVIC_EnableIRQ(RTC_TAMP_IRQn);
+    HAL_NVIC_SetPriority( RTC_TAMP_IRQn, 2, 0 );
+    HAL_NVIC_EnableIRQ( RTC_TAMP_IRQn );
 }
 
 /**

@@ -27,6 +27,8 @@ static void Time( APP_MsgTypeDef *DisplayMsg );
 static void Date( APP_MsgTypeDef *DisplayMsg );
 static void TimeString( char *string, uint8_t hours, uint8_t minutes, uint8_t seconds );
 static void DateString( char *string, uint8_t month, uint8_t day, uint16_t year, uint8_t weekday );
+static void Alarm_A( APP_MsgTypeDef *DisplayMsg );
+static void Alarm( APP_MsgTypeDef *DisplayMsg );
 /**
  * @brief   Get the abbreviation of the month
  *
@@ -173,8 +175,8 @@ static void Display_Machine( APP_MsgTypeDef *DisplayMsg )
     {
     { Time },
     { Date },
-    { Alarm_A},
-    { Alarm},
+    { Alarm_A },
+    { Alarm },
     };
 
     static APP_Messages state;
@@ -223,21 +225,21 @@ static void Date( APP_MsgTypeDef *DisplayMsg )
 
 static void Alarm_A( APP_MsgTypeDef *DisplayMsg )
 {
-    UNUSED(DisplayMsg);
+    UNUSED( DisplayMsg );
 
-    (void)HEL_LCD_SetCursor(&hlcd, 1, 0);
-    (void)HEL_LCD_Data(&hlcd, 'A');
+    (void)HEL_LCD_SetCursor( &hlcd, 1, 0 );
+    (void)HEL_LCD_Data( &hlcd, 'A' );
 }
 
 static void Alarm( APP_MsgTypeDef *DisplayMsg )
 {
-    UNUSED(DisplayMsg);
-    char string[] = "ALARM!!!";/* cppcheck-suppress misra-c2012-7.4  ;Array to print time */
+    UNUSED( DisplayMsg );
+    char string[] = "ALARM!!!"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print time */
 
-    (void)HEL_LCD_SetCursor(&hlcd, 1, 0);
-    (void)HEL_LCD_Data(&hlcd, ' ');
+    (void)HEL_LCD_SetCursor( &hlcd, 1, 0 );
+    (void)HEL_LCD_Data( &hlcd, ' ' );
 
-    (void)HEL_LCD_SetCursor(&hlcd, 1, 3);
-    (void)HEL_LCD_String(&hlcd, string);
-    (void)HEL_LCD_Backlight(&hlcd,1);
+    (void)HEL_LCD_SetCursor( &hlcd, 1, 3 );
+    (void)HEL_LCD_String( &hlcd, string );
+    (void)HEL_LCD_Backlight( &hlcd, 1 );
 }
