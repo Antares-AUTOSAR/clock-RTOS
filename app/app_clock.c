@@ -83,6 +83,20 @@ void Clock_Init( void )
     dateYearH     = RTC_INITIAL_YEARH; // Initial date JAN1 2000
     HAL_RTC_SetDate( &RtcHandler, &sDate, RTC_FORMAT_BCD );
 
+    GPIO_InitTypeDef GPIO_InitStruct;  
+
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+
+    GPIO_InitStruct.Pin = GPIO_PIN_7;                  
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;     
+    GPIO_InitStruct.Pull = GPIO_NOPULL;          
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;    
+
+    HAL_GPIO_Init( GPIOB, &GPIO_InitStruct );
+        
+    HAL_NVIC_SetPriority(EXTI4_15_IRQn,2,0);
+    HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
+
     xTimerDisplay = xTimerCreate( "D_Timer", 1000, pdTRUE, TIMER_DISPLAY_ID, Clock_Update_DateAndTime );
     xTimerStart( xTimerDisplay, 0 );
 }
@@ -149,10 +163,22 @@ static void state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage )
 {
     static APP_MsgTypeDef clockMessage = { 0 };
 
-    UNUSED( receivedMessage );
+    RTC_AlarmTypeDef sAlarm = {0};
 
-    clockMessage.msg = CLOCK_MSG_PRINT; // Message to indicate to LCD update displayed data
-    xQueueSend( clockQueue, &clockMessage, 0 );
+    sAlarm.AlarmTime.Hours   = receivedMessage->tm.tm_hour;
+    sAlarm.AlarmTime.Minutes = receivedMessage->tm.tm_min;
+    sAlarm.Alarm = RTC_ALARM_A;
+    sAlarm.AlarmDateWeekDay = 1;
+    sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+    sAlarm.AlarmMask = RTC_ALARMMASK_SECONDS | RTC_ALARMMASK_DATEWEEKDAY;
+    sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
+    sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+    sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
+    
+    HAL_RTC_SetAlarm_IT( &RtcHandler, &sAlarm, RTC_FORMAT_BIN);
+
+    clockMessage.msg = DISPLAY_MSG_ALARM_A; // Message to indicate to LCD update displayed data
+    xQueueSend( displayQueue, &clockMessage, 0 );
 }
 
 
@@ -251,4 +277,22 @@ void Clock_Update_DateAndTime( TimerHandle_t pxTimer )
 
     clockMessage.msg = CLOCK_MSG_PRINT;
     xQueueSend( clockQueue, &clockMessage, 0 );
+}
+
+/**
+ * @brief  Callback interruption of the ALARM
+ *
+ * This interruption activates it when the alarm has been setted, when it happens it will desactivated the alarm 
+ * and will send us to the case of displaying the ALARM. Also, the timer for displaying each second will stop 
+ */
+void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
+{
+    static APP_MsgTypeDef DisplayMsg = {0};
+
+    HAL_RTC_DeactivateAlarm(hrtc,RTC_ALARM_A);
+
+    xTimerStop(xTimerDisplay,0);
+
+    DisplayMsg.msg = DISPLAY_ALARM;
+    xQueueSend( displayQueue, &DisplayMsg, 0 );
 }

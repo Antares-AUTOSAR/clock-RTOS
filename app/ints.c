@@ -30,3 +30,9 @@ void TIM16_FDCAN_IT0_IRQHandler( void )
 {
     HAL_FDCAN_IRQHandler( &CANHandler );
 }
+
+/* cppcheck-suppress misra-c2012-8.4 ;This function is defined in the library*/
+void RTC_TAMP_IRQHandler(void)
+{
+    HAL_RTC_AlarmIRQHandler(&RtcHandler);
+}

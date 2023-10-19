@@ -95,6 +95,9 @@ void HAL_RTC_MspInit( RTC_HandleTypeDef *hrtc )
 
     __HAL_RCC_RTC_ENABLE( );
     __HAL_RCC_RTCAPB_CLK_ENABLE( );
+
+    HAL_NVIC_SetPriority(RTC_TAMP_IRQn,2,0);
+    HAL_NVIC_EnableIRQ(RTC_TAMP_IRQn);
 }
 
 /**
@@ -155,6 +158,7 @@ void HAL_SPI_MspInit( SPI_HandleTypeDef *hspi )
     HAL_GPIO_Init( GPIOD, &GPIO_InitStruct );
 }
 
+/* cppcheck-suppress misra-c2012-8.6 ; currently, it will not be used in another document but later it will */
 void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )
 {
     __GPIOD_CLK_ENABLE( );

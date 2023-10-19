@@ -173,6 +173,8 @@ static void Display_Machine( APP_MsgTypeDef *DisplayMsg )
     {
     { Time },
     { Date },
+    { Alarm_A},
+    { Alarm},
     };
 
     static APP_Messages state;
@@ -217,4 +219,25 @@ static void Date( APP_MsgTypeDef *DisplayMsg )
 
     (void)HEL_LCD_SetCursor( &hlcd, 0, 1 );
     (void)HEL_LCD_String( &hlcd, date_string );
+}
+
+static void Alarm_A( APP_MsgTypeDef *DisplayMsg )
+{
+    UNUSED(DisplayMsg);
+
+    (void)HEL_LCD_SetCursor(&hlcd, 1, 0);
+    (void)HEL_LCD_Data(&hlcd, 'A');
+}
+
+static void Alarm( APP_MsgTypeDef *DisplayMsg )
+{
+    UNUSED(DisplayMsg);
+    char string[] = "ALARM!!!";/* cppcheck-suppress misra-c2012-7.4  ;Array to print time */
+
+    (void)HEL_LCD_SetCursor(&hlcd, 1, 0);
+    (void)HEL_LCD_Data(&hlcd, ' ');
+
+    (void)HEL_LCD_SetCursor(&hlcd, 1, 3);
+    (void)HEL_LCD_String(&hlcd, string);
+    (void)HEL_LCD_Backlight(&hlcd,1);
 }
