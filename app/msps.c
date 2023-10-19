@@ -177,3 +177,20 @@ void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, SET );
     HAL_GPIO_WritePin( hlcd->BklPort, hlcd->BklPin, SET );
 }
+
+/* cppcheck-suppress misra-c2012-8.4 ; its external linkage is declared at HAL library */
+void HAL_TIM_PWM_MspInit( TIM_HandleTypeDef *htim )
+{
+    (void)htim;
+    GPIO_InitTypeDef GPIO_InitStruct;
+
+    __TIM14_CLK_ENABLE( );
+    __GPIOC_CLK_ENABLE( );
+
+    GPIO_InitStruct.Pin       = GPIO_PIN_12;
+    GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull      = GPIO_PULLUP;
+    GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF2_TIM14;
+    HAL_GPIO_Init( GPIOC, &GPIO_InitStruct );
+}

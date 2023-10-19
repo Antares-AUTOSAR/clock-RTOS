@@ -7,7 +7,7 @@
 #ifndef APP_DISPLAY_H
 #define APP_DISPLAY_H
 
-#define DISPLAY_STATES         4U /*!< Total states in event machine */
+#define DISPLAY_STATES         5U /*!< Total states in event machine */
 
 /**
  * @defgroup Declarations of counters
@@ -55,6 +55,10 @@
 /**
  * @}
  */
+
+#define TIMER_BUZZER_ID        (void *)(uint32_t)1 /*!< ID for timer used to update display  */
+
+
 void Display_Init( void );
 void Display_Task( void );
 
