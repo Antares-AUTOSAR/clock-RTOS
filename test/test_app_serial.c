@@ -4,6 +4,7 @@
 
 #include "FreeRTOS.h"
 #include "mock_stm32g0xx_hal_fdcan.h"
+#include "mock_task.h"
 #include "mock_queue.h"
 
 #include "bsp.h"
@@ -34,16 +35,26 @@ void test__Serial_Init__testInit( void )
     Serial_Init( );
 }
 
-/*void test__HAL_FDCAN__RxFifo0Callback(void)
+void test__HAL_FDCAN_RxFifo0Callback__messageReceived(void)
 {
+    FDCAN_HandleTypeDef hfdcan= {0};
+    
+    HAL_FDCAN_GetRxMessage_IgnoreAndReturn( HAL_OK );
+    xQueueGenericSendFromISR_IgnoreAndReturn( pdTRUE );
+    
+    HAL_FDCAN_RxFifo0Callback( &hfdcan, 1);
+}
 
-    //FDCAN_HandleTypeDef CANHandler;
-    //FDCAN_HandleTypeDef *hfdcan;
-    //hfdcan = &CANHandler;
-   // uint32_t RxFifo0ITs = 1;
+void test__HAL_FDCAN_RxFifo0Callback__messageNOTReceived(void)
+{
+    FDCAN_HandleTypeDef hfdcan= {0};
+    
+    HAL_FDCAN_RxFifo0Callback( &hfdcan, 0);
+}
 
-    //HAL_FDCAN_GetRxMessage_IgnoreAndReturn( HAL_OK);
+void test__Serial_Task__queueOK(void)
+{
+    //xQueueReceive_IgnoreAndReturn( pdPASS );
     //xQueueGenericSend_IgnoreAndReturn( pdPASS );
-
-    //HAL_FDCAN_RxFifo0Callback( hfdcan, RxFifo0ITs);
-}*/
+    Serial_Task();
+}
