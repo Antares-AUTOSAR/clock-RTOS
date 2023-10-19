@@ -175,22 +175,22 @@ void Display_Init( void )
     (void)HEL_LCD_Contrast( &hlcd, 15 );
 
     TimHandle.Instance         = TIM14;
-    TimHandle.Init.Prescaler   = 10;   //
-    TimHandle.Init.Period      = 3200; // 1khz
+    TimHandle.Init.Prescaler   = 10;
+    TimHandle.Init.Period      = 3200;
     TimHandle.Init.CounterMode = TIM_COUNTERMODE_UP;
     HAL_TIM_PWM_Init( &TimHandle );
 
     sConfig.OCMode     = TIM_OCMODE_PWM1;
     sConfig.OCPolarity = TIM_OCPOLARITY_HIGH;
     sConfig.OCFastMode = TIM_OCFAST_DISABLE;
-    sConfig.Pulse      = 1600; // 50%
+    sConfig.Pulse      = 1600;
     HAL_TIM_PWM_ConfigChannel( &TimHandle, &sConfig, TIM_CHANNEL_1 );
 
     xTimerBuzzer = xTimerCreate( "Timer", 1000, pdTRUE, TIMER_BUZZER_ID, Display_Buzzer );
-    xTimerStart( xTimerBuzzer, 0 );
+    xTimerStart( xTimerBuzzer, TICKS );
 
     xTimer1Mn_Buzzer = xTimerCreate( "Timer", 10000, pdTRUE, TIMER_BUZZER_ID, Display_1Mn_Buzzer );
-    xTimerStart( xTimer1Mn_Buzzer, 0 );
+    xTimerStart( xTimer1Mn_Buzzer, TICKS );
 }
 
 /**
@@ -252,7 +252,7 @@ static void Time( APP_MsgTypeDef *DisplayMsg )
     (void)HEL_LCD_String( &hlcd, string );
 
     DisplayMsg->msg = SERIAL_MSG_DATE;
-    xQueueSend( displayQueue, DisplayMsg, 0 );
+    xQueueSend( displayQueue, DisplayMsg, TICKS );
 }
 
 /**
@@ -296,15 +296,15 @@ static void Alarm( APP_MsgTypeDef *DisplayMsg )
 {
     UNUSED( DisplayMsg );
     char string[] = "ALARM!!!"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print time */
-    buzzer        = 1;
-    buzzer_flag   = 1;
+    buzzer        = ACTIVE;
+    buzzer_flag   = ACTIVE;
 
     (void)HEL_LCD_SetCursor( &hlcd, 1, 0 );
     (void)HEL_LCD_Data( &hlcd, ' ' );
 
     (void)HEL_LCD_SetCursor( &hlcd, 1, 3 );
     (void)HEL_LCD_String( &hlcd, string );
-    (void)HEL_LCD_Backlight( &hlcd, 1 );
+    (void)HEL_LCD_Backlight( &hlcd, LCD_ON );
 }
 
 /**
@@ -317,14 +317,14 @@ static void Alarm_Clean( APP_MsgTypeDef *DisplayMsg )
 {
     UNUSED( DisplayMsg );
 
-    buzzer_flag = 0;
-    buzzer      = 0;
+    buzzer_flag = INACTIVE;
+    buzzer      = INACTIVE;
     HAL_TIM_PWM_Stop( &TimHandle, TIM_CHANNEL_1 );
 
-    xTimerStop( xTimerBuzzer, 0 );
-    xTimerStop( xTimer1Mn_Buzzer, 0 );
-    (void)HEL_LCD_Backlight( &hlcd, 1 );
-    xTimerStart( xTimerDisplay, 0 );
+    xTimerStop( xTimerBuzzer, TICKS );
+    xTimerStop( xTimer1Mn_Buzzer, TICKS );
+    (void)HEL_LCD_Backlight( &hlcd, LCD_ON );
+    xTimerStart( xTimerDisplay, TICKS );
 }
 
 /**
@@ -337,19 +337,19 @@ static void Display_Buzzer( TimerHandle_t pxTimer )
 {
     UNUSED( pxTimer );
 
-    if( buzzer_flag == 1u )
+    if( buzzer_flag == ACTIVE )
     {
-        if( buzzer == 1u )
+        if( buzzer == ACTIVE )
         {
-            buzzer = 0;
+            buzzer = INACTIVE;
             HAL_TIM_PWM_Start( &TimHandle, TIM_CHANNEL_1 );
-            (void)HEL_LCD_Backlight( &hlcd, 0 );
+            (void)HEL_LCD_Backlight( &hlcd, LCD_OFF );
         }
         else
         {
-            buzzer = 1;
+            buzzer = ACTIVE;
             HAL_TIM_PWM_Stop( &TimHandle, TIM_CHANNEL_1 );
-            (void)HEL_LCD_Backlight( &hlcd, 1 );
+            (void)HEL_LCD_Backlight( &hlcd, LCD_ON );
         }
     }
 }
@@ -364,10 +364,10 @@ static void Display_1Mn_Buzzer( TimerHandle_t pxTimer )
 {
     UNUSED( pxTimer );
 
-    if( buzzer_flag == 1u )
+    if( buzzer_flag == ACTIVE )
     {
         HAL_TIM_PWM_Stop( &TimHandle, TIM_CHANNEL_1 );
-        xTimerStop( xTimerBuzzer, 0 );
-        (void)HEL_LCD_Backlight( &hlcd, 1 );
+        xTimerStop( xTimerBuzzer, TICKS );
+        (void)HEL_LCD_Backlight( &hlcd, LCD_ON );
     }
 }

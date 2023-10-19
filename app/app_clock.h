@@ -28,6 +28,13 @@
 
 #define TIMER_DISPLAY_ID   (void *)(uint32_t)1 /*!< ID for timer used to update display  */
 
+#define ON                 1U /*!< Alarm active    */
+#define OFF                0U /*!< Alarm inactive    */
+
+#define TRUE_A             1U /*!< Statement is true    */
+#define FALSE_A            0U /*!< Statement is false    */
+#define TICKS              0u /*!< The maximum amount of time                  */
+
 void Clock_Init( void );
 void Clock_Task( void );
 

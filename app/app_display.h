@@ -57,7 +57,9 @@
  */
 
 #define TIMER_BUZZER_ID        (void *)(uint32_t)1 /*!< ID for timer used to update display  */
-
+#define ACTIVE                 1u                  /*!< Buzzer state */
+#define INACTIVE               0u                  /*!< Buzzer state  */
+#define TICKS                  0u                  /*!< The maximum amount of time */
 
 void Display_Init( void );
 void Display_Task( void );

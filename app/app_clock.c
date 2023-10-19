@@ -55,7 +55,7 @@ static uint8_t Alarm_Active = 0;
 /**
  * @brief  Flag that tell us that will stop the msg of alarm and clean it
  */
-static uint8_t clean = 0;
+static uint8_t Stop_Alarm = 0;
 
 /**
  * @brief   Use once to Initialize the clock
@@ -110,15 +110,15 @@ void Clock_Task( void )
 {
     static APP_MsgTypeDef messageStruct = { 0 };
 
-    while( xQueueReceive( clockQueue, &messageStruct, 0 ) != errQUEUE_EMPTY )
+    while( xQueueReceive( clockQueue, &messageStruct, TICKS ) != errQUEUE_EMPTY )
     {
         Clock_EventMachine( &messageStruct );
     }
-    if( clean == 1u )
+    if( Stop_Alarm == TRUE_A )
     {
-        clean             = 0;
+        Stop_Alarm        = FALSE_A;
         messageStruct.msg = OK_STATE;
-        xQueueSend( displayQueue, &messageStruct, 0 );
+        xQueueSend( displayQueue, &messageStruct, TICKS );
     }
 }
 
@@ -158,8 +158,7 @@ void Clock_EventMachine( APP_MsgTypeDef *receivedMessage )
  * @brief   (State) Function executed when Serial Alarm message has been received
  * @param   receivedMessage Message received from clockQueue
  *
- * Due to event machine implementation, the parameter must be passed but specified
- * as UNUSED until alarm feature is integrated to project
+ * Sets the RTC with received alarm with interrupt
  *
  * Sends message to clockQueue everytime a type alarm message has been received
  */
@@ -181,15 +180,15 @@ static void state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage )
 
     HAL_RTC_SetAlarm_IT( &RtcHandler, &sAlarm, RTC_FORMAT_BIN );
 
-    if( Alarm_Active == 1u )
+    if( Alarm_Active == ON )
     {
-        xTimerStart( xTimerDisplay, 0 );
-        Alarm_Active = 0;
-        clean        = 1;
+        xTimerStart( xTimerDisplay, TICKS );
+        Alarm_Active = OFF;
+        Stop_Alarm   = TRUE_A;
     }
 
-    clockMessage.msg = SERIAL_MSG_TIME; // Message to indicate to LCD update displayed data
-    xQueueSend( displayQueue, &clockMessage, 0 );
+    clockMessage.msg = SERIAL_MSG_TIME;
+    xQueueSend( displayQueue, &clockMessage, TICKS );
 }
 
 
@@ -213,15 +212,15 @@ static void state_serialMsgDate( APP_MsgTypeDef *receivedMessage )
     dateYearH     = receivedMessage->tm.tm_year / 100UL;
     HAL_RTC_SetDate( &RtcHandler, &sDate, RTC_FORMAT_BIN );
 
-    if( Alarm_Active == 1u )
+    if( Alarm_Active == ON )
     {
-        xTimerStart( xTimerDisplay, 0 );
-        Alarm_Active = 0;
-        clean        = 1;
+        xTimerStart( xTimerDisplay, TICKS );
+        Alarm_Active = OFF;
+        Stop_Alarm   = TRUE_A;
     }
 
     clockMessage.msg = CLOCK_MSG_PRINT;
-    xQueueSend( clockQueue, &clockMessage, 0 );
+    xQueueSend( clockQueue, &clockMessage, TICKS );
 }
 
 
@@ -243,15 +242,15 @@ static void state_serialMsgTime( APP_MsgTypeDef *receivedMessage )
     sTime.Seconds = receivedMessage->tm.tm_sec;
     HAL_RTC_SetTime( &RtcHandler, &sTime, RTC_FORMAT_BIN );
 
-    if( Alarm_Active == 1u )
+    if( Alarm_Active == ON )
     {
-        xTimerStart( xTimerDisplay, 0 );
-        Alarm_Active = 0;
-        clean        = 1;
+        xTimerStart( xTimerDisplay, TICKS );
+        Alarm_Active = OFF;
+        Stop_Alarm   = TRUE_A;
     }
 
     clockMessage.msg = CLOCK_MSG_PRINT;
-    xQueueSend( clockQueue, &clockMessage, 0 );
+    xQueueSend( clockQueue, &clockMessage, TICKS );
 }
 
 
@@ -318,10 +317,10 @@ void HAL_RTC_AlarmAEventCallback( RTC_HandleTypeDef *hrtc )
 
     HAL_RTC_DeactivateAlarm( hrtc, RTC_ALARM_A );
 
-    Alarm_Active = 1u;
+    Alarm_Active = ON;
 
-    xTimerStop( xTimerDisplay, 0 );
+    xTimerStop( xTimerDisplay, TICKS );
 
     DisplayMsg.msg = CLOCK_MSG_PRINT;
-    xQueueSend( displayQueue, &DisplayMsg, 0 );
+    xQueueSend( displayQueue, &DisplayMsg, TICKS );
 }
