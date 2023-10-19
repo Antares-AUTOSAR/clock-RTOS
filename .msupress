@@ -5,3 +5,5 @@
 // suppress all MISRA warnings in source/cmsis-st32mg0xx folder
 
 misra-config:app/main.c
+
+misra-config:app/main.c
