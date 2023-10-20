@@ -190,7 +190,7 @@ MACHINE_State state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage )
 
     clockMessage.msg = SERIAL_MSG_TIME;
     xQueueSend( displayQueue, &clockMessage, TICKS );
-    
+
     return CLOCK_STATE_PRINT; // Next state
 }
 
