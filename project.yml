@@ -53,7 +53,6 @@
     - app/ints.c              # Do not test interrupt vectors
     - app/msps.c              # Do not test extra initlization functions
     - app/app_clock.c         # Do not test app_clock interfaces
-    - app/hel_lcd.c           # Do not test extra initlization functions
     - app/app_serial.c        # Do not test extra initlization functions
     - app/app_display.c       # Do not test extra initlization functions
 
@@ -72,6 +71,7 @@
   :plugins:
     - :ignore                 # Generate <function>_Ignore and <function>_IgnoreAndReturn
     - :ignore_arg             # Generate <function>_IgnoreArg_<param_name>
+    - :expect
     - :expect_any_args        # Generate <function>_func_ExpectAnyArgs and <function>_func_ExpectAnyArgsAndReturn
     - :array                  # Generate <function>_ExpectWithArray and <function>_ExpectWithArrayAndReturn
     - :callback               # Generate <function>_ 
