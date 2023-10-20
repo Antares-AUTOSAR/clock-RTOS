@@ -11,7 +11,7 @@
 #include "app_serial.h"
 #include "bsp.h"
 
-static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size );
+STATIC void CanTp_SingleFrameTx( uint8_t *data, uint8_t size );
 STATIC uint8_t CanTp_SingleFrameRx( uint8_t *data, uint8_t *size );
 
 static uint8_t Validate_Time( uint8_t hour, uint8_t minutes, uint8_t seconds );
@@ -474,7 +474,7 @@ uint32_t WeekDay( uint8_t days, uint8_t month, uint16_t year )
  * @param   data [in] Pointer to data
  * @param   size [in] Size of data
  */
-static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size )
+STATIC void CanTp_SingleFrameTx( uint8_t *data, uint8_t size )
 {
 
     if( ( size > (uint8_t)0 ) && ( size < (uint8_t)8 ) )

@@ -8,6 +8,7 @@
 #include "mock_queue.h"
 
 STATIC uint8_t CanTp_SingleFrameRx( uint8_t *data, uint8_t *size );
+STATIC void CanTp_SingleFrameTx( uint8_t *data, uint8_t size );
 
 void setUp( void )
 {
@@ -72,7 +73,7 @@ void test__Serial_Task__queueMessage(void)
         .Data[7] = 0x00,
     };*/
 
-    xQueueReceive_IgnoreAndReturn( pdPASS );
+    //xQueueReceive_IgnoreAndReturn( pdPASS );
     //xQueueReceive_ExpectAndReturn( serialQueue, &RecieveMsg, 0, pdTRUE );
     //xQueueReceive_IgnoreAndReturn( errQUEUE_EMPTY );
     //xQueueGenericSend_IgnoreAndReturn( pdPASS );
@@ -82,10 +83,50 @@ void test__Serial_Task__queueMessage(void)
 
     Serial_Task( );
 }
-//////////////////
+
+void test__WeekDay__CorrectDay(void)
+{
+
+}
+////////
+void test__CanTp_SingleFrameTx__FrameTXError(void)
+{
+    uint8_t msg_error[ 8 ] = { 0 };
+    msg_error[ NUM_0 ] = DATA_ERROR;
+
+    NEW_MsgTypeDef RecieveMsg = { 0 };
+    RecieveMsg.Data[0] = 9;
+
+    CanTp_SingleFrameTx( msg_error, RecieveMsg.Data[0] );
+}
+
+void test__CanTp_SingleFrameTx__FrameTXErrorEmpty(void)
+{
+    uint8_t msg_error[ 8 ] = { 0 };
+    msg_error[ NUM_0 ] = DATA_ERROR;
+
+    NEW_MsgTypeDef RecieveMsg = { 0 };
+    RecieveMsg.Data[0] = 0;
+
+    CanTp_SingleFrameTx( msg_error, RecieveMsg.Data[0] );
+}
+
+void test__CanTp_SingleFrameTx__FrameTXOK(void)
+{
+    uint8_t msg_ok[ 8 ] = { 0 };
+    msg_ok[ NUM_0 ] = DATA_OK;
+
+    NEW_MsgTypeDef RecieveMsg = { 0 };
+    RecieveMsg.Data[0] = 5;
+
+    HAL_FDCAN_AddMessageToTxFifoQ_IgnoreAndReturn( HAL_OK);
+    CanTp_SingleFrameTx( msg_ok, RecieveMsg.Data[0] );
+}
+///////////
 void test__CanTp_SingleFrameRx__SingleFrameMessage(void)
 {
     NEW_MsgTypeDef RecieveMsg = { 0 };
+    RecieveMsg.Data[0] = 5;
 
     uint8_t res = CanTp_SingleFrameRx( RecieveMsg.Data, &RecieveMsg.Data[ SINGLE_FRAME_ELEMENT ] );
     TEST_ASSERT_EQUAL_MESSAGE( 1, res, "CANtpRX ok" );
@@ -95,7 +136,17 @@ void test__CanTp_SingleFrameRx__SingleFrameMessage(void)
 void test__CanTp_SingleFrameRx__SingleFrameEmpty(void)
 {
     NEW_MsgTypeDef RecieveMsg = { 0 };
-    RecieveMsg.Data[0] = 0x18;
+    RecieveMsg.Data[0] = 133;
+
+    uint8_t res = CanTp_SingleFrameRx( RecieveMsg.Data, &RecieveMsg.Data[ SINGLE_FRAME_ELEMENT ] );
+    TEST_ASSERT_EQUAL_MESSAGE( 0, res, "CANtpRX fail" );
+
+}
+
+void test__CanTp_SingleFrameRx__SingleFrameError(void)
+{
+    NEW_MsgTypeDef RecieveMsg = { 0 };
+    RecieveMsg.Data[0] = 9;
 
     uint8_t res = CanTp_SingleFrameRx( RecieveMsg.Data, &RecieveMsg.Data[ SINGLE_FRAME_ELEMENT ] );
     TEST_ASSERT_EQUAL_MESSAGE( 0, res, "CANtpRX fail" );
