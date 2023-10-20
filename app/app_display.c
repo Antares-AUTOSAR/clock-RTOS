@@ -189,7 +189,7 @@ void Display_Init( void )
     xTimerBuzzer = xTimerCreate( "Timer", 1000, pdTRUE, TIMER_BUZZER_ID, Display_Buzzer );
     xTimerStart( xTimerBuzzer, TICKS );
 
-    xTimer1Mn_Buzzer = xTimerCreate( "Timer", 10000, pdTRUE, TIMER_BUZZER_ID, Display_1Mn_Buzzer );
+    xTimer1Mn_Buzzer = xTimerCreate( "Timer", 60000, pdTRUE, TIMER_BUZZER_ID, Display_1Mn_Buzzer );
     xTimerStart( xTimer1Mn_Buzzer, TICKS );
 }
 
