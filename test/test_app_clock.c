@@ -7,6 +7,7 @@
 #include "mock_timers.h"
 #include "mock_task.h"
 #include "mock_queue.h"
+#include "mock_stm32g0xx_hal_cortex.h"
 
 #include "bsp.h"
 
@@ -42,6 +43,8 @@ void test__Clock_Init__callFunction( void )
     xTimerCreate_IgnoreAndReturn( testTimer );
     xTaskGetTickCount_IgnoreAndReturn( 1u );
     xTimerGenericCommand_IgnoreAndReturn( pdPASS );
+    HAL_NVIC_SetPriority_Expect( EXTI4_15_IRQn, 2, 0 );
+    HAL_NVIC_EnableIRQ_Expect( EXTI4_15_IRQn );
 
     Clock_Init( );
 }
@@ -68,6 +71,7 @@ void test__Clock_Task__emptyQueue( void )
 */
 void test__Clock_Task__oneMessageinQueue( void )
 {
+    HAL_RTC_SetAlarm_IT_IgnoreAndReturn( HAL_OK );
     xQueueReceive_IgnoreAndReturn( pdPASS );
     xQueueReceive_IgnoreAndReturn( errQUEUE_EMPTY );
     xQueueGenericSend_IgnoreAndReturn( pdPASS );
@@ -88,6 +92,7 @@ void test__Clock_EventMachine__sendAlarmMessage( void )
     message.msg = SERIAL_MSG_ALARM;
 
     xQueueGenericSend_IgnoreAndReturn( pdPASS );
+    HAL_RTC_SetAlarm_IT_IgnoreAndReturn( HAL_OK );
 
     state = Clock_EventMachine( &message );
 
