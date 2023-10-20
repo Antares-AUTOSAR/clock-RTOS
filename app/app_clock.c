@@ -190,9 +190,7 @@ MACHINE_State state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage )
 
     clockMessage.msg = SERIAL_MSG_TIME;
     xQueueSend( displayQueue, &clockMessage, TICKS );
-    clockMessage.msg = CLOCK_MSG_PRINT; // Message to indicate to LCD update displayed data
-    xQueueSend( clockQueue, &clockMessage, 0 );
-
+    
     return CLOCK_STATE_PRINT; // Next state
 }
 
