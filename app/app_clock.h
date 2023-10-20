@@ -10,6 +10,17 @@
 #ifndef APP_CLOCK_H
 #define APP_CLOCK_H
 
+
+/**
+ * @defgroup ClockTestingMacros Macros used for unit testing
+ @{*/
+#ifdef UTEST
+#define STATIC /*!< Macro defined for testing purposes. Use in private members*/
+#else
+#define STATIC static /*!< Macro defined for testing purposes. Use in private members*/
+#endif
+/**@} */
+
 #define TOTAL_CLOCK_STATES 4U /*!< Total states in event machine */
 
 /**

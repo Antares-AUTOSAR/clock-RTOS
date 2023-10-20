@@ -71,6 +71,18 @@ typedef enum
     DISPLAY_ALARM        /*!< Display Alarm!!!*/
 } APP_Messages;
 
+/**
+ * @brief   Enum with states for state machines
+ */
+typedef enum
+{
+    CLOCK_STATE_ALARM, /**< Clock machine state for set alarm */
+    CLOCK_STATE_DATE,  /**< Clock machine state for set date  */
+    CLOCK_STATE_TIME,  /**< Clock machine state for set time  */
+    CLOCK_STATE_PRINT, /**< Clock machine state for set print */
+    CLOCK_STATE_IDLE   /**< Clock machine state idle          */
+} MACHINE_State;
+
 /*Queue identifier to use*/
 extern QueueHandle_t serialQueue;  /* Serial Queue identifier to use in the serial machine. */
 extern QueueHandle_t clockQueue;   /* Serial Queue identifier to use in the clock machine   */
