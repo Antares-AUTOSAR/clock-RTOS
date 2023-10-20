@@ -9,6 +9,12 @@
 #ifndef APP_SERIAL_H__
 #define APP_SERIAL_H__
 
+#ifdef UTEST
+  #define STATIC    
+#else
+  #define STATIC static 
+#endif
+
 /**
   * @defgroup Months, months of the year in hexa
   @{ */
