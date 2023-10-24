@@ -14,8 +14,8 @@
 STATIC void CanTp_SingleFrameTx( uint8_t *data, uint8_t size );
 STATIC uint8_t CanTp_SingleFrameRx( uint8_t *data, uint8_t *size );
 
-static uint8_t Validate_Time( uint8_t hour, uint8_t minutes, uint8_t seconds );
-static uint8_t Validate_Alarm( uint8_t hour, uint8_t minutes );
+STATIC uint8_t Validate_Time( uint8_t hour, uint8_t minutes, uint8_t seconds );
+STATIC uint8_t Validate_Alarm( uint8_t hour, uint8_t minutes );
 STATIC uint8_t Validate_Date( uint8_t days, uint8_t month, uint16_t year );
 STATIC uint8_t WeekDay( uint8_t days, uint8_t month, uint16_t year );
 static void Serial_StMachine( NEW_MsgTypeDef *pdata );
@@ -326,7 +326,7 @@ STATIC uint8_t BCD_conver( uint8_t data )
  *
  * @retval  The function returns 1 if time is correct and 0 if not
  */
-static uint8_t Validate_Time( uint8_t hour, uint8_t minutes, uint8_t seconds )
+STATIC uint8_t Validate_Time( uint8_t hour, uint8_t minutes, uint8_t seconds )
 {
     uint8_t ret_val = NUM_0;
 
@@ -351,7 +351,7 @@ static uint8_t Validate_Time( uint8_t hour, uint8_t minutes, uint8_t seconds )
  *
  * @retval  The function returns 1 if the alarm is correct and 0 if not
  */
-static uint8_t Validate_Alarm( uint8_t hour, uint8_t minutes )
+STATIC uint8_t Validate_Alarm( uint8_t hour, uint8_t minutes )
 {
     uint8_t ret_val = NUM_0;
 
