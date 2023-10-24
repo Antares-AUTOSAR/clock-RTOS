@@ -10,9 +10,9 @@
 #define APP_SERIAL_H__
 
 #ifdef UTEST
-  #define STATIC    
+#define STATIC
 #else
-  #define STATIC static 
+#define STATIC static
 #endif
 
 /**

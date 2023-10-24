@@ -16,15 +16,15 @@ STATIC uint8_t CanTp_SingleFrameRx( uint8_t *data, uint8_t *size );
 
 static uint8_t Validate_Time( uint8_t hour, uint8_t minutes, uint8_t seconds );
 static uint8_t Validate_Alarm( uint8_t hour, uint8_t minutes );
-static uint8_t Validate_Date( uint8_t days, uint8_t month, uint16_t year );
-static uint32_t WeekDay( uint8_t days, uint8_t month, uint16_t year );
+STATIC uint8_t Validate_Date( uint8_t days, uint8_t month, uint16_t year );
+STATIC uint8_t WeekDay( uint8_t days, uint8_t month, uint16_t year );
 static void Serial_StMachine( NEW_MsgTypeDef *pdata );
 static void SerialTimeState( const NEW_MsgTypeDef *pmsg );
 static void SerialDateState( const NEW_MsgTypeDef *pmsg );
 static void SerialAlarmState( const NEW_MsgTypeDef *pmsg );
 static void SerialOkState( const NEW_MsgTypeDef *pmsg );
 static void SerialErrorState( const NEW_MsgTypeDef *pmsg );
-static uint8_t BCD_conver( uint8_t data );
+STATIC uint8_t BCD_conver( uint8_t data );
 
 FDCAN_HandleTypeDef CANHandler;
 
@@ -305,7 +305,7 @@ void SerialErrorState( const NEW_MsgTypeDef *pmsg )
  *
  * @retval 	Returns an unsigned integer
  */
-static uint8_t BCD_conver( uint8_t data )
+STATIC uint8_t BCD_conver( uint8_t data )
 {
     uint8_t BCDdata = 0u;
 
@@ -379,7 +379,7 @@ static uint8_t Validate_Alarm( uint8_t hour, uint8_t minutes )
  *
  * @retval  The function returns 1 if the date is correct and 0 if not
  */
-static uint8_t Validate_Date( uint8_t days, uint8_t month, uint16_t year )
+STATIC uint8_t Validate_Date( uint8_t days, uint8_t month, uint16_t year )
 {
     uint8_t ret_val;
 
@@ -451,7 +451,7 @@ static uint8_t Validate_Date( uint8_t days, uint8_t month, uint16_t year )
  * @retval  The function returns the values 0-Saturday, 1-Sunday, 2-Monday,
  *          3-Tuesday, 4-Wednesday, 5-Thursday, 6-Friday
  */
-uint32_t WeekDay( uint8_t days, uint8_t month, uint16_t year )
+STATIC uint8_t WeekDay( uint8_t days, uint8_t month, uint16_t year )
 {
     /*Zeller algorithm*/
     uint16_t aux         = ( 14u - (uint16_t)month ) / 12u;
@@ -513,6 +513,6 @@ STATIC uint8_t CanTp_SingleFrameRx( uint8_t *data, uint8_t *size )
         }
         flagB0 = 1;
     }
-    
+
     return flagB0;
 }
