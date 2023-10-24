@@ -46,12 +46,12 @@ TimerHandle_t xTimerDisplay;
 /**
  * @brief  Flag that tell us that alarm has been activated
  */
-static uint8_t Alarm_Active = 0;
+uint8_t Alarm_Active = 0;
 
 /**
  * @brief  Flag that tell us that will stop the msg of alarm and clean it
  */
-static uint8_t Stop_Alarm = 0;
+uint8_t Stop_Alarm = 0;
 
 /**
  * @brief   Use once to Initialize the clock
