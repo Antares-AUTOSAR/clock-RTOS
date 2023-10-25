@@ -239,15 +239,15 @@ void test__Clock_Update__DateAndTime( void )
 {
     TimerHandle_t testTimer = { 0 };
     xQueueGenericSend_IgnoreAndReturn( pdPASS );
-
+    
     Clock_Update_DateAndTime( testTimer );
 }
 
 void test_RTC_CALLBACK(void)
 {
-    Alarm_Active = 1;
-
     RTC_HandleTypeDef hrtc_mock;
+    HAL_RTC_DeactivateAlarm_ExpectAndReturn(&hrtc_mock,RTC_ALARM_A,pdPASS);
+    xTimerGenericCommand_IgnoreAndReturn( pdPASS );
+    xQueueGenericSend_IgnoreAndReturn( pdPASS );
     HAL_RTC_AlarmAEventCallback(&hrtc_mock);
-    TEST_ASSERT_EQUAL(1,Alarm_Active);
 }
