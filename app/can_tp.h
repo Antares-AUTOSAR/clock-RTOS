@@ -48,6 +48,7 @@ typedef struct _CAN_TP_Header
     uint32_t last_sequencenumber_short_bytes; /*!< Counter for remaining bytes in transmitted message. */
     uint8_t *buffer_transmited;               /*!< Pointer to the transmitted message buffer. */
     uint8_t flag_transmitted;                 /*!< Flag indicating if the message has been transmitted. */
+    uint8_t flag_interruption;                /*!< Flag indicating if the message has been transmitted. */
 
     uint32_t counter_newmessage;       /*!< Counter for new received messages. */
     uint8_t message[ MAX_ARRAY_SIZE ]; /*!< Array to store the received message. */
@@ -65,5 +66,6 @@ void CAN_TP_TransmitMessage( CAN_TP_Header *header, const uint8_t *data, uint32_
 uint8_t CAN_TP_IsMessageReady( const CAN_TP_Header *header );
 void CAN_TP_MessageGet( CAN_TP_Header *header, uint8_t *data, uint8_t data_length );
 void CAN_TP_NewMessage( CAN_TP_Header *header, void *buffer );
+void CAN_TP_TransmitInterruptMessage( CAN_TP_Header *header );
 
 #endif

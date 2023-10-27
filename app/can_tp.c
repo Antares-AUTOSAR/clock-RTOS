@@ -64,7 +64,8 @@ static uint8_t flag_can_tp_flowcontrol_status[ 3 ] = { CTS_OFF, WAIT_OFF, OVERFL
  */
 void CAN_TP_Init( CAN_TP_Header *header )
 {
-    header->flag_transmitted = FLAG_CAN_TP_OFF;
+    header->flag_transmitted  = FLAG_CAN_TP_OFF;
+    header->flag_interruption = FLAG_CAN_TP_OFF;
 }
 
 /**
@@ -86,7 +87,7 @@ void CAN_TP_Periodic_Task( CAN_TP_Header *header )
         header->counter_newmessage--;
     }
 
-    if( header->flag_transmitted == FLAG_CAN_TP_ON )
+    if( ( header->flag_transmitted == FLAG_CAN_TP_ON ) && ( header->flag_interruption == FLAG_CAN_TP_OFF ) )
     {
         CAN_TP_TxTransmit_Period_Task( header );
     }
@@ -401,6 +402,8 @@ static void CAN_TP_TxTransmit_Period_Task( CAN_TP_Header *header )
 
                     header->flag_transmitted = FLAG_CAN_TP_OFF;
 
+                    header->flag_interruption = FLAG_CAN_TP_OFF;
+
                     count_sequencenumber = 1;
 
                     count_multiplier_offset = 0;
@@ -424,7 +427,10 @@ static void CAN_TP_TxTransmit_Period_Task( CAN_TP_Header *header )
             {
 
 
-                state = CONSECUTIVE_FRAME_TYPE;
+                state                     = CONSECUTIVE_FRAME_TYPE;
+                header->flag_interruption = FLAG_CAN_TP_ON;
+                header->flag_transmitted  = FLAG_CAN_TP_OFF;
+                HAL_FDCAN_TxFifoEmptyCallback( header->CANHandler );
             }
 
             if( flag_can_tp_flowcontrol_status[ WAIT ] == WAIT_ON )
@@ -620,4 +626,13 @@ void CAN_TP_MessageGet( CAN_TP_Header *header, uint8_t *data, uint8_t data_lengt
     }
 
     header->flag_ready = 0u;
+}
+
+void CAN_TP_TransmitInterruptMessage( CAN_TP_Header *header )
+{
+
+    if( header->flag_interruption == FLAG_CAN_TP_ON )
+    {
+        CAN_TP_TxTransmit_Period_Task( header );
+    }
 }
