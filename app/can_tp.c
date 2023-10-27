@@ -4,7 +4,98 @@
  *
  * File provides the neccesary drivers, libraries, and configurations for the CAN BUS.
  *
+ @verbatim
+ ==============================================================================
+                    ##### How to use this driver #####
+ ==============================================================================
+
+ Interruption necessary:
+
+ - HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs )
+ - HAL_FDCAN_TxFifoEmptyCallback( FDCAN_HandleTypeDef *hfdcan )
+
+ In the interrupcion HAL_FDCAN_RxFifo0Callback, you need to put the function
+ CAN_TP_NewMessage( CAN_TP_Header *header, void *data );
+
+ For example:
+
+    void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs )
+    {
+
+        FDCAN_RxHeaderTypeDef CANRxHeader;
+
+        static uint8_t RxData[ 8 ] = { 0 };
+
+        HAL_FDCAN_GetRxMessage( hfdcan, FDCAN_RX_FIFO0, &CANRxHeader, RxData );
+
+        CAN_TP_NewMessage( &features_packet, (void *)RxData );
+
+    }
+
+
+ In the interrupcion HAL_FDCAN_TxFifoEmptyCallback, you need to put the function
+ void CAN_TP_TransmitInterruptMessage( CAN_TP_Header *header );
+
+ For example:
+
+    void HAL_FDCAN_TxFifoEmptyCallback( FDCAN_HandleTypeDef *hfdcan )
+    {
+        CAN_TP_TransmitInterruptMessage(&features_packet);
+    }
+
+ Important!!! You must select the size of message that your bufferRx will receive:
+
+ #define MAX_ARRAY_SIZE 25
+
+ For the receiving this is a example:
+
+    static CAN_TP_Header features_packet;
+
+    void vTask1( void *pvParameters )
+    {
+        uint8_t rxBuffer[ 22 ]  = { 0 };
+        uint8_t messageRx[ 22 ] = { 0 };
+        uint8_t value           = 1u;
+
+        CAN_TP_Init( &features_packet );
+
+        CAN_TP_RxBlockSizeSet( &features_packet, 10 );
+
+        CAN_TP_RxSeparationTimeSet( &features_packet, 10 );
+
+        CAN_TP_RxMessageBufferSet( &features_packet, rxBuffer, sizeof( rxBuffer ) );
+
+        for( ;; )
+        {
+            CAN_TP_Periodic_Task( &features_packet );
+
+            if( value == CAN_TP_IsMessageReady( &features_packet ) )
+            {
+
+                CAN_TP_MessageGet( &features_packet, messageRx, sizeof( messageRx ) );
+
+                SEGGER_RTT_printf( 0, "Message:" );
+
+                for( uint8_t i = 0; i < sizeof( messageRx ); i++ )
+                {
+
+                    SEGGER_RTT_printf( 0, " %x", messageRx[ i ] );
+                }
+
+                SEGGER_RTT_printf( 0, "\n" );
+            }
+
+            vTaskDelay( 100 );
+        }
+
+        (void)pvParameters;
+    }
+
+ For the transmision this is a example:
+  @endverbatim
  */
+
+
 #include "bsp.h"
 #include "can_tp.h"
 #include <string.h>
@@ -628,6 +719,15 @@ void CAN_TP_MessageGet( CAN_TP_Header *header, uint8_t *data, uint8_t data_lengt
     header->flag_ready = 0u;
 }
 
+/**
+ * @brief Message transmission with interruption.
+ *
+ * Function that calls CAN_TP_TxTransmit_Period_Task when the flag_interruption is activated,
+ * this happens when a flowcontrol typeframe CTS is received.
+ *
+ * @param header CAN_TP header data structure.
+
+ */
 void CAN_TP_TransmitInterruptMessage( CAN_TP_Header *header )
 {
 
