@@ -18,12 +18,12 @@ STATIC uint8_t Validate_Time( uint8_t hour, uint8_t minutes, uint8_t seconds );
 STATIC uint8_t Validate_Alarm( uint8_t hour, uint8_t minutes );
 STATIC uint8_t Validate_Date( uint8_t days, uint8_t month, uint16_t year );
 STATIC uint8_t WeekDay( uint8_t days, uint8_t month, uint16_t year );
-static void Serial_StMachine( NEW_MsgTypeDef *pdata );
-static void SerialTimeState( const NEW_MsgTypeDef *pmsg );
-static void SerialDateState( const NEW_MsgTypeDef *pmsg );
-static void SerialAlarmState( const NEW_MsgTypeDef *pmsg );
-static void SerialOkState( const NEW_MsgTypeDef *pmsg );
-static void SerialErrorState( const NEW_MsgTypeDef *pmsg );
+STATIC MACHINE_SERIAL Serial_StMachine( NEW_MsgTypeDef *pdata );
+STATIC MACHINE_SERIAL SerialTimeState( NEW_MsgTypeDef *pmsg );
+STATIC MACHINE_SERIAL SerialDateState( NEW_MsgTypeDef *pmsg );
+STATIC MACHINE_SERIAL SerialAlarmState( NEW_MsgTypeDef *pmsg );
+STATIC MACHINE_SERIAL SerialOkState( NEW_MsgTypeDef *pmsg );
+STATIC MACHINE_SERIAL SerialErrorState( NEW_MsgTypeDef *pmsg );
 STATIC uint8_t BCD_conver( uint8_t data );
 
 FDCAN_HandleTypeDef CANHandler;
@@ -31,9 +31,10 @@ FDCAN_HandleTypeDef CANHandler;
 /**
  * @brief Struct with pointer to function
  */
-typedef struct SerialStates
+typedef struct
 {
-    void ( *ptr_funct )( const NEW_MsgTypeDef *pdata ); /*!< Pointer to function */
+    MACHINE_SERIAL( *ptr_funct )
+    ( NEW_MsgTypeDef *pdata ); /*!< Pointer to function */
 } SerialStates;
 
 /**
@@ -146,7 +147,7 @@ void Serial_Task( void )
     {
         if( CanTp_SingleFrameRx( (uint8_t *)RecieveMsg.Data, &RecieveMsg.Data[ SINGLE_FRAME_ELEMENT ] ) == TRUE )
         {
-            Serial_StMachine( &RecieveMsg );
+            (void)Serial_StMachine( &RecieveMsg );
         }
     }
 }
@@ -159,8 +160,10 @@ void Serial_Task( void )
  * date and alarm.
  *
  * @param   pdata  [in]  Pointer to data struct
+ * @retval  Returns the next state that will be executed
+ *
  */
-void Serial_StMachine( NEW_MsgTypeDef *pdata )
+MACHINE_SERIAL Serial_StMachine( NEW_MsgTypeDef *pdata )
 {
     static SerialStates StMachine[ NUM_5 ] = {
     { SerialTimeState },
@@ -170,9 +173,11 @@ void Serial_StMachine( NEW_MsgTypeDef *pdata )
     { SerialErrorState } };
 
     static NEW_MsgTypeDef NextEvent;
+    static MACHINE_SERIAL serialEvent;
     NextEvent.Data[ NUM_0 ] = pdata->Data[ NUM_0 ];
 
-    StMachine[ NextEvent.Data[ NUM_0 ] - NUM_1 ].ptr_funct( pdata );
+    serialEvent = StMachine[ NextEvent.Data[ NUM_0 ] - NUM_1 ].ptr_funct( pdata );
+    return serialEvent;
 }
 
 /**
@@ -182,11 +187,14 @@ void Serial_StMachine( NEW_MsgTypeDef *pdata )
  * and send the message to the queue.
  *
  * @param   pmsg  [in]  Pointer to data struct
+ * @retval  Returns the next state that will be executed
+ *
  */
-void SerialTimeState( const NEW_MsgTypeDef *pmsg )
+STATIC MACHINE_SERIAL SerialTimeState( NEW_MsgTypeDef *pmsg )
 {
     static NEW_MsgTypeDef SerialMsg;
     static APP_MsgTypeDef messageStruct = { 0 };
+    MACHINE_SERIAL serialEvent          = SERIAL_ERROR;
 
     SerialMsg.Data[ MESSAGE ] = ERROR_STATE;
     messageStruct.tm.tm_hour  = BCD_conver( pmsg->Data[ TIME_HOUR_ELEMENT ] );
@@ -199,10 +207,12 @@ void SerialTimeState( const NEW_MsgTypeDef *pmsg )
         messageStruct.msg = SERIAL_MSG_TIME;
         xQueueSend( clockQueue, &messageStruct, TICKS );
         SerialMsg.Data[ MESSAGE ] = OK_STATE;
+        serialEvent               = SERIAL_OK;
     }
 
     /*Send a message to the same queue to trasition to another state*/
     xQueueSend( serialQueue, &SerialMsg, TICKS );
+    return serialEvent;
 }
 
 /**
@@ -212,11 +222,14 @@ void SerialTimeState( const NEW_MsgTypeDef *pmsg )
  * and send the message to the queue.
  *
  * @param   pmsg  [in]  Pointer to data struct
+ * @retval  Returns the next state that will be executed
+ *
  */
-void SerialDateState( const NEW_MsgTypeDef *pmsg )
+STATIC MACHINE_SERIAL SerialDateState( NEW_MsgTypeDef *pmsg )
 {
     static NEW_MsgTypeDef SerialMsg;
     static APP_MsgTypeDef messageStruct = { 0 };
+    MACHINE_SERIAL serialEvent          = SERIAL_ERROR;
 
     SerialMsg.Data[ MESSAGE ] = ERROR_STATE;
     messageStruct.tm.tm_mday  = BCD_conver( pmsg->Data[ DATE_DAY_ELEMENT ] );
@@ -230,10 +243,12 @@ void SerialDateState( const NEW_MsgTypeDef *pmsg )
 
         xQueueSend( clockQueue, &messageStruct, TICKS ); /*Send the data*/
         SerialMsg.Data[ MESSAGE ] = OK_STATE;
+        serialEvent               = SERIAL_OK;
     }
 
     /*Send a message to the same queue to trasition to another state*/
     xQueueSend( serialQueue, &SerialMsg, TICKS );
+    return serialEvent;
 }
 
 /**
@@ -243,11 +258,14 @@ void SerialDateState( const NEW_MsgTypeDef *pmsg )
  * and send the message to the queue.
  *
  * @param   pmsg  [in]  Pointer to data struct
+ * @retval  Returns the next state that will be executed
+ *
  */
-void SerialAlarmState( const NEW_MsgTypeDef *pmsg )
+STATIC MACHINE_SERIAL SerialAlarmState( NEW_MsgTypeDef *pmsg )
 {
     static NEW_MsgTypeDef SerialMsg;
     static APP_MsgTypeDef messageStruct = { 0 };
+    MACHINE_SERIAL serialEvent          = SERIAL_ERROR;
 
     SerialMsg.Data[ MESSAGE ]      = ERROR_STATE;
     messageStruct.tm.tm_hour_alarm = BCD_conver( pmsg->Data[ ALARM_HOUR_ELEMENT ] );
@@ -259,10 +277,12 @@ void SerialAlarmState( const NEW_MsgTypeDef *pmsg )
 
         xQueueSend( clockQueue, &messageStruct, TICKS );
         SerialMsg.Data[ MESSAGE ] = OK_STATE;
+        serialEvent               = SERIAL_OK;
     }
 
     /*Send a message to the same queue to trasition to another state*/
     xQueueSend( serialQueue, &SerialMsg, TICKS );
+    return serialEvent;
 }
 
 /**
@@ -273,13 +293,16 @@ void SerialAlarmState( const NEW_MsgTypeDef *pmsg )
  * a message through CAN to indicate the data is valid.
  *
  * @param   pmsg  [in]  Pointer to data struct
+ * @retval  Returns the next state that will be executed
+ *
  */
-void SerialOkState( const NEW_MsgTypeDef *pmsg )
+STATIC MACHINE_SERIAL SerialOkState( NEW_MsgTypeDef *pmsg )
 {
     uint8_t msg_ok[ 8 ] = { 0 };
 
     msg_ok[ NUM_0 ] = DATA_OK;
     CanTp_SingleFrameTx( msg_ok, pmsg->Data[ SINGLE_FRAME_ELEMENT ] );
+    return SERIAL_IDLE;
 }
 
 /**
@@ -288,13 +311,16 @@ void SerialOkState( const NEW_MsgTypeDef *pmsg )
  * Is going to transmit a message through CAN to indicate the data is not valid.
  *
  * @param   pmsg  [in]  Pointer to data struct
+ * @retval  Returns the next state that will be executed
+ *
  */
-void SerialErrorState( const NEW_MsgTypeDef *pmsg )
+STATIC MACHINE_SERIAL SerialErrorState( NEW_MsgTypeDef *pmsg )
 {
     uint8_t msn_error[ 8 ] = { 0 };
 
     msn_error[ NUM_0 ] = DATA_ERROR;
     CanTp_SingleFrameTx( msn_error, pmsg->Data[ SINGLE_FRAME_ELEMENT ] );
+    return SERIAL_IDLE;
 }
 
 /**
