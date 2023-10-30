@@ -70,6 +70,15 @@ typedef enum
 } APP_Messages;
 
 /**
+ * @brief   Enum with message types used as events for unit testing
+ */
+typedef enum
+{
+    DISPLAY_MSG_TIME,  /**< Received Time message type */
+    DISPLAY_IDLE_STATE /**< Received Date message type */
+} Display_M;
+
+/**
  * @brief   Enum with states for state machines
  */
 typedef enum
