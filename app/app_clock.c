@@ -323,7 +323,7 @@ void Clock_Update_DateAndTime( TimerHandle_t pxTimer )
  * @param   hrtc A pointer to the RTC structure
  */
 /* cppcheck-suppress misra-c2012-8.4 ; its external linkage is declared at HAL library */
-void HAL_RTC_AlarmAEventCallback( RTC_HandleTypeDef *hrtc )
+void HAL_RTC_AlarmAEventCallback( RTC_HandleTypeDef *hrtc ) // ISR
 {
     static APP_MsgTypeDef DisplayMsg = { 0 };
 
