@@ -86,167 +86,159 @@ Invoke the function when the Message by CAN was received.
 //////////////////////////////////////////
 void test_Serial_Task_WithValidData( void )
 {
-    NEW_MsgTypeDef mockMessage = {0};
-    //NEW_MsgTypeDef newMessage = {0};
-    mockMessage.Data[0] = 0x04; 
-    mockMessage.Data[1] = 0x01; 
-    mockMessage.Data[2] = 0x23; 
-    mockMessage.Data[3] = 0x10; 
-    mockMessage.Data[4] = 0x01; 
+    NEW_MsgTypeDef mockMessage = { 0 };
+    // NEW_MsgTypeDef newMessage = {0};
+    mockMessage.Data[ 0 ] = 0x04;
+    mockMessage.Data[ 1 ] = 0x01;
+    mockMessage.Data[ 2 ] = 0x23;
+    mockMessage.Data[ 3 ] = 0x10;
+    mockMessage.Data[ 4 ] = 0x01;
 
-    //xQueueReceive_ExpectAndReturn(serialQueue, &mockMessage, 0, pdPASS); //ReturnToPointer
-    xQueueReceive_ExpectAnyArgsAndReturn(pdTRUE);
-    xQueueReceive_ReturnThruPtr_pvBuffer(mockMessage);
-    //xQueueReceive_IgnoreAndReturn( pdPASS );
-    //xQueueReceive_IgnoreAndReturn( errQUEUE_EMPTY );
+    // xQueueReceive_ExpectAndReturn(serialQueue, &mockMessage, 0, pdPASS); //ReturnToPointer
+    xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
+    xQueueReceive_ReturnThruPtr_pvBuffer( mockMessage );
+    // xQueueReceive_IgnoreAndReturn( pdPASS );
+    // xQueueReceive_IgnoreAndReturn( errQUEUE_EMPTY );
 
-    Serial_Task();
+    Serial_Task( );
 }
 /////////////////////
 /*Testing calling Serial_StMachine.
 Invoke the function to verify the time elemnets.
 Returns the next event that will be executed.
 */
-void test__SerialTimeState__timeEvent(void)
+void test__SerialTimeState__timeEvent( void )
 {
     NEW_MsgTypeDef msgRecieved;
-    msgRecieved.Data[NUM_0] = 1;
-    msgRecieved.Data[TIME_HOUR_ELEMENT] = 0x20;
-    msgRecieved.Data[TIME_MIN_ELEMENT] = 0x43;
-    msgRecieved.Data[TIME_SEC_ELEMENT] = 0x20;
+    msgRecieved.Data[ NUM_0 ]             = 1;
+    msgRecieved.Data[ TIME_HOUR_ELEMENT ] = 0x20;
+    msgRecieved.Data[ TIME_MIN_ELEMENT ]  = 0x43;
+    msgRecieved.Data[ TIME_SEC_ELEMENT ]  = 0x20;
 
     xQueueGenericSend_IgnoreAndReturn( pdPASS );
 
-    MACHINE_SERIAL nextEvent = Serial_StMachine(&msgRecieved);
-    TEST_ASSERT_EQUAL_MESSAGE(  SERIAL_OK, nextEvent, "Event state time elements are corrected" );
-
+    MACHINE_SERIAL nextEvent = Serial_StMachine( &msgRecieved );
+    TEST_ASSERT_EQUAL_MESSAGE( SERIAL_OK, nextEvent, "Event state time elements are corrected" );
 }
 
 /*Testing calling Serial_StMachine.
 Invoke the function to verify the time elemnets are incorrected.
 Returns the next event that will be executed.
 */
-void test__SerialTimeState__timeEventError(void)
+void test__SerialTimeState__timeEventError( void )
 {
     NEW_MsgTypeDef msgRecieved;
-    msgRecieved.Data[NUM_0] = 1;
-    msgRecieved.Data[TIME_HOUR_ELEMENT] = 0x24;
-    msgRecieved.Data[TIME_MIN_ELEMENT] = 0x43;
-    msgRecieved.Data[TIME_SEC_ELEMENT] = 0x20;
+    msgRecieved.Data[ NUM_0 ]             = 1;
+    msgRecieved.Data[ TIME_HOUR_ELEMENT ] = 0x24;
+    msgRecieved.Data[ TIME_MIN_ELEMENT ]  = 0x43;
+    msgRecieved.Data[ TIME_SEC_ELEMENT ]  = 0x20;
 
     xQueueGenericSend_IgnoreAndReturn( pdPASS );
 
-    MACHINE_SERIAL nextEvent = Serial_StMachine(&msgRecieved);
-    TEST_ASSERT_EQUAL_MESSAGE(  SERIAL_ERROR, nextEvent, "Event state time elements are incorrected" );
-
+    MACHINE_SERIAL nextEvent = Serial_StMachine( &msgRecieved );
+    TEST_ASSERT_EQUAL_MESSAGE( SERIAL_ERROR, nextEvent, "Event state time elements are incorrected" );
 }
 
 /*Testing calling Serial_StMachine.
 Invoke the function to verify the date elemnets.
 Returns the next event that will be executed.
 */
-void test__SerialDateState__dateEvent(void)
+void test__SerialDateState__dateEvent( void )
 {
     NEW_MsgTypeDef msgRecieved;
-    msgRecieved.Data[NUM_0] = 2;
-    msgRecieved.Data[DATE_DAY_ELEMENT] = 0x29;
-    msgRecieved.Data[DATE_MON_ELEMENT] = 0x10;
-    msgRecieved.Data[DATE_MSB_YEAR_ELEMENT] = 0x20;
-    msgRecieved.Data[DATE_LSB_YEAR_ELEMENT] = 0x23;
+    msgRecieved.Data[ NUM_0 ]                 = 2;
+    msgRecieved.Data[ DATE_DAY_ELEMENT ]      = 0x29;
+    msgRecieved.Data[ DATE_MON_ELEMENT ]      = 0x10;
+    msgRecieved.Data[ DATE_MSB_YEAR_ELEMENT ] = 0x20;
+    msgRecieved.Data[ DATE_LSB_YEAR_ELEMENT ] = 0x23;
 
     xQueueGenericSend_IgnoreAndReturn( pdPASS );
 
-    MACHINE_SERIAL nextEvent = Serial_StMachine(&msgRecieved);
-    TEST_ASSERT_EQUAL_MESSAGE(  SERIAL_OK, nextEvent, "Event state date elements are corrected" );
-
+    MACHINE_SERIAL nextEvent = Serial_StMachine( &msgRecieved );
+    TEST_ASSERT_EQUAL_MESSAGE( SERIAL_OK, nextEvent, "Event state date elements are corrected" );
 }
 
 /*Testing calling Serial_StMachine.
 Invoke the function to verify the date elemnets are incorrected.
 Returns the next event that will be executed.
 */
-void test__SerialDateState__dateEventError(void)
+void test__SerialDateState__dateEventError( void )
 {
     NEW_MsgTypeDef msgRecieved;
-    msgRecieved.Data[NUM_0] = 2;
-    msgRecieved.Data[DATE_DAY_ELEMENT] = 0x35;
-    msgRecieved.Data[DATE_MON_ELEMENT] = 0x10;
-    msgRecieved.Data[DATE_MSB_YEAR_ELEMENT] = 0x20;
-    msgRecieved.Data[DATE_LSB_YEAR_ELEMENT] = 0x23;
+    msgRecieved.Data[ NUM_0 ]                 = 2;
+    msgRecieved.Data[ DATE_DAY_ELEMENT ]      = 0x35;
+    msgRecieved.Data[ DATE_MON_ELEMENT ]      = 0x10;
+    msgRecieved.Data[ DATE_MSB_YEAR_ELEMENT ] = 0x20;
+    msgRecieved.Data[ DATE_LSB_YEAR_ELEMENT ] = 0x23;
 
     xQueueGenericSend_IgnoreAndReturn( pdPASS );
 
-    MACHINE_SERIAL nextEvent = Serial_StMachine(&msgRecieved);
-    TEST_ASSERT_EQUAL_MESSAGE(  SERIAL_ERROR, nextEvent, "Event state date elements are incorrected" );
-
+    MACHINE_SERIAL nextEvent = Serial_StMachine( &msgRecieved );
+    TEST_ASSERT_EQUAL_MESSAGE( SERIAL_ERROR, nextEvent, "Event state date elements are incorrected" );
 }
 
 /*Testing calling Serial_StMachine.
 Invoke the function to verify the Alarm event when the queue has correct elements.
 Returns the next event that will be executed.
 */
-void test__SerialAlarmState__alarmEvent(void)
+void test__SerialAlarmState__alarmEvent( void )
 {
     NEW_MsgTypeDef msgRecieved;
-    msgRecieved.Data[NUM_0] = 3;
-    msgRecieved.Data[ALARM_HOUR_ELEMENT] = 0X14;
-    msgRecieved.Data[ALARM_MIN_ELEMENT] = 0X37;
+    msgRecieved.Data[ NUM_0 ]              = 3;
+    msgRecieved.Data[ ALARM_HOUR_ELEMENT ] = 0X14;
+    msgRecieved.Data[ ALARM_MIN_ELEMENT ]  = 0X37;
 
     xQueueGenericSend_IgnoreAndReturn( pdPASS );
 
-    MACHINE_SERIAL nextEvent = Serial_StMachine(&msgRecieved);
-    TEST_ASSERT_EQUAL_MESSAGE(  SERIAL_OK, nextEvent, "Event state Alarm elements are corrected" );
-
+    MACHINE_SERIAL nextEvent = Serial_StMachine( &msgRecieved );
+    TEST_ASSERT_EQUAL_MESSAGE( SERIAL_OK, nextEvent, "Event state Alarm elements are corrected" );
 }
 
 /*Testing calling Serial_StMachine.
 Invoke the function to verify the Alarm event when the queue has bad elements.
 Returns the next event that will be executed.
 */
-void test__SerialAlarmState__alarmEventError(void)
+void test__SerialAlarmState__alarmEventError( void )
 {
     NEW_MsgTypeDef msgRecieved;
-    msgRecieved.Data[NUM_0] = 3;
-    msgRecieved.Data[ALARM_HOUR_ELEMENT] = 0X23;
-    msgRecieved.Data[ALARM_MIN_ELEMENT] = 0X62;
+    msgRecieved.Data[ NUM_0 ]              = 3;
+    msgRecieved.Data[ ALARM_HOUR_ELEMENT ] = 0X23;
+    msgRecieved.Data[ ALARM_MIN_ELEMENT ]  = 0X62;
 
     xQueueGenericSend_IgnoreAndReturn( pdPASS );
 
-    MACHINE_SERIAL nextEvent = Serial_StMachine(&msgRecieved);
-    TEST_ASSERT_EQUAL_MESSAGE(  SERIAL_ERROR, nextEvent, "Event state Alarm elemnts are bad" );
-
+    MACHINE_SERIAL nextEvent = Serial_StMachine( &msgRecieved );
+    TEST_ASSERT_EQUAL_MESSAGE( SERIAL_ERROR, nextEvent, "Event state Alarm elemnts are bad" );
 }
 
 /*Testing calling Serial_StMachine.
 Invoke the function to verify the ERROR event.
 Returns the next event that will be executed.
 */
-void test__SerialErrorState__errorEvent(void)
+void test__SerialErrorState__errorEvent( void )
 {
     NEW_MsgTypeDef msgRecieved;
-    msgRecieved.Data[NUM_0] = ERROR_STATE;
+    msgRecieved.Data[ NUM_0 ] = ERROR_STATE;
 
     HAL_FDCAN_AddMessageToTxFifoQ_IgnoreAndReturn( HAL_OK );
 
-    MACHINE_SERIAL nextEvent = Serial_StMachine(&msgRecieved);
-    TEST_ASSERT_EQUAL_MESSAGE(  SERIAL_IDLE, nextEvent, "Event state ERROR complete" );
-
+    MACHINE_SERIAL nextEvent = Serial_StMachine( &msgRecieved );
+    TEST_ASSERT_EQUAL_MESSAGE( SERIAL_IDLE, nextEvent, "Event state ERROR complete" );
 }
 
 /*Testing calling Serial_StMachine.
 Invoke the function to verify the OK event.
 Returns the next event that will be executed.
 */
-void test__SerialOkState__OkEvent(void)
+void test__SerialOkState__OkEvent( void )
 {
     NEW_MsgTypeDef msgRecieved;
-    msgRecieved.Data[NUM_0] = OK_STATE;
+    msgRecieved.Data[ NUM_0 ] = OK_STATE;
 
     HAL_FDCAN_AddMessageToTxFifoQ_IgnoreAndReturn( HAL_OK );
 
-    MACHINE_SERIAL nextEvent = Serial_StMachine(&msgRecieved);
-    TEST_ASSERT_EQUAL_MESSAGE(  SERIAL_IDLE, nextEvent, "Event state OK complete" );
-
+    MACHINE_SERIAL nextEvent = Serial_StMachine( &msgRecieved );
+    TEST_ASSERT_EQUAL_MESSAGE( SERIAL_IDLE, nextEvent, "Event state OK complete" );
 }
 
 /*Testing calling BCD_conver.
