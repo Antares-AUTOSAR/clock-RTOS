@@ -46,12 +46,12 @@ TimerHandle_t xTimerDisplay;
 /**
  * @brief  Flag that tell us that alarm has been activated
  */
-uint8_t Alarm_Active = 0;
+uint8_t Alarm_Active = 0; /* cppcheck-suppress misra-c2012-8.4  ;Not moving due to unit testing*/
 
 /**
  * @brief  Flag that tell us that will stop the msg of alarm and clean it
  */
-uint8_t Stop_Alarm = 0;
+uint8_t Stop_Alarm = 0; /* cppcheck-suppress misra-c2012-8.4  ;Not moving due to unit testing*/
 
 /**
  * @brief   Use once to Initialize the clock
@@ -110,9 +110,9 @@ void Clock_Task( void )
     {
         (void)Clock_EventMachine( &messageStruct );
     }
-    if( Stop_Alarm == TRUE_A )
+    if( Stop_Alarm == ACTIVE )
     {
-        Stop_Alarm        = FALSE_A;
+        Stop_Alarm        = INACTIVE;
         messageStruct.msg = OK_STATE;
         xQueueSend( displayQueue, &messageStruct, TICKS );
     }
@@ -181,11 +181,11 @@ MACHINE_State state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage )
 
     HAL_RTC_SetAlarm_IT( &RtcHandler, &sAlarm, RTC_FORMAT_BIN );
 
-    if( Alarm_Active == ON )
+    if( Alarm_Active == ALARM_TRIGGERED  )
     {
         xTimerStart( xTimerDisplay, TICKS );
-        Alarm_Active = OFF;
-        Stop_Alarm   = TRUE_A;
+        Alarm_Active = ALARM_DEACTIVATED ;
+        Stop_Alarm   = ACTIVE;
     }
 
     clockMessage.msg = SERIAL_MSG_TIME;
@@ -216,11 +216,11 @@ MACHINE_State state_serialMsgDate( APP_MsgTypeDef *receivedMessage )
     dateYearH     = receivedMessage->tm.tm_year / 100UL;
     HAL_RTC_SetDate( &RtcHandler, &sDate, RTC_FORMAT_BIN );
 
-    if( Alarm_Active == ON )
+    if( Alarm_Active == ALARM_TRIGGERED  )
     {
         xTimerStart( xTimerDisplay, TICKS );
-        Alarm_Active = OFF;
-        Stop_Alarm   = TRUE_A;
+        Alarm_Active = ALARM_DEACTIVATED ;
+        Stop_Alarm   = ACTIVE;
     }
 
     clockMessage.msg = CLOCK_MSG_PRINT;
@@ -249,11 +249,11 @@ MACHINE_State state_serialMsgTime( APP_MsgTypeDef *receivedMessage )
     sTime.Seconds = receivedMessage->tm.tm_sec;
     HAL_RTC_SetTime( &RtcHandler, &sTime, RTC_FORMAT_BIN );
 
-    if( Alarm_Active == ON )
+    if( Alarm_Active == ALARM_TRIGGERED )
     {
         xTimerStart( xTimerDisplay, TICKS );
-        Alarm_Active = OFF;
-        Stop_Alarm   = TRUE_A;
+        Alarm_Active = ALARM_DEACTIVATED;
+        Stop_Alarm   = ACTIVE;
     }
 
     clockMessage.msg = CLOCK_MSG_PRINT;
@@ -330,7 +330,7 @@ void HAL_RTC_AlarmAEventCallback( RTC_HandleTypeDef *hrtc ) // ISR
 
     HAL_RTC_DeactivateAlarm( hrtc, RTC_ALARM_A );
 
-    Alarm_Active = ON;
+    Alarm_Active = ALARM_TRIGGERED;
 
     xTimerStop( xTimerDisplay, TICKS );
 

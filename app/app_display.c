@@ -20,7 +20,7 @@ typedef struct
 /**
  * @brief Variable for LCD configuration
  */
-LCD_HandleTypeDef hlcd; /* cppcheck-suppress misra-c2012-8.4  ;Not moving due to unit testing*/
+LCD_HandleTypeDef Hlcd; /* cppcheck-suppress misra-c2012-8.4  ;Not moving due to unit testing*/
 
 /**
  * @brief Variable for SPI configuration
@@ -35,12 +35,12 @@ static TIM_HandleTypeDef TimHandle;
 /**
  * @brief  Flag that will tell if the buzzer needs to be activated
  */
-uint8_t buzzer_flag = 0;
+uint8_t buzzer_flag = 0; /* cppcheck-suppress misra-c2012-8.4  ;Not moving due to unit testing*/
 
 /**
  * @brief  Flag that will tell if the buzzer needs to be activated
  */
-uint8_t buzzer = 0;
+uint8_t buzzer = 0; /* cppcheck-suppress misra-c2012-8.4  ;Not moving due to unit testing*/
 
 /**
  * @brief  Struct for handling Software timer for the buzzer
@@ -150,18 +150,17 @@ STATIC void DateString( char *string, uint8_t month, uint8_t day, uint16_t year,
  */
 void Display_Init( void )
 {
-    static SPI_HandleTypeDef SpiHandle = { 0 };
     TIM_OC_InitTypeDef sConfig;
 
-    hlcd.SpiHandler = &SpiHandle;
-    hlcd.RstPort    = GPIOD;
-    hlcd.RstPin     = GPIO_PIN_2;
-    hlcd.RsPort     = GPIOD;
-    hlcd.RsPin      = GPIO_PIN_4;
-    hlcd.CsPort     = GPIOD;
-    hlcd.CsPin      = GPIO_PIN_3;
-    hlcd.BklPort    = GPIOB;
-    hlcd.BklPin     = GPIO_PIN_4;
+    Hlcd.SpiHandler = &SpiHandle;
+    Hlcd.RstPort    = GPIOD;
+    Hlcd.RstPin     = GPIO_PIN_2;
+    Hlcd.RsPort     = GPIOD;
+    Hlcd.RsPin      = GPIO_PIN_4;
+    Hlcd.CsPort     = GPIOD;
+    Hlcd.CsPin      = GPIO_PIN_3;
+    Hlcd.BklPort    = GPIOB;
+    Hlcd.BklPin     = GPIO_PIN_4;
 
     SpiHandle.Instance               = SPI1;
     SpiHandle.Init.Mode              = SPI_MODE_MASTER;
@@ -176,9 +175,9 @@ void Display_Init( void )
     SpiHandle.Init.TIMode            = SPI_TIMODE_DISABLED;
     HAL_SPI_Init( &SpiHandle );
 
-    (void)HEL_LCD_Init( &hlcd );
-    (void)HEL_LCD_Backlight( &hlcd, LCD_ON );
-    (void)HEL_LCD_Contrast( &hlcd, 15 );
+    (void)HEL_LCD_Init( &Hlcd );
+    (void)HEL_LCD_Backlight( &Hlcd, LCD_ON );
+    (void)HEL_LCD_Contrast( &Hlcd, 15 );
 
     TimHandle.Instance         = TIM14;
     TimHandle.Init.Prescaler   = 10;
@@ -255,8 +254,8 @@ STATIC Display_M Time( APP_MsgTypeDef *DisplayMsg )
 
     TimeString( string, DisplayMsg->tm.tm_hour, DisplayMsg->tm.tm_min, DisplayMsg->tm.tm_sec );
 
-    (void)HEL_LCD_SetCursor( &hlcd, 1, 3 );
-    (void)HEL_LCD_String( &hlcd, string );
+    (void)HEL_LCD_SetCursor( &Hlcd, 1, 3 );
+    (void)HEL_LCD_String( &Hlcd, string );
 
     DisplayMsg->msg = SERIAL_MSG_DATE;
     xQueueSend( displayQueue, DisplayMsg, 0 );
@@ -277,8 +276,8 @@ STATIC Display_M Date( APP_MsgTypeDef *DisplayMsg )
     char date_string[] = "000,00 0000 00"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print date*/
     DateString( date_string, DisplayMsg->tm.tm_mon, DisplayMsg->tm.tm_mday, DisplayMsg->tm.tm_year, DisplayMsg->tm.tm_wday );
 
-    (void)HEL_LCD_SetCursor( &hlcd, 0, 1 );
-    (void)HEL_LCD_String( &hlcd, date_string );
+    (void)HEL_LCD_SetCursor( &Hlcd, 0, 1 );
+    (void)HEL_LCD_String( &Hlcd, date_string );
 
     return DISPLAY_IDLE_STATE;
 }
@@ -286,15 +285,15 @@ STATIC Display_M Date( APP_MsgTypeDef *DisplayMsg )
 /**
  * @brief   Prints the letter A
  *
- * This function prints the letter A when the alarm has been triggered
+ * This function prints the letter A when the alarm has been setted
  * @param DisplayMsg:  A pointer to the message structure containing state information
  */
 STATIC Display_M Alarm_A( APP_MsgTypeDef *DisplayMsg )
 {
     UNUSED( DisplayMsg );
 
-    (void)HEL_LCD_SetCursor( &hlcd, 1, 0 );
-    (void)HEL_LCD_Data( &hlcd, 'A' );
+    (void)HEL_LCD_SetCursor( &Hlcd, 1, 0 );
+    (void)HEL_LCD_Data( &Hlcd, 'A' );
 
     return DISPLAY_1;
 }
@@ -312,12 +311,12 @@ STATIC Display_M Alarm( APP_MsgTypeDef *DisplayMsg )
     buzzer        = ACTIVE;
     buzzer_flag   = ACTIVE;
 
-    (void)HEL_LCD_SetCursor( &hlcd, 1, 0 );
-    (void)HEL_LCD_Data( &hlcd, ' ' );
+    (void)HEL_LCD_SetCursor( &Hlcd, 1, 0 );
+    (void)HEL_LCD_Data( &Hlcd, ' ' );
 
-    (void)HEL_LCD_SetCursor( &hlcd, 1, 3 );
-    (void)HEL_LCD_String( &hlcd, string );
-    (void)HEL_LCD_Backlight( &hlcd, LCD_ON );
+    (void)HEL_LCD_SetCursor( &Hlcd, 1, 3 );
+    (void)HEL_LCD_String( &Hlcd, string );
+    (void)HEL_LCD_Backlight( &Hlcd, LCD_ON );
 
     return DISPLAY_2;
 }
@@ -338,7 +337,7 @@ STATIC Display_M Alarm_Clean( APP_MsgTypeDef *DisplayMsg )
 
     xTimerStop( xTimerBuzzer, TICKS );
     xTimerStop( xTimer1Mn_Buzzer, TICKS );
-    (void)HEL_LCD_Backlight( &hlcd, LCD_ON );
+    (void)HEL_LCD_Backlight( &Hlcd, LCD_ON );
     xTimerStart( xTimerDisplay, TICKS );
 
     return DISPLAY_3;
@@ -360,13 +359,13 @@ STATIC void Display_Buzzer( TimerHandle_t pxTimer )
         {
             buzzer = INACTIVE;
             HAL_TIM_PWM_Start( &TimHandle, TIM_CHANNEL_1 );
-            (void)HEL_LCD_Backlight( &hlcd, LCD_OFF );
+            (void)HEL_LCD_Backlight( &Hlcd, LCD_OFF );
         }
         else
         {
             buzzer = ACTIVE;
             HAL_TIM_PWM_Stop( &TimHandle, TIM_CHANNEL_1 );
-            (void)HEL_LCD_Backlight( &hlcd, LCD_ON );
+            (void)HEL_LCD_Backlight( &Hlcd, LCD_ON );
         }
     }
 }
@@ -385,6 +384,6 @@ STATIC void Display_1Mn_Buzzer( TimerHandle_t pxTimer )
     {
         HAL_TIM_PWM_Stop( &TimHandle, TIM_CHANNEL_1 );
         xTimerStop( xTimerBuzzer, TICKS );
-        (void)HEL_LCD_Backlight( &hlcd, LCD_ON );
+        (void)HEL_LCD_Backlight( &Hlcd, LCD_ON );
     }
 }
