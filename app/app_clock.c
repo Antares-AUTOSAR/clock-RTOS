@@ -181,10 +181,10 @@ MACHINE_State state_serialMsgAlarm( APP_MsgTypeDef *receivedMessage )
 
     HAL_RTC_SetAlarm_IT( &RtcHandler, &sAlarm, RTC_FORMAT_BIN );
 
-    if( Alarm_Active == ALARM_TRIGGERED  )
+    if( Alarm_Active == ALARM_TRIGGERED )
     {
         xTimerStart( xTimerDisplay, TICKS );
-        Alarm_Active = ALARM_DEACTIVATED ;
+        Alarm_Active = ALARM_DEACTIVATED;
         Stop_Alarm   = ACTIVE;
     }
 
@@ -216,10 +216,10 @@ MACHINE_State state_serialMsgDate( APP_MsgTypeDef *receivedMessage )
     dateYearH     = receivedMessage->tm.tm_year / 100UL;
     HAL_RTC_SetDate( &RtcHandler, &sDate, RTC_FORMAT_BIN );
 
-    if( Alarm_Active == ALARM_TRIGGERED  )
+    if( Alarm_Active == ALARM_TRIGGERED )
     {
         xTimerStart( xTimerDisplay, TICKS );
-        Alarm_Active = ALARM_DEACTIVATED ;
+        Alarm_Active = ALARM_DEACTIVATED;
         Stop_Alarm   = ACTIVE;
     }
 

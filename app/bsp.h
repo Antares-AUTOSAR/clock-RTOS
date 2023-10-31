@@ -78,10 +78,9 @@ typedef enum
 {
     DISPLAY_MSG_TIME,   /**< Received Time message type */
     DISPLAY_IDLE_STATE, /**< Received Date message type */
-    DISPLAY_1,          /**< Received Date message type */
-    DISPLAY_2,          /**< Received Date message type */
-    DISPLAY_3,          /**< Received Date message type */
-    DISPLAY_4,          /**< Received Date message type */
+    DISPLAY_1,          /**< Return for Alarm_A */
+    DISPLAY_2,          /**< Return for Alarm */
+    DISPLAY_3           /**< Return for Alarm_Clean  */
 } Display_M;
 
 /**

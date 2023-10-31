@@ -287,6 +287,7 @@ STATIC Display_M Date( APP_MsgTypeDef *DisplayMsg )
  *
  * This function prints the letter A when the alarm has been setted
  * @param DisplayMsg:  A pointer to the message structure containing state information
+ * @return DISPLAY_1: State for testing and knowing a message have been sent
  */
 STATIC Display_M Alarm_A( APP_MsgTypeDef *DisplayMsg )
 {
@@ -303,6 +304,7 @@ STATIC Display_M Alarm_A( APP_MsgTypeDef *DisplayMsg )
  *
  * This function prints ALARM!!! when the alarm has been activated. Furthermore, it indicates that the buzzer must be activated
  * @param DisplayMsg:  A pointer to the message structure containing state information
+ * @return DISPLAY_2: State for testing and knowing a message have been sent
  */
 STATIC Display_M Alarm( APP_MsgTypeDef *DisplayMsg )
 {
@@ -326,6 +328,7 @@ STATIC Display_M Alarm( APP_MsgTypeDef *DisplayMsg )
  *
  * This function prints stop and turn off before the one-minute lapse expire by receiving a new date, time, or alarm through the CAN bus
  * @param DisplayMsg:  A pointer to the message structure containing state information
+ * @return DISPLAY_3: State for testing and knowing a message have been sent
  */
 STATIC Display_M Alarm_Clean( APP_MsgTypeDef *DisplayMsg )
 {
