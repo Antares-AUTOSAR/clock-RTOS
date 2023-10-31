@@ -6,17 +6,31 @@
 #include "mock_stm32g0xx_hal_spi.h"
 #include "mock_queue.h"
 #include "mock_hel_lcd.h"
+#include "mock_timers.h"
+#include "mock_task.h"
+#include "mock_stm32g0xx_hal_tim.h"
 
+TimerHandle_t xTimerDisplay;
+
+// stm32g0xx_hal_tim.c
 QueueHandle_t displayQueue;
 
 extern LCD_HandleTypeDef hlcd;
 extern SPI_HandleTypeDef SpiHandle;
+extern uint8_t buzzer_flag;
+extern uint8_t buzzer;
+
 
 STATIC char *get_month( uint8_t month );
 STATIC void TimeString( char *string, uint8_t hours, uint8_t minutes, uint8_t seconds );
 STATIC void DateString( char *string, uint8_t month, uint8_t day, uint16_t year, uint8_t weekday );
 STATIC Display_M Date( APP_MsgTypeDef *DisplayMsg );
 STATIC Display_M Time( APP_MsgTypeDef *DisplayMsg );
+STATIC Display_M Alarm_A( APP_MsgTypeDef *DisplayMsg );
+STATIC Display_M Alarm( APP_MsgTypeDef *DisplayMsg );
+STATIC Display_M Alarm_Clean( APP_MsgTypeDef *DisplayMsg );
+STATIC void Display_Buzzer( TimerHandle_t pxTimer );
+STATIC void Display_1Mn_Buzzer( TimerHandle_t pxTimer );
 
 void setUp( void )
 {
@@ -97,10 +111,17 @@ void test_date_string( void )
  */
 void test_Display_Init( void )
 {
-    HAL_SPI_Init_ExpectAndReturn( &SpiHandle, HAL_OK );
+    TimerHandle_t testTimer = { 0 };
+
+    HAL_SPI_Init_IgnoreAndReturn( HAL_OK );
     HEL_LCD_Init_ExpectAndReturn( &hlcd, HAL_OK );
     HEL_LCD_Backlight_Expect( &hlcd, LCD_ON );
     HEL_LCD_Contrast_ExpectAndReturn( &hlcd, 15, HAL_OK );
+    HAL_TIM_PWM_Init_IgnoreAndReturn( HAL_OK );
+    HAL_TIM_PWM_ConfigChannel_IgnoreAndReturn( HAL_OK );
+    xTimerCreate_IgnoreAndReturn( testTimer );
+    xTaskGetTickCount_IgnoreAndReturn( 1u );
+    xTimerGenericCommand_IgnoreAndReturn( pdPASS );
     Display_Init( );
 }
 
@@ -191,4 +212,107 @@ void test_DisplayEventMachine_MessageDate( void )
 
     Display_M result = Date( &DisplayMsg );
     TEST_ASSERT_EQUAL_MESSAGE( DISPLAY_IDLE_STATE, result, "Execution of a DISPLAY_MSG_DATE must return a DISPLAY_IDLE_STATE (0)" );
+}
+
+void test_DisplayEventMachine_MessageAlarmA( void )
+{
+    HEL_LCD_SetCursor_ExpectAndReturn( &hlcd, 1, 0, HAL_OK );
+    HEL_LCD_Data_ExpectAndReturn( &hlcd,'A', HAL_OK );
+
+    APP_MsgTypeDef DisplayMsg =
+    {
+    .msg = SERIAL_MSG_TIME,
+    };
+
+    Display_M result = Alarm_A( &DisplayMsg );
+
+    TEST_ASSERT_EQUAL_MESSAGE( DISPLAY_1, result, "Execution of a DISPLAY_MSG_ALARM_A must return a DISPLAY_1 (2)" );
+}
+
+void test_DisplayEventMachine_MessageAlarm( void )
+{
+    char string[] = "ALARM!!!";
+    HEL_LCD_SetCursor_ExpectAndReturn( &hlcd, 1, 0, HAL_OK );
+    HEL_LCD_Data_ExpectAndReturn( &hlcd,' ', HAL_OK );
+    HEL_LCD_SetCursor_ExpectAndReturn( &hlcd, 1, 3, HAL_OK );
+    HEL_LCD_String_ExpectAndReturn( &hlcd, string, HAL_OK );
+    HEL_LCD_Backlight_Expect( &hlcd, LCD_ON );
+
+    APP_MsgTypeDef DisplayMsg =
+    {
+    .msg = CLOCK_MSG_PRINT,
+    };
+
+    Display_M result = Alarm( &DisplayMsg );
+
+    TEST_ASSERT_EQUAL_MESSAGE( DISPLAY_2, result, "Execution of a DISPLAY_MSG_ALARM must return a DISPLAY_2 (3)" );
+}
+
+void test_DisplayEventMachine_MessageAlarm_Clean( void )
+{
+    HAL_TIM_PWM_Stop_IgnoreAndReturn( pdPASS );
+    xTimerGenericCommand_IgnoreAndReturn( pdPASS );
+    HEL_LCD_Backlight_Expect( &hlcd, LCD_ON );
+    xTaskGetTickCount_IgnoreAndReturn( 1u );
+
+    APP_MsgTypeDef DisplayMsg =
+    {
+    .msg = OK_STATE,
+    };
+
+    Display_M result = Alarm_Clean( &DisplayMsg );
+
+    TEST_ASSERT_EQUAL_MESSAGE( DISPLAY_3, result, "Execution of a DISPLAY_MSG_ALARM_CLEAN must return a DISPLAY_3 (4)" );
+}
+
+void test_display_buzzer(void)
+{
+    TimerHandle_t testTimer = { 0 };
+    Display_Buzzer( testTimer);
+}
+
+void test_display_buzzer_1(void)
+{
+    buzzer_flag = 1;
+    TimerHandle_t testTimer = { 0 };
+
+    HAL_TIM_PWM_Stop_IgnoreAndReturn( pdPASS );
+    HEL_LCD_Backlight_Expect( &hlcd, LCD_ON );
+    Display_Buzzer( testTimer);
+    TEST_ASSERT_EQUAL( 1, buzzer_flag );
+}
+
+void test_display_buzzer_2(void)
+{
+    buzzer_flag = 1;
+    buzzer = 1;
+    TimerHandle_t testTimer = { 0 };
+
+    HAL_TIM_PWM_Stop_IgnoreAndReturn( pdPASS );
+    HEL_LCD_Backlight_Expect( &hlcd, LCD_OFF );
+    HAL_TIM_PWM_Start_IgnoreAndReturn( pdPASS );
+    Display_Buzzer( testTimer);
+    TEST_ASSERT_EQUAL( 0, buzzer );
+    TEST_ASSERT_EQUAL( 1, buzzer_flag );
+
+}
+
+
+void test_buzzer_1mn(void)
+{
+    TimerHandle_t testTimer = { 0 };
+    HAL_TIM_PWM_Stop_IgnoreAndReturn( pdPASS );
+    xTimerGenericCommand_IgnoreAndReturn( pdPASS );
+    HEL_LCD_Backlight_Expect( &hlcd, LCD_ON );
+    Display_1Mn_Buzzer(testTimer);
+}
+
+void test_buzzer_1mn_2(void)
+{
+    buzzer_flag = 0;
+    TimerHandle_t testTimer = { 0 };
+    HAL_TIM_PWM_Stop_IgnoreAndReturn( pdPASS );
+    xTimerGenericCommand_IgnoreAndReturn( pdPASS );
+    TEST_ASSERT_EQUAL( 0, buzzer_flag );
+    Display_1Mn_Buzzer(testTimer);
 }

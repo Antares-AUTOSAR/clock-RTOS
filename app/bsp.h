@@ -76,8 +76,12 @@ typedef enum
  */
 typedef enum
 {
-    DISPLAY_MSG_TIME,  /**< Received Time message type */
-    DISPLAY_IDLE_STATE /**< Received Date message type */
+    DISPLAY_MSG_TIME,   /**< Received Time message type */
+    DISPLAY_IDLE_STATE, /**< Received Date message type */
+    DISPLAY_1,          /**< Received Date message type */
+    DISPLAY_2,          /**< Received Date message type */
+    DISPLAY_3,          /**< Received Date message type */
+    DISPLAY_4,          /**< Received Date message type */
 } Display_M;
 
 /**

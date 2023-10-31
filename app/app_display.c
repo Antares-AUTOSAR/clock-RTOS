@@ -35,12 +35,12 @@ static TIM_HandleTypeDef TimHandle;
 /**
  * @brief  Flag that will tell if the buzzer needs to be activated
  */
-static uint8_t buzzer_flag = 0;
+uint8_t buzzer_flag = 0;
 
 /**
  * @brief  Flag that will tell if the buzzer needs to be activated
  */
-static uint8_t buzzer = 0;
+uint8_t buzzer = 0;
 
 /**
  * @brief  Struct for handling Software timer for the buzzer
@@ -58,11 +58,11 @@ STATIC Display_M Date( APP_MsgTypeDef *DisplayMsg );
 STATIC void TimeString( char *string, uint8_t hours, uint8_t minutes, uint8_t seconds );
 STATIC void DateString( char *string, uint8_t month, uint8_t day, uint16_t year, uint8_t weekday );
 STATIC char *get_month( uint8_t month );
-static void Alarm_A( APP_MsgTypeDef *DisplayMsg );
-static void Alarm( APP_MsgTypeDef *DisplayMsg );
-static void Alarm_Clean( APP_MsgTypeDef *DisplayMsg );
-static void Display_Buzzer( TimerHandle_t pxTimer );
-static void Display_1Mn_Buzzer( TimerHandle_t pxTimer );
+STATIC Display_M Alarm_A( APP_MsgTypeDef *DisplayMsg );
+STATIC Display_M Alarm( APP_MsgTypeDef *DisplayMsg );
+STATIC Display_M Alarm_Clean( APP_MsgTypeDef *DisplayMsg );
+STATIC void Display_Buzzer( TimerHandle_t pxTimer );
+STATIC void Display_1Mn_Buzzer( TimerHandle_t pxTimer );
 
 /**
  * @brief   Get the abbreviation of the month
@@ -289,12 +289,14 @@ STATIC Display_M Date( APP_MsgTypeDef *DisplayMsg )
  * This function prints the letter A when the alarm has been triggered
  * @param DisplayMsg:  A pointer to the message structure containing state information
  */
-static void Alarm_A( APP_MsgTypeDef *DisplayMsg )
+STATIC Display_M Alarm_A( APP_MsgTypeDef *DisplayMsg )
 {
     UNUSED( DisplayMsg );
 
     (void)HEL_LCD_SetCursor( &hlcd, 1, 0 );
     (void)HEL_LCD_Data( &hlcd, 'A' );
+
+    return DISPLAY_1;
 }
 
 /**
@@ -303,7 +305,7 @@ static void Alarm_A( APP_MsgTypeDef *DisplayMsg )
  * This function prints ALARM!!! when the alarm has been activated. Furthermore, it indicates that the buzzer must be activated
  * @param DisplayMsg:  A pointer to the message structure containing state information
  */
-static void Alarm( APP_MsgTypeDef *DisplayMsg )
+STATIC Display_M Alarm( APP_MsgTypeDef *DisplayMsg )
 {
     UNUSED( DisplayMsg );
     char string[] = "ALARM!!!"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print time */
@@ -316,6 +318,8 @@ static void Alarm( APP_MsgTypeDef *DisplayMsg )
     (void)HEL_LCD_SetCursor( &hlcd, 1, 3 );
     (void)HEL_LCD_String( &hlcd, string );
     (void)HEL_LCD_Backlight( &hlcd, LCD_ON );
+
+    return DISPLAY_2;
 }
 
 /**
@@ -324,7 +328,7 @@ static void Alarm( APP_MsgTypeDef *DisplayMsg )
  * This function prints stop and turn off before the one-minute lapse expire by receiving a new date, time, or alarm through the CAN bus
  * @param DisplayMsg:  A pointer to the message structure containing state information
  */
-static void Alarm_Clean( APP_MsgTypeDef *DisplayMsg )
+STATIC Display_M Alarm_Clean( APP_MsgTypeDef *DisplayMsg )
 {
     UNUSED( DisplayMsg );
 
@@ -336,6 +340,8 @@ static void Alarm_Clean( APP_MsgTypeDef *DisplayMsg )
     xTimerStop( xTimer1Mn_Buzzer, TICKS );
     (void)HEL_LCD_Backlight( &hlcd, LCD_ON );
     xTimerStart( xTimerDisplay, TICKS );
+
+    return DISPLAY_3;
 }
 
 /**
@@ -344,7 +350,7 @@ static void Alarm_Clean( APP_MsgTypeDef *DisplayMsg )
  *
  * This function with the help of the alarm that has been triggered, start to blink the LCD and making blink the buzzer
  */
-static void Display_Buzzer( TimerHandle_t pxTimer )
+STATIC void Display_Buzzer( TimerHandle_t pxTimer )
 {
     UNUSED( pxTimer );
 
@@ -371,7 +377,7 @@ static void Display_Buzzer( TimerHandle_t pxTimer )
  * This function after 1mn the alarm will be desactivated either by the time or by other message
  * @param   pxTimer Timer handler
  */
-static void Display_1Mn_Buzzer( TimerHandle_t pxTimer )
+STATIC void Display_1Mn_Buzzer( TimerHandle_t pxTimer )
 {
     UNUSED( pxTimer );
 
