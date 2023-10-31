@@ -84,133 +84,108 @@ Invoke the function when the Message by CAN was received.
     Serial_Task( );
 }*/
 //////////////////////////////////////////
-
 void test_Serial_Task_WithValidData( void )
 {
+    NEW_MsgTypeDef mockMessage = {0};
+    //NEW_MsgTypeDef newMessage = {0};
+    mockMessage.Data[0] = 0x04; 
+    mockMessage.Data[1] = 0x01; 
+    mockMessage.Data[2] = 0x23; 
+    mockMessage.Data[3] = 0x10; 
+    mockMessage.Data[4] = 0x01; 
 
-    // FDCAN_HandleTypeDef hfdcan = { 0 };
-    //  Crea un mensaje válido y colócalo en la cola para simular su recepción
-    NEW_MsgTypeDef validMsg = { 0 };
+    //xQueueReceive_ExpectAndReturn(serialQueue, &mockMessage, 0, pdPASS); //ReturnToPointer
+    xQueueReceive_ExpectAnyArgsAndReturn(pdTRUE);
+    xQueueReceive_ReturnThruPtr_pvBuffer(mockMessage);
+    //xQueueReceive_IgnoreAndReturn( pdPASS );
+    //xQueueReceive_IgnoreAndReturn( errQUEUE_EMPTY );
 
-    validMsg.Data[ 0 ] = 05;
-    validMsg.Data[ 1 ] = 01;
-    validMsg.Data[ 2 ] = 20;
-    validMsg.Data[ 3 ] = 17;
-    validMsg.Data[ 4 ] = 10;
-    validMsg.Data[ 5 ] = 00;
-    validMsg.Data[ 6 ] = 00;
-    validMsg.Data[ 7 ] = 00;
+    Serial_Task();
+}
+/////////////////////
+/*Testing calling Serial_StMachine.
+Invoke the function to verify the time elemnets.
+Returns the next event that will be executed.
+*/
+void test__SerialTimeState__timeEvent(void)
+{
+    NEW_MsgTypeDef msgRecieved;
+    msgRecieved.Data[NUM_0] = 1;
+    msgRecieved.Data[TIME_HOUR_ELEMENT] = 0x20;
+    msgRecieved.Data[TIME_MIN_ELEMENT] = 0x43;
+    msgRecieved.Data[TIME_SEC_ELEMENT] = 0x20;
 
-    /*HAL_FDCAN_GetRxMessage_IgnoreAndReturn( HAL_OK );
-    xQueueGenericSendFromISR_ExpectAndReturn( serialQueue, &validMsg.Data[ SINGLE_FRAME_ELEMENT ], NULL, pdFALSE,  pdTRUE );
-    HAL_FDCAN_RxFifo0Callback( &hfdcan, 1 );*/
+    xQueueGenericSend_IgnoreAndReturn( pdPASS );
 
-    // xQueueGenericSend_IgnoreAndReturn( pdPASS );
+    MACHINE_SERIAL nextEvent = Serial_StMachine(&msgRecieved);
+    TEST_ASSERT_EQUAL_MESSAGE(  SERIAL_OK, nextEvent, "Event state time elements are corrected" );
 
-    // TEST_ASSERT_EQUAL(pdTRUE, xQueueSend(serialQueue, &validMsg, 0));
-    // xQueueCRSend_ExpectAndReturn(serialQueue, &validMsg, 0, pdPASS);
-    // xQueueReceive_ExpectAndReturn(serialQueue, &validMsg, 0, pdPASS);
-    // TEST_ASSERT_EQUAL(pdTRUE, xQueueReceive(serialQueue, &validMsg, 0));
-    // xQueueReceive_IgnoreAndReturn( pdPASS );
-
-    xQueueReceive_ExpectAndReturn( serialQueue, &validMsg, 0, pdPASS );
-    // TEST_ASSERT_EQUAL_MESSAGE( pdPASS, res, "Correct time" );
-
-    Serial_Task( );
 }
 
-/////////////////////////////////////
 /*Testing calling Serial_StMachine.
-Invoke the function when is necessary to validate the kind of message.
+Invoke the function to verify the time elemnets are incorrected.
+Returns the next event that will be executed.
 */
-/*void test__Serial_StMachine__machineTest( void )
+void test__SerialTimeState__timeEventError(void)
 {
-    NEW_MsgTypeDef serialMSG = {
-    .Data[ 0 ] = 1,
-    .Data[ 1 ] = 12,
-    .Data[ 2 ] = 54,
-    .Data[ 3 ] = 10,
-    };
+    NEW_MsgTypeDef msgRecieved;
+    msgRecieved.Data[NUM_0] = 1;
+    msgRecieved.Data[TIME_HOUR_ELEMENT] = 0x24;
+    msgRecieved.Data[TIME_MIN_ELEMENT] = 0x43;
+    msgRecieved.Data[TIME_SEC_ELEMENT] = 0x20;
 
     xQueueGenericSend_IgnoreAndReturn( pdPASS );
 
-    Serial_StMachine( &serialMSG );
-}*/
+    MACHINE_SERIAL nextEvent = Serial_StMachine(&msgRecieved);
+    TEST_ASSERT_EQUAL_MESSAGE(  SERIAL_ERROR, nextEvent, "Event state time elements are incorrected" );
 
-/*void test__SerialTimeState__TimeStateTest( void )
+}
+
+/*Testing calling Serial_StMachine.
+Invoke the function to verify the date elemnets.
+Returns the next event that will be executed.
+*/
+void test__SerialDateState__dateEvent(void)
 {
-    NEW_MsgTypeDef serialMSG = {
-    .Data[ 0 ] = 1,
-    .Data[ 1 ] = 12,
-    .Data[ 2 ] = 54,
-    .Data[ 3 ] = 10,
-    };
-
-    APP_MsgTypeDef messageStruct = { 0 };
-
-    messageStruct.tm.tm_hour = BCD_conver( serialMSG.Data[ 1 ] );
-    messageStruct.tm.tm_min  = BCD_conver( serialMSG.Data[ 2 ] );
-    messageStruct.tm.tm_sec  = BCD_conver( serialMSG.Data[ 3 ] );*/
-
-/*xQueueGenericSend_IgnoreAndReturn( pdPASS );
-
-uint8_t hour = 12, minutes = 54, seconds = 10;
-
-uint8_t ret_val = Validate_Time( hour, minutes , seconds );
-TEST_ASSERT_EQUAL_MESSAGE( 1, ret_val, "Correct time" );
-
-SerialTimeState( &serialMSG );
-}*/
-
-/*void test__SerialTimeState__TimeStateError( void )
-{
-    NEW_MsgTypeDef serialMSG = {
-    .Data[ 0 ] = SERIAL_MSG_TIME,
-    .Data[ 1 ] = 25,
-    .Data[ 2 ] = 54,
-    .Data[ 3 ] = 10,
-    };
+    NEW_MsgTypeDef msgRecieved;
+    msgRecieved.Data[NUM_0] = 2;
+    msgRecieved.Data[DATE_DAY_ELEMENT] = 0x29;
+    msgRecieved.Data[DATE_MON_ELEMENT] = 0x10;
+    msgRecieved.Data[DATE_MSB_YEAR_ELEMENT] = 0x20;
+    msgRecieved.Data[DATE_LSB_YEAR_ELEMENT] = 0x23;
 
     xQueueGenericSend_IgnoreAndReturn( pdPASS );
 
-    uint8_t ret_val = Validate_Time(serialMSG.Data[1], serialMSG.Data[2], serialMSG.Data[3]);
-    TEST_ASSERT_EQUAL_MESSAGE( 0, ret_val, "Incorrect time" );
+    MACHINE_SERIAL nextEvent = Serial_StMachine(&msgRecieved);
+    TEST_ASSERT_EQUAL_MESSAGE(  SERIAL_OK, nextEvent, "Event state date elements are corrected" );
 
-    SerialTimeState( &serialMSG );
-}*/
+}
 
-/*void test__SerialDateState__dateStateTest( void )
+/*Testing calling Serial_StMachine.
+Invoke the function to verify the date elemnets are incorrected.
+Returns the next event that will be executed.
+*/
+void test__SerialDateState__dateEventError(void)
 {
-    NEW_MsgTypeDef serialMSG = {
-    .Data[ 0 ] = 2,
-    .Data[ 1 ] = 24,
-    .Data[ 2 ] = 10,
-    .Data[ 3 ] = 20,
-    .Data[ 4 ] = 23,
-    };
+    NEW_MsgTypeDef msgRecieved;
+    msgRecieved.Data[NUM_0] = 2;
+    msgRecieved.Data[DATE_DAY_ELEMENT] = 0x35;
+    msgRecieved.Data[DATE_MON_ELEMENT] = 0x10;
+    msgRecieved.Data[DATE_MSB_YEAR_ELEMENT] = 0x20;
+    msgRecieved.Data[DATE_LSB_YEAR_ELEMENT] = 0x23;
 
-    APP_MsgTypeDef messageStruct = { 0 };
+    xQueueGenericSend_IgnoreAndReturn( pdPASS );
 
-    messageStruct.tm.tm_mday = BCD_conver( serialMSG.Data[ 1 ] );
-    messageStruct.tm.tm_mon   = BCD_conver( serialMSG.Data[ 2 ] );
-    messageStruct.tm.tm_year   = ( ( BCD_conver( serialMSG.Data[ 3 ] ) * NUM_100 ) + BCD_conver( serialMSG.Data[ 4] ) );*/
+    MACHINE_SERIAL nextEvent = Serial_StMachine(&msgRecieved);
+    TEST_ASSERT_EQUAL_MESSAGE(  SERIAL_ERROR, nextEvent, "Event state date elements are incorrected" );
 
-/*xQueueGenericSend_IgnoreAndReturn( pdPASS );
-
-uint8_t days = 29, month = 2, res = 0;
-uint16_t year = 2020;
-
-res = Validate_Date( days, month, year );
-TEST_ASSERT_EQUAL_MESSAGE( 1, res, "Correct Date" );
-
-SerialDateState( &serialMSG );
-}*/
+}
 
 /*Testing calling Serial_StMachine.
 Invoke the function to verify the Alarm event when the queue has correct elements.
 Returns the next event that will be executed.
 */
-void test__SerialAlarmStatee__alarmEvent(void)
+void test__SerialAlarmState__alarmEvent(void)
 {
     NEW_MsgTypeDef msgRecieved;
     msgRecieved.Data[NUM_0] = 3;
@@ -228,7 +203,7 @@ void test__SerialAlarmStatee__alarmEvent(void)
 Invoke the function to verify the Alarm event when the queue has bad elements.
 Returns the next event that will be executed.
 */
-void test__SerialAlarmStatee__alarmEventError(void)
+void test__SerialAlarmState__alarmEventError(void)
 {
     NEW_MsgTypeDef msgRecieved;
     msgRecieved.Data[NUM_0] = 3;
