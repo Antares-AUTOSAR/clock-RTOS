@@ -55,7 +55,20 @@
 /**
  * @}
  */
+
+/**
+ * @defgroup Testing static Functions
+ * @{
+ */
+#ifdef UTEST
+#define STATIC
+#else
+#define STATIC static /*!< precompilation direcctive */
+#endif
+/**
+ * @}
+ */
+
 void Display_Init( void );
 void Display_Task( void );
-
 #endif
