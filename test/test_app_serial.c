@@ -91,16 +91,16 @@ The queue has a message.
 */
 void test_Serial_Task_WithValidData( void )
 {
-    NEW_MsgTypeDef mockMessage = { 0 };
+    NEW_MsgTypeDef mockMessage               = { 0 };
     mockMessage.Data[ SINGLE_FRAME_ELEMENT ] = 0x04;
-    mockMessage.Data[ NUM_1 ] = 0x01;
+    mockMessage.Data[ NUM_1 ]                = 0x01;
 
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &mockMessage, sizeof(NEW_MsgTypeDef));
-    xQueueReceive_ExpectAnyArgsAndReturn(pdFALSE);
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &mockMessage, sizeof( NEW_MsgTypeDef ) );
+    xQueueReceive_ExpectAnyArgsAndReturn( pdFALSE );
 
     xQueueGenericSend_IgnoreAndReturn( pdPASS );
-    
+
 
     Serial_Task( );
 }
@@ -111,16 +111,16 @@ The queue has a message but the elements are incorrect.
 */
 void test_Serial_Task_ErrorSingleFrame( void )
 {
-    NEW_MsgTypeDef mockMessage = { 0 };
+    NEW_MsgTypeDef mockMessage               = { 0 };
     mockMessage.Data[ SINGLE_FRAME_ELEMENT ] = 0x08;
-    mockMessage.Data[ NUM_1 ] = 0x01;
+    mockMessage.Data[ NUM_1 ]                = 0x01;
 
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &mockMessage, sizeof(NEW_MsgTypeDef));
-    xQueueReceive_ExpectAnyArgsAndReturn(pdFALSE);
-    
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &mockMessage, sizeof( NEW_MsgTypeDef ) );
+    xQueueReceive_ExpectAnyArgsAndReturn( pdFALSE );
+
     xQueueGenericSend_IgnoreAndReturn( pdPASS );
-    
+
     Serial_Task( );
 }
 
