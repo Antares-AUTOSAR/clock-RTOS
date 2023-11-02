@@ -74,37 +74,58 @@ void test__HAL_FDCAN_RxFifo0Callback__messageNOTReceived( void )
     HAL_FDCAN_RxFifo0Callback( &hfdcan, 0 );
 }
 
-/*Testing calling Serial_Tak.
-Invoke the function when the Message by CAN was received.
+/*Testing calling Serial_Task.
+Invoke the function when the Message by CAN was not received.
+The queue is empty.
 */
-/*void test__Serial_Task__queueEmpty( void )
+void test__Serial_Task__queueEmpty( void )
 {
     xQueueReceive_IgnoreAndReturn( errQUEUE_EMPTY );
 
     Serial_Task( );
-}*/
-//////////////////////////////////////////
+}
+
+/*Testing calling Serial_Task.
+Invoke the function when the Message by CAN was received.
+The queue has a message.
+*/
 void test_Serial_Task_WithValidData( void )
 {
     NEW_MsgTypeDef mockMessage = { 0 };
-    // NEW_MsgTypeDef newMessage = {0};
-    mockMessage.Data[ 0 ] = 0x04;
-    mockMessage.Data[ 1 ] = 0x01;
-    mockMessage.Data[ 2 ] = 0x23;
-    mockMessage.Data[ 3 ] = 0x10;
-    mockMessage.Data[ 4 ] = 0x01;
+    mockMessage.Data[ SINGLE_FRAME_ELEMENT ] = 0x04;
+    mockMessage.Data[ NUM_1 ] = 0x01;
 
-    // xQueueReceive_ExpectAndReturn(serialQueue, &mockMessage, 0, pdPASS); //ReturnToPointer
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnThruPtr_pvBuffer( mockMessage );
-    // xQueueReceive_IgnoreAndReturn( pdPASS );
-    // xQueueReceive_IgnoreAndReturn( errQUEUE_EMPTY );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &mockMessage, sizeof(NEW_MsgTypeDef));
+    xQueueReceive_ExpectAnyArgsAndReturn(pdFALSE);
+
+    xQueueGenericSend_IgnoreAndReturn( pdPASS );
+    
 
     Serial_Task( );
 }
-/////////////////////
+
+/*Testing calling Serial_Task.
+Invoke the function when the Message by CAN was received but the first byte was incorrect.
+The queue has a message but the elements are incorrect.
+*/
+void test_Serial_Task_ErrorSingleFrame( void )
+{
+    NEW_MsgTypeDef mockMessage = { 0 };
+    mockMessage.Data[ SINGLE_FRAME_ELEMENT ] = 0x08;
+    mockMessage.Data[ NUM_1 ] = 0x01;
+
+    xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &mockMessage, sizeof(NEW_MsgTypeDef));
+    xQueueReceive_ExpectAnyArgsAndReturn(pdFALSE);
+    
+    xQueueGenericSend_IgnoreAndReturn( pdPASS );
+    
+    Serial_Task( );
+}
+
 /*Testing calling Serial_StMachine.
-Invoke the function to verify the time elemnets.
+Invoke the function to verify the time elements.
 Returns the next event that will be executed.
 */
 void test__SerialTimeState__timeEvent( void )
@@ -122,7 +143,7 @@ void test__SerialTimeState__timeEvent( void )
 }
 
 /*Testing calling Serial_StMachine.
-Invoke the function to verify the time elemnets are incorrected.
+Invoke the function to verify the time elements are incorrected.
 Returns the next event that will be executed.
 */
 void test__SerialTimeState__timeEventError( void )
@@ -140,7 +161,7 @@ void test__SerialTimeState__timeEventError( void )
 }
 
 /*Testing calling Serial_StMachine.
-Invoke the function to verify the date elemnets.
+Invoke the function to verify the date elements.
 Returns the next event that will be executed.
 */
 void test__SerialDateState__dateEvent( void )
