@@ -45,6 +45,10 @@
   :reports:
     - HtmlDetailed            # genarate a detail report of each file in  HTML
     - XmlSummary              # generate xml for github actions
+  :gcovr:
+    :xml_pretty: true
+    :cobertura_pretty: true
+    :report_exclude:
   :uncovered_ignore_list:
     - halg0/**                # Ignore files in HAL library
     - cmsisg0/**              # Ignore files in HAL library
