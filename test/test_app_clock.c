@@ -166,3 +166,13 @@ void test__Clock_Update__DateAndTime( void )
 
     Clock_Update_DateAndTime( testTimer );
 }
+
+/* Testing the GitHub workflow
+*/
+void test__Clock_Update__DateAndTime2( void )
+{
+    TimerHandle_t testTimer = { 0 };
+    xQueueGenericSend_IgnoreAndReturn( pdPASS );
+
+    Clock_Update_DateAndTime( testTimer );
+}
