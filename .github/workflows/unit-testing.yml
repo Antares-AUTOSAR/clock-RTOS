@@ -1,6 +1,6 @@
 name: unit-testing
 on:
-    workflow_run:
+    workflow_dispatch:
     
 permissions:
   checks: write
