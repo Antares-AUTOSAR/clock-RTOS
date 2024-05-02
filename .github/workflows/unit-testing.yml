@@ -1,7 +1,7 @@
 name: unit-testing
 on:
-  #pull_request:
-
+    workflow_run:
+    
 permissions:
   checks: write
   pull-requests: write
