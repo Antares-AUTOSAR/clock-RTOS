@@ -35,6 +35,7 @@
   :enabled:
     - stdout_pretty_tests_report  # Display test cases result in a better way
     - gcov                        # Code coverage
+    - junit_tests_report
 
 
 # enable and configure code coverage
