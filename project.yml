@@ -35,6 +35,7 @@
   :enabled:
     - stdout_pretty_tests_report  # Display test cases result in a better way
     - gcov                        # Code coverage
+    - junit_tests_report
 
 
 # enable and configure code coverage
@@ -44,6 +45,11 @@
     - gcovr                   # gcovr for report generation
   :reports:
     - HtmlDetailed            # genarate a detail report of each file in  HTML
+    - XmlSummary              # generate xml for github actions
+  :gcovr:
+    :xml_pretty: true
+    :cobertura_pretty: true
+    :report_exclude:
   :uncovered_ignore_list:
     - halg0/**                # Ignore files in HAL library
     - cmsisg0/**              # Ignore files in HAL library
@@ -69,7 +75,7 @@
     - '(?:HAL_GPIO_EXTI_Rising_Callback\s*\(+.*?\)+)'     # For instance the callback functions
     - '(?:HAL_GPIO_EXTI_Falling_Callback\s*\(+.*?\)+)'    # For instance the callback functions
     - '(?:HAL_RTC_AlarmAEventCallback\s*\(+.*?\)+)'    # For instance the callback functions
-    
+    - '(?:HAL_FDCAN_RxFifo0Callback\s*\(+.*?\)+)'         # For instance the callback functions
   :plugins:
     - :ignore                 # Generate <function>_Ignore and <function>_IgnoreAndReturn
     - :ignore_arg             # Generate <function>_IgnoreArg_<param_name>

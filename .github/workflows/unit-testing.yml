@@ -1,0 +1,22 @@
+name: unit-testing
+on:
+    workflow_dispatch:
+    pull_request:
+    
+permissions:
+  checks: write
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Run tests
+        uses: batov/ceedling_action@master
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+            files: Build/ceedling/artifacts/test/report.xml

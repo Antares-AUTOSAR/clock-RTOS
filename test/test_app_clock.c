@@ -250,4 +250,3 @@ void test_RTC_CALLBACK( void )
     xTimerGenericCommand_IgnoreAndReturn( pdPASS );
     xQueueGenericSend_IgnoreAndReturn( pdPASS );
     HAL_RTC_AlarmAEventCallback( &hrtc_mock );
-}
