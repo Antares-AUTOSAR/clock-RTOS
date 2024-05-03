@@ -61,12 +61,14 @@ extern FDCAN_HandleTypeDef CANHandler;
  */
 typedef enum
 {
-    SERIAL_MSG_ALARM, /**< Received Alarm message type */
-    SERIAL_MSG_DATE,  /**< Received Date message type */
-    SERIAL_MSG_TIME,  /**< Received Time message type */
-    CLOCK_MSG_PRINT,  /**< Print clock data message type */
-    OK_STATE,         /**< Ok state of data    */
-    ERROR_STATE       /*!< Error state of data */
+    SERIAL_MSG_ALARM,    /**< Received Alarm message type */
+    SERIAL_MSG_DATE,     /**< Received Date message type */
+    SERIAL_MSG_TIME,     /**< Received Time message type */
+    CLOCK_MSG_PRINT,     /**< Print clock data message type */
+    OK_STATE,            /**< Ok state of data    */
+    ERROR_STATE,         /*!< Error state of data */
+    DISPLAY_MSG_ALARM_A, /*!< Message alarm A*/
+    DISPLAY_ALARM        /*!< Display Alarm!!!*/
 } APP_Messages;
 
 /**
@@ -74,8 +76,11 @@ typedef enum
  */
 typedef enum
 {
-    DISPLAY_MSG_TIME,  /**< Received Time message type */
-    DISPLAY_IDLE_STATE /**< Received Date message type */
+    DISPLAY_MSG_TIME,   /**< Received Time message type */
+    DISPLAY_IDLE_STATE, /**< Received Date message type */
+    DISPLAY_1,          /**< Return for Alarm_A */
+    DISPLAY_2,          /**< Return for Alarm */
+    DISPLAY_3           /**< Return for Alarm_Clean  */
 } Display_M;
 
 /**

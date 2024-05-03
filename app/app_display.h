@@ -7,7 +7,7 @@
 #ifndef APP_DISPLAY_H
 #define APP_DISPLAY_H
 
-#define DISPLAY_STATES         2U /*!< Total states in event machine */
+#define DISPLAY_STATES         5U /*!< Total states in event machine */
 
 /**
  * @defgroup Declarations of counters
@@ -55,6 +55,11 @@
 /**
  * @}
  */
+
+#define TIMER_BUZZER_ID        (void *)(uint32_t)1 /*!< ID for timer used to update display  */
+#define ACTIVE                 1u                  /*!< Buzzer state */
+#define INACTIVE               0u                  /*!< Buzzer state  */
+#define TICKS                  0u                  /*!< The maximum amount of time */
 
 /**
  * @defgroup Testing static Functions

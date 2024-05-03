@@ -20,12 +20,37 @@ typedef struct
 /**
  * @brief Variable for LCD configuration
  */
-LCD_HandleTypeDef hlcd; /* cppcheck-suppress misra-c2012-8.4  ;Not moving due to unit testing*/
+LCD_HandleTypeDef Hlcd; /* cppcheck-suppress misra-c2012-8.4  ;Not moving due to unit testing*/
 
 /**
  * @brief Variable for SPI configuration
  */
 SPI_HandleTypeDef SpiHandle; /* cppcheck-suppress misra-c2012-8.4  ;Not moving due to unit testing*/
+
+/**
+ * @brief  Strucuture that gives format to timer
+ */
+static TIM_HandleTypeDef TimHandle;
+
+/**
+ * @brief  Flag that will tell if the buzzer needs to be activated
+ */
+uint8_t buzzer_flag = 0; /* cppcheck-suppress misra-c2012-8.4  ;Not moving due to unit testing*/
+
+/**
+ * @brief  Flag that will tell if the buzzer needs to be activated
+ */
+uint8_t buzzer = 0; /* cppcheck-suppress misra-c2012-8.4  ;Not moving due to unit testing*/
+
+/**
+ * @brief  Struct for handling Software timer for the buzzer
+ */
+static TimerHandle_t xTimerBuzzer;
+
+/**
+ * @brief  Struct for handling Software timer for 1mn for the buzzer
+ */
+static TimerHandle_t xTimer1Mn_Buzzer;
 
 static void Display_Machine( APP_MsgTypeDef *DisplayMsg );
 STATIC Display_M Time( APP_MsgTypeDef *DisplayMsg );
@@ -33,6 +58,11 @@ STATIC Display_M Date( APP_MsgTypeDef *DisplayMsg );
 STATIC void TimeString( char *string, uint8_t hours, uint8_t minutes, uint8_t seconds );
 STATIC void DateString( char *string, uint8_t month, uint8_t day, uint16_t year, uint8_t weekday );
 STATIC char *get_month( uint8_t month );
+STATIC Display_M Alarm_A( APP_MsgTypeDef *DisplayMsg );
+STATIC Display_M Alarm( APP_MsgTypeDef *DisplayMsg );
+STATIC Display_M Alarm_Clean( APP_MsgTypeDef *DisplayMsg );
+STATIC void Display_Buzzer( TimerHandle_t pxTimer );
+STATIC void Display_1Mn_Buzzer( TimerHandle_t pxTimer );
 
 /**
  * @brief   Get the abbreviation of the month
@@ -120,15 +150,17 @@ STATIC void DateString( char *string, uint8_t month, uint8_t day, uint16_t year,
  */
 void Display_Init( void )
 {
-    hlcd.SpiHandler = &SpiHandle;
-    hlcd.RstPort    = GPIOD;
-    hlcd.RstPin     = GPIO_PIN_2;
-    hlcd.RsPort     = GPIOD;
-    hlcd.RsPin      = GPIO_PIN_4;
-    hlcd.CsPort     = GPIOD;
-    hlcd.CsPin      = GPIO_PIN_3;
-    hlcd.BklPort    = GPIOB;
-    hlcd.BklPin     = GPIO_PIN_4;
+    TIM_OC_InitTypeDef sConfig;
+
+    Hlcd.SpiHandler = &SpiHandle;
+    Hlcd.RstPort    = GPIOD;
+    Hlcd.RstPin     = GPIO_PIN_2;
+    Hlcd.RsPort     = GPIOD;
+    Hlcd.RsPin      = GPIO_PIN_4;
+    Hlcd.CsPort     = GPIOD;
+    Hlcd.CsPin      = GPIO_PIN_3;
+    Hlcd.BklPort    = GPIOB;
+    Hlcd.BklPin     = GPIO_PIN_4;
 
     SpiHandle.Instance               = SPI1;
     SpiHandle.Init.Mode              = SPI_MODE_MASTER;
@@ -143,9 +175,27 @@ void Display_Init( void )
     SpiHandle.Init.TIMode            = SPI_TIMODE_DISABLED;
     HAL_SPI_Init( &SpiHandle );
 
-    (void)HEL_LCD_Init( &hlcd );
-    (void)HEL_LCD_Backlight( &hlcd, LCD_ON );
-    (void)HEL_LCD_Contrast( &hlcd, 15 );
+    (void)HEL_LCD_Init( &Hlcd );
+    (void)HEL_LCD_Backlight( &Hlcd, LCD_ON );
+    (void)HEL_LCD_Contrast( &Hlcd, 15 );
+
+    TimHandle.Instance         = TIM14;
+    TimHandle.Init.Prescaler   = 10;
+    TimHandle.Init.Period      = 3200;
+    TimHandle.Init.CounterMode = TIM_COUNTERMODE_UP;
+    HAL_TIM_PWM_Init( &TimHandle );
+
+    sConfig.OCMode     = TIM_OCMODE_PWM1;
+    sConfig.OCPolarity = TIM_OCPOLARITY_HIGH;
+    sConfig.OCFastMode = TIM_OCFAST_DISABLE;
+    sConfig.Pulse      = 1600;
+    HAL_TIM_PWM_ConfigChannel( &TimHandle, &sConfig, TIM_CHANNEL_1 );
+
+    xTimerBuzzer = xTimerCreate( "Timer", 1000, pdTRUE, TIMER_BUZZER_ID, Display_Buzzer );
+    xTimerStart( xTimerBuzzer, TICKS );
+
+    xTimer1Mn_Buzzer = xTimerCreate( "Timer", 60000, pdTRUE, TIMER_BUZZER_ID, Display_1Mn_Buzzer );
+    xTimerStart( xTimer1Mn_Buzzer, TICKS );
 }
 
 /**
@@ -178,6 +228,9 @@ static void Display_Machine( APP_MsgTypeDef *DisplayMsg )
     {
     { Time },
     { Date },
+    { Alarm_A },
+    { Alarm },
+    { Alarm_Clean },
     };
 
     static APP_Messages state;
@@ -201,8 +254,8 @@ STATIC Display_M Time( APP_MsgTypeDef *DisplayMsg )
 
     TimeString( string, DisplayMsg->tm.tm_hour, DisplayMsg->tm.tm_min, DisplayMsg->tm.tm_sec );
 
-    (void)HEL_LCD_SetCursor( &hlcd, 1, 3 );
-    (void)HEL_LCD_String( &hlcd, string );
+    (void)HEL_LCD_SetCursor( &Hlcd, 1, 3 );
+    (void)HEL_LCD_String( &Hlcd, string );
 
     DisplayMsg->msg = SERIAL_MSG_DATE;
     xQueueSend( displayQueue, DisplayMsg, 0 );
@@ -223,8 +276,117 @@ STATIC Display_M Date( APP_MsgTypeDef *DisplayMsg )
     char date_string[] = "000,00 0000 00"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print date*/
     DateString( date_string, DisplayMsg->tm.tm_mon, DisplayMsg->tm.tm_mday, DisplayMsg->tm.tm_year, DisplayMsg->tm.tm_wday );
 
-    (void)HEL_LCD_SetCursor( &hlcd, 0, 1 );
-    (void)HEL_LCD_String( &hlcd, date_string );
+    (void)HEL_LCD_SetCursor( &Hlcd, 0, 1 );
+    (void)HEL_LCD_String( &Hlcd, date_string );
 
     return DISPLAY_IDLE_STATE;
+}
+
+/**
+ * @brief   Prints the letter A
+ *
+ * This function prints the letter A when the alarm has been setted
+ * @param DisplayMsg:  A pointer to the message structure containing state information
+ * @return DISPLAY_1: State for testing and knowing a message have been sent
+ */
+STATIC Display_M Alarm_A( APP_MsgTypeDef *DisplayMsg )
+{
+    UNUSED( DisplayMsg );
+
+    (void)HEL_LCD_SetCursor( &Hlcd, 1, 0 );
+    (void)HEL_LCD_Data( &Hlcd, 'A' );
+
+    return DISPLAY_1;
+}
+
+/**
+ * @brief  Prints the ALARM!!!
+ *
+ * This function prints ALARM!!! when the alarm has been activated. Furthermore, it indicates that the buzzer must be activated
+ * @param DisplayMsg:  A pointer to the message structure containing state information
+ * @return DISPLAY_2: State for testing and knowing a message have been sent
+ */
+STATIC Display_M Alarm( APP_MsgTypeDef *DisplayMsg )
+{
+    UNUSED( DisplayMsg );
+    char string[] = "ALARM!!!"; /* cppcheck-suppress misra-c2012-7.4  ;Array to print time */
+    buzzer        = ACTIVE;
+    buzzer_flag   = ACTIVE;
+
+    (void)HEL_LCD_SetCursor( &Hlcd, 1, 0 );
+    (void)HEL_LCD_Data( &Hlcd, ' ' );
+
+    (void)HEL_LCD_SetCursor( &Hlcd, 1, 3 );
+    (void)HEL_LCD_String( &Hlcd, string );
+    (void)HEL_LCD_Backlight( &Hlcd, LCD_ON );
+
+    return DISPLAY_2;
+}
+
+/**
+ * @brief  Clean Alarm
+ *
+ * This function prints stop and turn off before the one-minute lapse expire by receiving a new date, time, or alarm through the CAN bus
+ * @param DisplayMsg:  A pointer to the message structure containing state information
+ * @return DISPLAY_3: State for testing and knowing a message have been sent
+ */
+STATIC Display_M Alarm_Clean( APP_MsgTypeDef *DisplayMsg )
+{
+    UNUSED( DisplayMsg );
+
+    buzzer_flag = INACTIVE;
+    buzzer      = INACTIVE;
+    HAL_TIM_PWM_Stop( &TimHandle, TIM_CHANNEL_1 );
+
+    xTimerStop( xTimerBuzzer, TICKS );
+    xTimerStop( xTimer1Mn_Buzzer, TICKS );
+    (void)HEL_LCD_Backlight( &Hlcd, LCD_ON );
+    xTimerStart( xTimerDisplay, TICKS );
+
+    return DISPLAY_3;
+}
+
+/**
+ * @brief   Function for sotware timer of the buzzer
+ * @param   pxTimer Timer handler
+ *
+ * This function with the help of the alarm that has been triggered, start to blink the LCD and making blink the buzzer
+ */
+STATIC void Display_Buzzer( TimerHandle_t pxTimer )
+{
+    UNUSED( pxTimer );
+
+    if( buzzer_flag == ACTIVE )
+    {
+        if( buzzer == ACTIVE )
+        {
+            buzzer = INACTIVE;
+            HAL_TIM_PWM_Start( &TimHandle, TIM_CHANNEL_1 );
+            (void)HEL_LCD_Backlight( &Hlcd, LCD_OFF );
+        }
+        else
+        {
+            buzzer = ACTIVE;
+            HAL_TIM_PWM_Stop( &TimHandle, TIM_CHANNEL_1 );
+            (void)HEL_LCD_Backlight( &Hlcd, LCD_ON );
+        }
+    }
+}
+
+/**
+ * @brief  Function for software timer for the 1mn of the alarm
+ *
+ * This function after 1mn the alarm will be desactivated either by the time or by other message
+ * @param   pxTimer Timer handler
+ */
+STATIC void Display_1Mn_Buzzer( TimerHandle_t pxTimer )
+{
+    UNUSED( pxTimer );
+
+    if( buzzer_flag == ACTIVE )
+    {
+        HAL_TIM_PWM_Stop( &TimHandle, TIM_CHANNEL_1 );
+        xTimerStop( xTimerBuzzer, TICKS );
+        (void)HEL_LCD_Backlight( &Hlcd, LCD_ON );
+    }
 }

@@ -95,6 +95,9 @@ void HAL_RTC_MspInit( RTC_HandleTypeDef *hrtc )
 
     __HAL_RCC_RTC_ENABLE( );
     __HAL_RCC_RTCAPB_CLK_ENABLE( );
+
+    HAL_NVIC_SetPriority( RTC_TAMP_IRQn, 2, 0 );
+    HAL_NVIC_EnableIRQ( RTC_TAMP_IRQn );
 }
 
 /**
@@ -173,4 +176,29 @@ void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )
 
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, SET );
     HAL_GPIO_WritePin( hlcd->BklPort, hlcd->BklPin, SET );
+}
+
+/**
+ * @brief   Initialize PWM
+ *
+ * This function initializes the TIM peripheral and associated GPIO pins for operation
+ * It enables the ports for using the pwm with the buzzer
+ *
+ * @param htim: pointer to htmi handle structure
+ */
+/* cppcheck-suppress misra-c2012-8.4 ; its external linkage is declared at HAL library */
+void HAL_TIM_PWM_MspInit( TIM_HandleTypeDef *htim )
+{
+    (void)htim;
+    GPIO_InitTypeDef GPIO_InitStruct;
+
+    __TIM14_CLK_ENABLE( );
+    __GPIOC_CLK_ENABLE( );
+
+    GPIO_InitStruct.Pin       = GPIO_PIN_12;
+    GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull      = GPIO_PULLUP;
+    GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF2_TIM14;
+    HAL_GPIO_Init( GPIOC, &GPIO_InitStruct );
 }
