@@ -10,6 +10,17 @@
 #define APP_SERIAL_H__
 
 /**
+ * @defgroup SerialTestingMacros unit testing
+ @{*/
+#ifdef UTEST
+#define STATIC /*!< Macro defined for testing purposes.*/
+#else
+#define STATIC static /*!< Macro defined for testing purposes.*/
+#endif
+/**
+@} */
+
+/**
   * @defgroup Months, months of the year in hexa
   @{ */
 #define JANUARY                       1u  /*!< January in hexa   */
@@ -95,6 +106,19 @@
 #define VAL_BUFFERINDEXES             0u     /*!< Value for BufferIndexes        */
 /**
   @} */
+
+/**
+ * @brief   Enum with states for state machines
+ */
+typedef enum
+{
+    SERIAL_TIME,  /**< Clock machine state for set alarm */
+    SERIAL_DATE,  /**< Clock machine state for set date  */
+    SERIAL_ALARM, /**< Clock machine state for set time  */
+    SERIAL_OK,    /**< Clock machine state for set print */
+    SERIAL_ERROR, /**< Clock machine state for set print */
+    SERIAL_IDLE   /**< Clock machine state idle          */
+} MACHINE_SERIAL;
 
 extern void Serial_Init( void );
 extern void Serial_Task( void );
