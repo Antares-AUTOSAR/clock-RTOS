@@ -8,5 +8,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Doxygen Action
-      - uses: mattnotmitt/doxygen-action@1.9.8
+        uses: mattnotmitt/doxygen-action@1.9.8
             
