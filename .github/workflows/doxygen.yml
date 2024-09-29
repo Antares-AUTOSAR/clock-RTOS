@@ -1,0 +1,12 @@
+name: doxygen
+on:
+  workflow_dispatch:
+  pull_request:
+  
+jobs:
+  document:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Doxygen Action
+      - uses: mattnotmitt/doxygen-action@1.9.8
+            
