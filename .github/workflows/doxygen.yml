@@ -9,23 +9,12 @@ jobs:
     steps:
       - name: Checkout-repo
         uses: actions/checkout@v4
-      - name: Install_Doxygen
-        run: |
-          mkdir doxygen
-          cd doxygen
-          wget https://www.doxygen.nl/files/doxygen-1.12.0.src.tar.gz
-          gunzip doxygen-1.12.0.src.tar.gz
-          tar xf doxygen-1.12.0.src.tar
-          cd doxygen-1.12.0
-          mkdir build
-          cd build
-          cmake -G "Unix Makefiles" ..
-          make
-          make install
-      - name: Run_Doxygen
-        run: |
-          ls -a
-          doxygen
+      - name: Doxygen
+        uses: mattnotmitt/doxygen-action@v1.9.5
+        with:
+          working-directory: .
+          run: |
+            ls -a
         
       
             
