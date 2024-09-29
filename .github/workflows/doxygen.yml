@@ -10,7 +10,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
       - name: check-current-dir
-        run: ls
+        run: ls -a
       - name: Doxygen Action
         uses: mattnotmitt/doxygen-action@1.9.8
             
