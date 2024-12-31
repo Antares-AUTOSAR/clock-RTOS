@@ -15,4 +15,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
       - name: Get Doxygen
-        run: ls
+        run: |
+         ls
+         cd ..
+         ls
