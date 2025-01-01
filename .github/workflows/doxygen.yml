@@ -21,7 +21,6 @@ jobs:
           gunzip doxygen-1.13.0.linux.bin.tar.gz
           tar -xf doxygen-1.13.0.linux.bin.tar
           rm doxygen-1.13.0.linux.bin.tar
-          ls
       - name: Run Doxygen
         run: |
-          ls
+          ../doxygen-1.13.0/bin/doxygen Doxyfile
