@@ -23,9 +23,13 @@ jobs:
           rm doxygen-1.13.0.linux.bin.tar
       - name: Run Doxygen
         run: ../doxygen-1.13.0/bin/doxygen Doxyfile
-      - name: Check Output
-        run: |
-          ls Build/doxygen/html
+      - name: Upload artifact
+        id: deployment
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: Build/doxygen/html
+
+          
   deploy:
     needs: build
 
@@ -40,6 +44,6 @@ jobs:
     runs-on: ubuntu-24.04
     
     steps:
-        - name: Deploy to GitHub Pages
-          id: deployment
-          uses: actions/deploy-pages@v4
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
