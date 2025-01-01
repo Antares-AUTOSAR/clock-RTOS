@@ -25,4 +25,4 @@ jobs:
         run: ../doxygen-1.13.0/bin/doxygen Doxyfile
       - name: Check Output
         run: |
-          ls Build
+          ls Build/doxygen
