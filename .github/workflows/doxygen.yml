@@ -17,3 +17,5 @@ jobs:
       - name: Get Doxygen
         run: |
           ls ..
+          mkdir ../doxygen
+          ls ..
