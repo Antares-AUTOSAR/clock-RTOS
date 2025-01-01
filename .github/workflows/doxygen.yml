@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -26,3 +26,20 @@ jobs:
       - name: Check Output
         run: |
           ls Build/doxygen/html
+  deploy:
+    needs: build
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.output.page_url }}
+    
+    runs-on: ubuntu-24.04
+    
+    steps:
+        - name: Deploy to GitHub Pages
+          id: deployment
+          uses: actions-deploy-pages@v4
