@@ -18,6 +18,6 @@ jobs:
         run: |
           mkdir ../doxygen
           cd ../doxygen
-          wget https://github.com/doxygen/doxygen/releases/download/Release_1_13_0/doxygen-1.13.0.linux.bin.tar.gz
+          wget -q https://github.com/doxygen/doxygen/releases/download/Release_1_13_0/doxygen-1.13.0.linux.bin.tar.gz
           gunzip doxygen-1.13.0.linux.bin.tar.gz
           ls
